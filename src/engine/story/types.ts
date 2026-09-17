@@ -64,6 +64,11 @@ export interface Step {
   afterNote?: string
   docs?: DocsLink[]
   optional?: boolean
+  /**
+   * Repo files the learner may edit during this step. Everything else opens read-only, so nobody
+   * wanders into an unscripted change. Omit to allow editing any file.
+   */
+  editableFiles?: string[]
   onEnter?: Effect[]
   onComplete?: Effect[]
   /** State changes that can't be expressed as effects, e.g. capturing the player's name. */

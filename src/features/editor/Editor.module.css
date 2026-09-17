@@ -1,0 +1,170 @@
+.editor {
+  display: grid;
+  grid-template-columns: minmax(150px, 30%) 1fr;
+  height: 100%;
+  min-height: 0;
+}
+
+.sidebar {
+  overflow: auto;
+  border-right: 1px solid var(--border);
+  background: var(--chrome);
+  padding: 8px 0;
+  font-size: 0.8125rem;
+}
+
+.sidebarTitle {
+  padding: 2px 12px 6px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.tree {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.treeRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 3px 12px 3px 8px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.treeRow:hover {
+  background: var(--chrome-hover);
+}
+
+.treeRow[aria-current='true'] {
+  background: #dbe4ff;
+  font-weight: 600;
+}
+
+.chevron {
+  width: 10px;
+  color: var(--text-muted);
+}
+
+.fileIcon {
+  font-size: 0.75rem;
+}
+
+.treeName {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dirtyDot {
+  color: var(--accent);
+  font-size: 0.75rem;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 0.8125rem;
+}
+
+.fileName {
+  flex: 1;
+  font-family: var(--font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.branch {
+  padding: 1px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.save {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.save:disabled {
+  border-color: var(--border);
+  background: var(--chrome);
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.kbd {
+  font-size: 0.6875rem;
+  opacity: 0.8;
+}
+
+.readOnly {
+  margin: 0;
+  padding: 6px 12px;
+  background: #fff9db;
+  border-bottom: 1px solid #ffe066;
+  font-size: 0.8125rem;
+}
+
+.codeWrap {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.codeWrap > div {
+  height: 100%;
+}
+
+.empty {
+  padding: 2rem;
+  color: var(--text-muted);
+}
+
+.emptyTitle {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

@@ -222,3 +222,51 @@ describe('terminal actions', () => {
     expect(state.shell.history).toEqual([])
   })
 })
+
+describe('editor buffers', () => {
+  it('keep unsaved text until saved, and forget it when it matches the file again', () => {
+    const state = started()
+    const saved = state.git.local!.working['team.md']
+    const typing = play(config, state, [
+      { type: 'editBuffer', path: 'team.md', content: `${saved}- Ada\n` },
+    ])
+    expect(typing.editor.buffers['team.md']).toBe(`${saved}- Ada\n`)
+    expect(typing.git.local!.working['team.md']).toBe(saved)
+    expect(typing.clock).toBe(state.clock)
+
+    const undone = play(config, typing, [{ type: 'editBuffer', path: 'team.md', content: saved }])
+    expect(undone.editor.buffers).toEqual({})
+
+    const savedNow = play(config, typing, [
+      { type: 'saveFile', path: 'team.md', content: `${saved}- Ada\n` },
+    ])
+    expect(savedNow.editor.buffers).toEqual({})
+    expect(savedNow.git.local!.working['team.md']).toBe(`${saved}- Ada\n`)
+  })
+
+  it('a command that would replace a file with unsaved edits is undone and explained', () => {
+    const state = play(config, started(), [
+      { type: 'editBuffer', path: 'team.md', content: 'draft\n' },
+    ])
+    const blocked = play(config, state, [cmd('rewrite team.md')])
+    expect(blocked.git.local!.working['team.md']).toBe(state.git.local!.working['team.md'])
+    expect(blocked.ui.unsavedBlock).toEqual(['team.md'])
+    expect(blocked.shell.output.at(-1)?.text).toContain('You have unsaved edits in team.md')
+    expect(blocked.shell.history).toEqual(['rewrite team.md'])
+
+    const discarded = play(config, blocked, [{ type: 'discardBuffer', path: 'team.md' }])
+    expect(discarded.ui.unsavedBlock).toBeUndefined()
+    expect(play(config, discarded, [cmd('rewrite team.md')]).git.local!.working['team.md']).toBe(
+      'rewritten\n'
+    )
+  })
+
+  it('edits to other files do not block', () => {
+    const state = play(config, started(), [
+      { type: 'editBuffer', path: 'README.md', content: 'draft\n' },
+    ])
+    expect(play(config, state, [cmd('rewrite team.md')]).git.local!.working['team.md']).toBe(
+      'rewritten\n'
+    )
+  })
+})

@@ -17,6 +17,22 @@ function registry() {
   })
   registerCommand(r, { name: 'hint', run: () => ({ effects: [{ type: 'showHint' }] }) })
   registerCommand(r, {
+    name: 'rewrite',
+    // Stands in for `git pull`: replaces a saved file.
+    run: ({ state, argv }) => ({
+      state: {
+        ...state,
+        git: {
+          ...state.git,
+          local: {
+            ...state.git.local!,
+            working: { ...state.git.local!.working, [argv[1]]: 'rewritten\n' },
+          },
+        },
+      },
+    }),
+  })
+  registerCommand(r, {
     name: 'fail',
     run: () => ({ ok: false, output: [line('nope', 'error')] }),
   })
@@ -40,6 +56,7 @@ export const toyChapter: Chapter = {
       body: 'Type `echo hello`.',
       hints: ['Use echo.', 'Type: echo hello'],
       solution: 'echo hello',
+      editableFiles: ['team.md'],
       goal: (_state, event) =>
         event.type === 'command' && event.name === 'echo' && event.argv[1] === 'hello',
       onEnter: [
