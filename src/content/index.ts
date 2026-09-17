@@ -1,3 +1,4 @@
+export * from './channels'
 export * from './characters'
 export * from './config'
 export * from './docsLinks'

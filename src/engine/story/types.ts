@@ -95,6 +95,16 @@ export interface Character extends Person {
   color: string
 }
 
+export interface Channel {
+  id: string
+  /** `docs-team` for channels; the character's name is shown for DMs. */
+  name: string
+  kind: 'channel' | 'dm'
+  /** For DMs: who it's with. */
+  characterId?: string
+  topic?: string
+}
+
 export interface MentorEntry {
   question: string
   answer: string
@@ -105,6 +115,10 @@ export interface GameConfig {
   chapters: Chapter[]
   registry: Registry<GameState>
   characters: Record<string, Character>
+  /** Flack channels and DMs, in sidebar order. */
+  channels: Channel[]
+  /** The channel Flack opens on. Defaults to the first channel (not DM) in the list. */
+  defaultChannel?: string
   /** Fresh GitNub repos for a new game. */
   createRemotes: () => GameState['git']['remotes']
   /** The clock at the start of a new game. */

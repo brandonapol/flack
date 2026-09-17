@@ -1,6 +1,7 @@
 import type { GameEvent } from '../events'
 import type { GameState } from '../game'
 import { applyEdits, remoteCommit } from '../git/sync'
+import { interpolate } from './template'
 import type { Effect, GameConfig } from './types'
 
 export interface EffectResult {
@@ -18,12 +19,21 @@ export function applyEffect(config: GameConfig, state: GameState, effect: Effect
         id,
         channel: effect.channel,
         from: effect.from,
-        text: effect.text,
+        text: interpolate(effect.text, state),
         time: state.clock,
-        ...(effect.quickReplies ? { quickReplies: effect.quickReplies } : {}),
+        ...(effect.quickReplies
+          ? {
+              quickReplies: effect.quickReplies.map((reply) => ({
+                ...reply,
+                text: interpolate(reply.text, state),
+              })),
+            }
+          : {}),
       }
+      const watching =
+        state.ui.activeTab === 'flack' && state.flack.activeChannel === effect.channel
       const readUpTo =
-        effect.from === 'player' || state.flack.activeChannel === effect.channel
+        effect.from === 'player' || watching
           ? {
               ...state.flack.readUpTo,
               [effect.channel]:
@@ -48,7 +58,7 @@ export function applyEffect(config: GameConfig, state: GameState, effect: Effect
       if (!author) throw new Error(`remoteCommit: unknown character ${effect.author}`)
       const result = remoteCommit(remote, {
         author: { name: author.name, email: author.email },
-        message: effect.message,
+        message: interpolate(effect.message, state),
         timestamp: state.clock,
         branch: effect.branch,
         change: (tree) => applyEdits(tree, effect.edits),
