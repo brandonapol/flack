@@ -1,0 +1,50 @@
+# Flack
+
+Flack is a free, zero-setup, in-browser game that teaches Git to people who don't write code
+for a living — docs writers first. You play through a fake first day at a made-up company called
+Inkwell: a fake chat app (Flack), a fake code host (GitNub), a fake editor and a fake terminal
+that understands about thirty real Git commands. You learn the daily loop by typing it —
+branch, commit, push, open a pull request, squash-merge — and you learn the scary-sounding
+parts (merge, rebase, squash, cherry-pick, conflicts) by dragging commits around a small
+visual sandbox called the Commit Lab, because those are concepts, not keystrokes.
+
+Nothing is installed, nothing is real, and nothing you do can break anything.
+
+## Running it
+
+```sh
+npm ci
+npm run dev
+```
+
+Node 24 (see `.nvmrc`).
+
+| Script               | What it does                              |
+| -------------------- | ----------------------------------------- |
+| `npm run dev`        | Vite dev server                           |
+| `npm run build`      | Typecheck and build to `dist/`            |
+| `npm run preview`    | Serve the built site                      |
+| `npm run lint`       | ESLint                                    |
+| `npm run typecheck`  | TypeScript, no emit                       |
+| `npm test`           | Vitest once (engine in Node, UI in jsdom) |
+| `npm run test:watch` | Vitest in watch mode                      |
+| `npm run format`     | Prettier                                  |
+
+## How the code is laid out
+
+```
+src/engine/{git,shell,story,lab}   the simulation — pure TypeScript, no React, no DOM
+src/content                        the world: chapters, characters, glossary, docs links
+src/store                          Zustand store, effect scheduler, persistence
+src/features/*                     the UI panels
+e2e/                               Playwright specs
+```
+
+`src/engine/**` and `src/content/**` may not import React or reach into `src/features` or
+`src/store` — a lint rule enforces it. The simulation has to be testable without a browser.
+
+## Plan
+
+[`planning.md`](./planning.md) is the source of truth for what this is and what's left to build.
+Work is tracked in [issues](https://github.com/brandonapol/flack/issues), with
+[#39](https://github.com/brandonapol/flack/issues/39) as the roadmap.

@@ -1,0 +1,33 @@
+:root {
+  --flack-bg: #16151a;
+  --flack-fg: #ececf1;
+  --flack-muted: #a4a2b0;
+
+  color-scheme: dark;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+  line-height: 1.5;
+}
+
+body {
+  margin: 0;
+  background: var(--flack-bg);
+  color: var(--flack-fg);
+}
+
+.app {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 4rem 1rem;
+}
+
+.app__note {
+  color: var(--flack-muted);
+}
+
+code {
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+}
