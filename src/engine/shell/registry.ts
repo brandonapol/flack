@@ -5,6 +5,7 @@ import type { CoreState } from '../state'
 /** Requests from a command to the world outside the terminal, handled by the game reducer. */
 export type CommandEffect =
   | { type: 'openTab'; tab: 'flack' | 'gitnub' | 'editor' }
+  | { type: 'unlockTab'; tab: 'flack' | 'gitnub' | 'editor' }
   | { type: 'openFile'; path: string }
   | { type: 'showHint' }
 

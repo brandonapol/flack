@@ -1,6 +1,9 @@
 import type { Chapter, GameConfig } from '../engine/story/types'
-import { createRegistry } from '../engine/shell/registry'
+import { buildRegistry } from '../engine/shell/commands'
 import type { GameState } from '../engine/game'
+import { currentStep } from '../engine/story/runner'
+import { interpolate } from '../engine/story/template'
+import { DOCS } from './docsLinks'
 import { characters } from './characters'
 import { createRemotes, WORLD_START } from './world'
 
@@ -28,11 +31,20 @@ const placeholderChapter: Chapter = {
 }
 
 export function createGameConfig(): GameConfig {
-  return {
+  const config: GameConfig = {
     chapters: [placeholderChapter],
-    registry: createRegistry<GameState>(),
+    registry: buildRegistry<GameState>({
+      docs: DOCS,
+      hintFor: (state) => {
+        const step = currentStep(config, state)
+        if (!step || step.hints.length === 0) return undefined
+        const index = Math.min(state.story.hintsShown, step.hints.length - 1)
+        return interpolate(step.hints[index], state)
+      },
+    }),
     characters,
     createRemotes,
     startTime: WORLD_START,
   }
+  return config
 }
