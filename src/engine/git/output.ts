@@ -58,6 +58,12 @@ function upstreamLines(status: Status): TerminalLine[] {
   ]
 }
 
+/** The "Your branch is ahead of…" lines, as `git switch` and `git checkout` print them. */
+export function formatTracking(status: Pick<Status, 'upstream'>): TerminalLine[] {
+  const out = upstreamLines(status as Status)
+  return out.length > 0 && out[out.length - 1].text === '' ? out.slice(0, -1) : out
+}
+
 export function formatStatus(status: Status): TerminalLine[] {
   const out: TerminalLine[] = [line(`On branch ${status.branch}`), ...upstreamLines(status)]
 

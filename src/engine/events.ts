@@ -13,6 +13,10 @@ export type GameEvent =
       /** False when the command printed an error or refused to act. */
       ok: boolean
     }
+  | { type: 'branchCreated'; branch: string }
+  | { type: 'branchSwitched'; branch: string }
+  /** A push that updated (or created) a branch on GitNub. */
+  | { type: 'branchPushed'; branch: string; created: boolean }
   | { type: 'fileSaved'; path: string }
   | { type: 'fileOpened'; path: string }
   | { type: 'tabOpened'; tab: Tab }

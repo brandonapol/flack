@@ -55,7 +55,17 @@ export function registerGitSyncCommands<S extends CoreState>(registry: Registry<
       if (!result.ok) return fail(...output)
       let next = withLocal(state, result.local)
       if (result.kind === 'pushed') next = withRemote(next, result.remote)
-      return { state: next, output }
+      const events =
+        result.kind === 'pushed'
+          ? [
+              {
+                type: 'branchPushed' as const,
+                branch: result.remoteBranch,
+                created: !result.update.from,
+              },
+            ]
+          : []
+      return { state: next, output, events }
     },
   })
 

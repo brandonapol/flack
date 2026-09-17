@@ -10,7 +10,7 @@ describe('git, git --version, git help', () => {
     expect(s.lastText).toMatch(/^usage: git \[-v \| --version\]/)
     expect(s.lastText).toContain('   clone      Clone a repository into a new directory')
     expect(s.lastText).toContain('   status     Show the working tree status')
-    expect(s.lastText).not.toContain('switch')
+    expect(s.lastText).toContain('   switch     Switch branches')
     expect(session().run('git --help').lastText).toContain('collaborate')
     expect(session().run('git help').lastText).toContain('collaborate')
   })

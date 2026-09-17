@@ -48,6 +48,7 @@ export interface Session {
   lastText: string
   ok: boolean
   effects: ReturnType<typeof runLine>['effects']
+  events: ReturnType<typeof runLine>['events']
   run: (...lines: string[]) => Session
 }
 
@@ -58,6 +59,7 @@ export function session(state: CoreState = newState()): Session {
     lastText: '',
     ok: true,
     effects: [],
+    events: [],
     run: (...lines) => {
       for (const input of lines) {
         const result = runLine(registry, self.state, input)
@@ -66,6 +68,7 @@ export function session(state: CoreState = newState()): Session {
         self.lastText = plainText(self.last)
         self.ok = result.events[0]?.type === 'command' ? result.events[0].ok : true
         self.effects = result.effects
+        self.events = result.events
       }
       return self
     },

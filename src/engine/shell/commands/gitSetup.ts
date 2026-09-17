@@ -1,5 +1,5 @@
 import { clone, remoteUrl, repoDirName } from '../../git/repo'
-import { line, spans, type TerminalLine } from '../../lines'
+import { line, type TerminalLine } from '../../lines'
 import { HOME, type CoreState } from '../../state'
 import { currentDir, lookup } from '../fs'
 import {
@@ -337,49 +337,6 @@ export function registerGitSetupCommands<S extends CoreState>(registry: Registry
       if (argv[2] === undefined) return { output: [line('origin')] }
       if (argv[2] === 'get-url') return { output: [line(url)] }
       return fail(line(`Flack only supports \`git remote\` and \`git remote -v\`.`, 'muted'))
-    },
-  })
-
-  git({
-    name: 'branch',
-    run: ({ state, argv }) => {
-      const repo = repoContext(state)
-      if (!repo) return notARepo(state)
-      const args = argv.slice(2)
-      const all = args.includes('-a') || args.includes('--all')
-      const remotes = args.includes('-r') || args.includes('--remotes')
-      const other = args.filter(
-        (arg) => !['-a', '--all', '-r', '--remotes', '--list'].includes(arg)
-      )
-      if (other.length > 0) {
-        return fail(line('💡 To start a new branch, use `git switch -c <name>`.', 'muted'))
-      }
-
-      const { local } = repo
-      const output: TerminalLine[] = []
-      if (!remotes) {
-        for (const name of Object.keys(local.branches).sort()) {
-          output.push(
-            name === local.head
-              ? spans({ text: '* ' }, { text: name, tone: 'staged' })
-              : line(`  ${name}`)
-          )
-        }
-      }
-      if (all || remotes) {
-        const prefix = all ? 'remotes/' : ''
-        const names = Object.keys(local.remoteBranches)
-        if (local.remoteBranches[local.remoteHead]) {
-          output.push(
-            spans(
-              { text: `  ${prefix}origin/HEAD`, tone: 'error' },
-              { text: ` -> origin/${local.remoteHead}` }
-            )
-          )
-        }
-        for (const name of names.sort()) output.push(line(`  ${prefix}origin/${name}`, 'error'))
-      }
-      return { output }
     },
   })
 }
