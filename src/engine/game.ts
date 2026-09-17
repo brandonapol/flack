@@ -1,5 +1,5 @@
 import type { Tab } from './events'
-import { spans } from './lines'
+import { line, spans } from './lines'
 import { promptFor } from './shell/prompt'
 import { runLine } from './shell/run'
 import { HOME, type CoreState } from './state'
@@ -41,6 +41,8 @@ export interface GameState extends CoreState {
   version: number
   editor: {
     openPath?: string
+    /** Unsaved text per file. Present only while it differs from the saved file. */
+    buffers: Record<string, string>
   }
   flack: {
     messages: FlackMessage[]
@@ -52,6 +54,8 @@ export interface GameState extends CoreState {
     activeTab: Tab
     unlockedTabs: Tab[]
     toast?: string
+    /** Files whose unsaved edits stopped the last command. The UI asks to save or discard. */
+    unsavedBlock?: string[]
   }
   story: StoryState
 }
@@ -63,6 +67,10 @@ export type Action =
   /** Ctrl+C: abandon a half-typed line, echoing it with `^C` like a real shell. */
   | { type: 'cancelInput'; text: string }
   | { type: 'saveFile'; path: string; content: string }
+  /** Typing in the Editor. Keeps the unsaved text; nothing reaches Git until `saveFile`. */
+  | { type: 'editBuffer'; path: string; content: string }
+  | { type: 'discardBuffer'; path: string }
+  | { type: 'dismissUnsavedBlock' }
   | { type: 'openFile'; path: string }
   | { type: 'openTab'; tab: Tab }
   | { type: 'openChannel'; channel: string }
@@ -94,7 +102,7 @@ export function blankState(config: GameConfig): GameState {
     player: {},
     git: { config: {}, remotes: config.createRemotes() },
     shell: { cwd: HOME, history: [], output: [] },
-    editor: {},
+    editor: { buffers: {} },
     flack: { messages: [], readUpTo: {} },
     ui: { activeTab: 'flack', unlockedTabs: ['flack'] },
     story: {
@@ -154,8 +162,57 @@ export function reduce(config: GameConfig, previous: GameState, action: Action):
   switch (action.type) {
     case 'runCommand': {
       const result = runLine(config.registry, state, action.line)
+      const clobbered = unsavedPathsChanged(state, result.state)
+      if (clobbered.length > 0) {
+        // Undo the command: it would have replaced files the learner is still editing.
+        const echo = result.output[0]
+        const blocked: GameState = {
+          ...state,
+          shell: {
+            ...state.shell,
+            history: result.state.shell.history,
+            output: [
+              ...state.shell.output,
+              ...(echo ? [echo] : []),
+              line(
+                `✋ You have unsaved edits in ${clobbered.join(', ')}. Save or discard them in the Editor, then run that again.`,
+                'error'
+              ),
+            ],
+          },
+          ui: { ...state.ui, unsavedBlock: clobbered },
+        }
+        return { state: blocked, effects: [] }
+      }
       return advanceStory(config, result.state, result.events, result.effects)
     }
+
+    case 'editBuffer': {
+      const saved = state.git.local?.working[action.path]
+      if (saved === undefined) return { state: previous, effects: [] }
+      const buffers = { ...state.editor.buffers }
+      if (action.content === saved) delete buffers[action.path]
+      else buffers[action.path] = action.content
+      // Typing doesn't move the fake clock.
+      return { state: { ...previous, editor: { ...previous.editor, buffers } }, effects: [] }
+    }
+
+    case 'discardBuffer': {
+      const buffers = { ...state.editor.buffers }
+      delete buffers[action.path]
+      const remaining = state.ui.unsavedBlock?.filter((path) => path in buffers)
+      return {
+        state: {
+          ...state,
+          editor: { ...state.editor, buffers },
+          ui: { ...state.ui, unsavedBlock: remaining?.length ? remaining : undefined },
+        },
+        effects: [],
+      }
+    }
+
+    case 'dismissUnsavedBlock':
+      return { state: { ...state, ui: { ...state.ui, unsavedBlock: undefined } }, effects: [] }
 
     case 'clearTerminal':
       return { state: { ...state, shell: { ...state.shell, output: [] } }, effects: [] }
@@ -171,12 +228,17 @@ export function reduce(config: GameConfig, previous: GameState, action: Action):
     case 'saveFile': {
       const local = state.git.local
       if (!local || !(action.path in local.working)) return { state: previous, effects: [] }
+      const buffers = { ...state.editor.buffers }
+      delete buffers[action.path]
+      const remaining = state.ui.unsavedBlock?.filter((path) => path in buffers)
       const next: GameState = {
         ...state,
         git: {
           ...state.git,
           local: { ...local, working: { ...local.working, [action.path]: action.content } },
         },
+        editor: { ...state.editor, buffers },
+        ui: { ...state.ui, unsavedBlock: remaining?.length ? remaining : undefined },
       }
       return advanceStory(config, next, [{ type: 'fileSaved', path: action.path }])
     }
@@ -292,4 +354,13 @@ export function reduce(config: GameConfig, previous: GameState, action: Action):
       return startChapter(config, state, next.id)
     }
   }
+}
+
+/** Files with unsaved edits whose saved content a command just changed (or removed). */
+function unsavedPathsChanged(before: GameState, after: GameState): string[] {
+  const paths = Object.keys(before.editor.buffers)
+  if (paths.length === 0) return []
+  const was = before.git.local?.working ?? {}
+  const now = after.git.local?.working ?? {}
+  return paths.filter((path) => was[path] !== now[path]).sort()
 }

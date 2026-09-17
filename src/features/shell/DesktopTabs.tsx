@@ -1,10 +1,13 @@
-import { useRef, type KeyboardEvent } from 'react'
+import { lazy, Suspense, useRef, type KeyboardEvent } from 'react'
 import { Route, Routes, useNavigate } from 'react-router'
 
 import type { Tab } from '../../engine/events'
 import { useGame } from '../../store'
 import styles from './DesktopTabs.module.css'
 import { TABS } from './tabs'
+
+// CodeMirror is most of the bundle, and nobody needs it before they've cloned something.
+const Editor = lazy(() => import('../editor/Editor'))
 import { useTabRouteSync } from './useTabRouteSync'
 
 function useUnreadCount(): number {
@@ -114,7 +117,14 @@ export function DesktopTabs() {
         <Routes>
           <Route path="/flack/:channel?" element={<Placeholder title="Flack" />} />
           <Route path="/gitnub/*" element={<Placeholder title="GitNub" />} />
-          <Route path="/editor/*" element={<Placeholder title="Editor" />} />
+          <Route
+            path="/editor/*"
+            element={
+              <Suspense fallback={<Placeholder title="Opening the editor…" />}>
+                <Editor />
+              </Suspense>
+            }
+          />
           <Route path="*" element={null} />
         </Routes>
       </div>

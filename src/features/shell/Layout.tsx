@@ -1,3 +1,4 @@
+import { UnsavedEditsDialog } from '../editor'
 import { Terminal } from '../terminal'
 import { DesktopTabs } from './DesktopTabs'
 import styles from './Layout.module.css'
@@ -7,6 +8,7 @@ export function Layout() {
   return (
     <>
       <SmallScreenNotice />
+      <UnsavedEditsDialog />
       <div className={styles.layout}>
         <aside className={styles.instructions} aria-label="Instructions">
           <p className={styles.placeholder}>Instructions</p>

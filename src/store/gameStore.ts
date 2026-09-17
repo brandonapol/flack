@@ -29,6 +29,8 @@ export interface Typing {
 }
 
 export interface GameStoreState {
+  /** Content and commands. Never changes; here so panels can look up chapters and steps. */
+  config: GameConfig
   game: GameState
   /** Effects waiting to fire. Saved with the game, so a reload doesn't lose them. */
   scheduled: ScheduledEffect[]
@@ -79,6 +81,7 @@ export function createGameStore(options: GameStoreOptions): GameStore {
   let nextId = 1
 
   const store = createStore<GameStoreState>()(() => ({
+    config,
     game: blankState(config),
     scheduled: [],
     typing: [],
