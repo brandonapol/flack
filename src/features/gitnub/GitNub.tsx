@@ -1,9 +1,12 @@
 import { Link, Route, Routes } from 'react-router'
 
 import { CommitsPage } from './CommitsPage'
+import { ComparePage } from './ComparePage'
 import { FileView } from './FileView'
 import styles from './GitNub.module.css'
 import { OrgPage } from './OrgPage'
+import { PullRequestPage } from './PullRequestPage'
+import { PullRequestsPage } from './PullRequestsPage'
 import { RepoPage } from './RepoPage'
 
 export function GitNub() {
@@ -26,6 +29,9 @@ export function GitNub() {
           <Route path=":org/:repo" element={<RepoPage />} />
           <Route path=":org/:repo/tree/:branch/*" element={<RepoPage tree />} />
           <Route path=":org/:repo/blob/:branch/*" element={<FileView />} />
+          <Route path=":org/:repo/pulls" element={<PullRequestsPage />} />
+          <Route path=":org/:repo/pull/:number" element={<PullRequestPage />} />
+          <Route path=":org/:repo/compare/:branch" element={<ComparePage />} />
           <Route path=":org/:repo/commits" element={<CommitsPage />} />
           <Route path=":org/:repo/commits/:branch" element={<CommitsPage />} />
           <Route path="*" element={<NotFound />} />

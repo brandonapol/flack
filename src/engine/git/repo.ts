@@ -37,7 +37,8 @@ export function makeCommit(input: CommitInput): Commit {
       treeEntries,
     ])
   )
-  return { id, ...input, tree: { ...input.tree } }
+  // `id` goes last: callers may pass a whole commit through (a rebase replay), and the new id wins.
+  return { ...input, id, tree: { ...input.tree } }
 }
 
 export interface HistoryEntry {
@@ -53,6 +54,8 @@ export interface CreateRemoteInput {
   description?: string
   archived?: boolean
   cloneNote?: string
+  /** Where pull request numbering starts (content may pretend some already happened). */
+  nextPullRequest?: number
   /** Oldest first. Becomes a straight line of commits on `main`. */
   history: HistoryEntry[]
 }
@@ -74,6 +77,8 @@ export function createRemote(input: CreateRemoteInput): RemoteRepo {
     commits,
     branches: { main: tip },
     defaultBranch: 'main',
+    pullRequests: [],
+    nextPullRequest: input.nextPullRequest ?? 1,
   }
 }
 

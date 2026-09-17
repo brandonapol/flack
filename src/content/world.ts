@@ -149,6 +149,8 @@ export function createDocsSite(): RemoteRepo {
   return createRemote({
     slug: DOCS_SITE,
     description: 'Inkwell product documentation',
+    // Pull requests #1–#3 are already in the history.
+    nextPullRequest: 4,
     history: docsSiteHistory(),
   })
 }

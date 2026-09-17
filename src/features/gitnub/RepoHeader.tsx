@@ -12,6 +12,9 @@ export function RepoHeader({
   active: 'code' | 'commits' | 'pulls'
 }) {
   const [org, name] = repo.slug.split('/')
+  const openCount = repo.pullRequests.filter(
+    (pr) => pr.status !== 'merged' && pr.status !== 'closed'
+  ).length
   return (
     <>
       <div className={styles.repoTitle}>
@@ -28,6 +31,13 @@ export function RepoHeader({
       <nav className={styles.repoTabs} aria-label="Repository">
         <Link to={repoPath(repo.slug)} aria-current={active === 'code' ? 'page' : undefined}>
           Code
+        </Link>
+        <Link
+          to={repoPath(repo.slug, 'pulls')}
+          aria-current={active === 'pulls' ? 'page' : undefined}
+        >
+          Pull requests
+          {openCount > 0 && <span className={styles.tabCount}>{openCount}</span>}
         </Link>
         <Link
           to={repoPath(repo.slug, 'commits')}

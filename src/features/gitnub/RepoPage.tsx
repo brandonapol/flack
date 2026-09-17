@@ -8,6 +8,7 @@ import { Markdown } from '../shared/Markdown'
 import markdownStyles from '../shared/markdown.module.css'
 import { relativeTime } from '../shared/time'
 import { CodeButton } from './CodeButton'
+import { ComparePrompt } from './ComparePrompt'
 import { lastCommitTouching, listDirectory, repoPath, subjectOf } from './data'
 import styles from './GitNub.module.css'
 import { NotFound } from './GitNub'
@@ -48,7 +49,7 @@ export function RepoPage({ tree = false }: { tree?: boolean }) {
   return (
     <div>
       <RepoHeader repo={repo} active="code" />
-      {/* Slot for the "Compare & pull request" banner (#43). */}
+      <ComparePrompt repo={repo} />
       <div className={styles.toolbar}>
         <label className={styles.branchPicker}>
           <span aria-hidden="true">⎇</span>

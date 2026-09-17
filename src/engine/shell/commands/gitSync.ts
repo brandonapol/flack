@@ -1,3 +1,4 @@
+import { refreshPullRequests } from '../../git/pullRequests'
 import { fetch, pull, push } from '../../git/sync'
 import { formatFetch, formatPull, formatPush } from '../../git/syncOutput'
 import { line } from '../../lines'
@@ -54,7 +55,7 @@ export function registerGitSyncCommands<S extends CoreState>(registry: Registry<
       const output = formatPush(result, repo.local.slug)
       if (!result.ok) return fail(...output)
       let next = withLocal(state, result.local)
-      if (result.kind === 'pushed') next = withRemote(next, result.remote)
+      if (result.kind === 'pushed') next = withRemote(next, refreshPullRequests(result.remote))
       const events =
         result.kind === 'pushed'
           ? [
