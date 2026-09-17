@@ -1,0 +1,518 @@
+.gitnub {
+  --gn-header: #232840;
+  --gn-green: #2b7a5b;
+  --gn-green-hover: #236b4f;
+  --gn-link: #3654c8;
+  --gn-subtle: #f6f7fa;
+
+  min-height: 100%;
+  background: var(--surface);
+  font-size: 0.875rem;
+}
+
+.gitnub a {
+  color: var(--gn-link);
+  text-decoration: none;
+}
+
+.gitnub a:hover {
+  text-decoration: underline;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px;
+  background: var(--gn-header);
+  color: white;
+}
+
+.gitnub .logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: white;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+/* A fountain-pen nib: clearly not anyone's cat. */
+.logoMark {
+  width: 18px;
+  height: 22px;
+  background: #f7c948;
+  clip-path: polygon(50% 100%, 0 38%, 22% 0, 78% 0, 100% 38%);
+}
+
+.search {
+  flex: 1;
+  max-width: 260px;
+  padding: 3px 10px;
+  border: 1px solid #4a5170;
+  border-radius: 6px;
+  color: #aab1cc;
+  font-size: 0.75rem;
+}
+
+.search kbd {
+  padding: 0 4px;
+  border: 1px solid #4a5170;
+  border-radius: 3px;
+}
+
+.me {
+  width: 22px;
+  height: 22px;
+  margin-left: auto;
+  border-radius: 50%;
+  background: #7048e8;
+}
+
+.page {
+  padding: 16px 20px 32px;
+}
+
+.muted {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.badge,
+.badgeBranch {
+  display: inline-block;
+  padding: 0 7px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.badgeBranch {
+  font-family: var(--font-mono);
+  background: var(--gn-subtle);
+}
+
+/* ---- org */
+
+.orgHeader {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.orgAvatar {
+  display: inline-flex;
+  width: 48px;
+  height: 48px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: #1c7ed6;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.orgName {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.sectionTitle {
+  margin: 16px 0 8px;
+  font-size: 0.9375rem;
+}
+
+.repoList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.repoCard {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.repoCardTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.repoMeta {
+  margin: 6px 0 0;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.langDot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #495057;
+  vertical-align: -1px;
+}
+
+/* ---- repo */
+
+.repoTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 1.125rem;
+}
+
+.repoIcon {
+  color: var(--text-muted);
+}
+
+.slash {
+  color: var(--text-muted);
+}
+
+.gitnub .repoName {
+  font-weight: 700;
+}
+
+.repoTabs {
+  display: flex;
+  gap: 4px;
+  margin: 10px -20px 14px;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.gitnub .repoTabs a {
+  padding: 6px 10px 8px;
+  border-bottom: 2px solid transparent;
+  color: var(--text);
+}
+
+.gitnub .repoTabs a[aria-current='page'] {
+  border-bottom-color: #f76707;
+  font-weight: 600;
+}
+
+.archivedBanner {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border: 1px solid #ffd43b;
+  border-radius: 6px;
+  background: #fff9db;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.branchPicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--gn-subtle);
+  font-family: var(--font-mono);
+}
+
+.branchPicker select {
+  border: none;
+  background: transparent;
+  font: inherit;
+}
+
+.crumbs {
+  font-size: 0.9375rem;
+}
+
+.codeWrapper {
+  position: relative;
+}
+
+.codeButton {
+  padding: 5px 12px;
+  border: 1px solid var(--gn-green-hover);
+  border-radius: 6px;
+  background: var(--gn-green);
+  color: white;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.codeButton:hover {
+  background: var(--gn-green-hover);
+}
+
+.codePopover {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 10;
+  width: 340px;
+  padding: 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 15%);
+}
+
+.popoverTitle {
+  margin: 0 0 8px;
+  font-weight: 700;
+}
+
+.popoverTab {
+  display: inline-block;
+  margin: 0 0 8px;
+  padding-bottom: 4px;
+  border-bottom: 2px solid #f76707;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.urlRow {
+  display: flex;
+  gap: 6px;
+}
+
+.urlInput {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--gn-subtle);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.copyButton {
+  padding: 4px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--surface);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.popoverHint {
+  margin: 8px 0 0;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.fileBox {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.latestCommit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--gn-subtle);
+  border-bottom: 1px solid var(--border);
+}
+
+.commitAuthor {
+  font-weight: 600;
+}
+
+.commitMessage {
+  color: var(--text-muted);
+}
+
+.commitId {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.gitnub .commitCount {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.fileTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.fileTable td {
+  padding: 7px 12px;
+  border-top: 1px solid var(--border);
+}
+
+.fileTable tr:first-child td {
+  border-top: none;
+}
+
+.fileName {
+  white-space: nowrap;
+}
+
+.fileIcon {
+  margin-right: 6px;
+}
+
+.fileCommit {
+  color: var(--text-muted);
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fileTime {
+  color: var(--text-muted);
+  white-space: nowrap;
+  text-align: right;
+}
+
+.readme {
+  margin-top: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.readmeTitle {
+  margin: 0;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--gn-subtle);
+  font-size: 0.8125rem;
+}
+
+.readme > div,
+.preview {
+  padding: 16px 20px;
+}
+
+.fileToolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.segmented button {
+  padding: 3px 10px;
+  border: none;
+  background: var(--surface);
+  font: inherit;
+  cursor: pointer;
+}
+
+.segmented button[aria-pressed='true'] {
+  background: var(--gn-subtle);
+  font-weight: 700;
+}
+
+.codeTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+}
+
+.lineNumber {
+  width: 1%;
+  padding: 0 12px;
+  color: var(--text-muted);
+  text-align: right;
+  user-select: none;
+  vertical-align: top;
+}
+
+.codeLine {
+  padding: 0 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ---- commits */
+
+.commitGroup {
+  margin-bottom: 16px;
+}
+
+.commitDay {
+  margin: 0 0 6px;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.commitList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.commitRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--border);
+}
+
+.commitRow:first-child {
+  border-top: none;
+}
+
+.commitMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.commitSubject {
+  margin: 0 0 4px;
+  font-weight: 600;
+}
+
+.notFound {
+  padding: 2rem 0;
+}

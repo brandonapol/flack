@@ -3,6 +3,7 @@ import { Route, Routes, useNavigate } from 'react-router'
 
 import type { Tab } from '../../engine/events'
 import { useGame } from '../../store'
+import { GitNub } from '../gitnub'
 import styles from './DesktopTabs.module.css'
 import { TABS } from './tabs'
 
@@ -116,7 +117,7 @@ export function DesktopTabs() {
       >
         <Routes>
           <Route path="/flack/:channel?" element={<Placeholder title="Flack" />} />
-          <Route path="/gitnub/*" element={<Placeholder title="GitNub" />} />
+          <Route path="/gitnub/*" element={<GitNub />} />
           <Route
             path="/editor/*"
             element={
