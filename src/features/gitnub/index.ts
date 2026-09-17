@@ -1,1 +1,1 @@
-export {}
+export { GitNub } from './GitNub'
