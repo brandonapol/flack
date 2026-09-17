@@ -128,4 +128,6 @@ export interface GameConfig {
     channel: string
     entries: Record<string, MentorEntry>
   }
+  /** Questions Ask Robin always offers, on top of the current chapter's. */
+  mentorGeneralQuestions?: string[]
 }

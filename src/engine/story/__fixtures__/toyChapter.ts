@@ -98,7 +98,7 @@ export const toyChapter: Chapter = {
       goal: (_state, event) => event.type === 'flackReply' && event.messageId === 'sam-hi',
     },
   ],
-  mentorQuestions: [],
+  mentorQuestions: ['what-is-git'],
   summary: ['You said hello.'],
 }
 

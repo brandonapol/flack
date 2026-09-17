@@ -281,3 +281,57 @@
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+
+.askRobin {
+  margin: 0 16px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff9f5;
+}
+
+.askTitle {
+  margin: 0 0 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.askList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.askButton {
+  padding: 4px 10px;
+  border: 1px solid #f08c00;
+  border-radius: 999px;
+  background: var(--surface);
+  color: #b35309;
+  font: inherit;
+  font-size: 0.8125rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.askButton:hover {
+  background: #fff4e6;
+}
+
+.askMore {
+  margin-top: 8px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.75rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
