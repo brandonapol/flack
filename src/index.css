@@ -16,6 +16,8 @@
 
   --term-bg: #15171c;
   --term-fg: #e6e8eb;
+  --term-muted: #8b929e;
+  --term-prompt: #8ab4f8;
 
   --font-mono: ui-monospace, 'SFMono-Regular', 'SF Mono', Menlo, Consolas, monospace;
 
