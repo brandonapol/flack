@@ -1,3 +1,5 @@
 export * from './characters'
 export * from './config'
+export * from './docsLinks'
+export * from './glossary'
 export * from './world'
