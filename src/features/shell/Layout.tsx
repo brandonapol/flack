@@ -1,3 +1,4 @@
+import { Terminal } from '../terminal'
 import { DesktopTabs } from './DesktopTabs'
 import styles from './Layout.module.css'
 import { SmallScreenNotice } from './SmallScreenNotice'
@@ -14,7 +15,7 @@ export function Layout() {
           <DesktopTabs />
         </main>
         <section className={styles.terminal} aria-label="Terminal">
-          <p className={styles.placeholder}>Terminal</p>
+          <Terminal />
         </section>
       </div>
     </>

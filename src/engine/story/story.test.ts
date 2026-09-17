@@ -207,3 +207,18 @@ describe('templates', () => {
     expect(interpolate('Hi {{player.name}}', started())).toBe('Hi you')
   })
 })
+
+describe('terminal actions', () => {
+  it('clearTerminal empties the log without touching history or the story', () => {
+    const state = play(config, started(), [cmd('echo one'), { type: 'clearTerminal' }])
+    expect(state.shell.output).toEqual([])
+    expect(state.shell.history).toEqual(['echo one'])
+    expect(state.story.misses).toBe(1)
+  })
+
+  it('cancelInput echoes the abandoned line with ^C', () => {
+    const state = play(config, started(), [{ type: 'cancelInput', text: 'git sta' }])
+    expect(state.shell.output.at(-1)?.text).toBe('~ $ git sta^C')
+    expect(state.shell.history).toEqual([])
+  })
+})

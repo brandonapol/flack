@@ -1,4 +1,6 @@
 import type { Tab } from './events'
+import { spans } from './lines'
+import { promptFor } from './shell/prompt'
 import { runLine } from './shell/run'
 import { HOME, type CoreState } from './state'
 import { applyEffect } from './story/effects'
@@ -56,6 +58,10 @@ export interface GameState extends CoreState {
 
 export type Action =
   | { type: 'runCommand'; line: string }
+  /** ⌘K / Ctrl+L: clear the screen without running anything. */
+  | { type: 'clearTerminal' }
+  /** Ctrl+C: abandon a half-typed line, echoing it with `^C` like a real shell. */
+  | { type: 'cancelInput'; text: string }
   | { type: 'saveFile'; path: string; content: string }
   | { type: 'openFile'; path: string }
   | { type: 'openTab'; tab: Tab }
@@ -149,6 +155,17 @@ export function reduce(config: GameConfig, previous: GameState, action: Action):
     case 'runCommand': {
       const result = runLine(config.registry, state, action.line)
       return advanceStory(config, result.state, result.events, result.effects)
+    }
+
+    case 'clearTerminal':
+      return { state: { ...state, shell: { ...state.shell, output: [] } }, effects: [] }
+
+    case 'cancelInput': {
+      const echo = spans({ text: promptFor(state), tone: 'prompt' }, { text: ` ${action.text}^C` })
+      return {
+        state: { ...state, shell: { ...state.shell, output: [...state.shell.output, echo] } },
+        effects: [],
+      }
     }
 
     case 'saveFile': {
