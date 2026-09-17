@@ -5,7 +5,16 @@ import { ada, docsSite, sam, T0 } from './__fixtures__/docsSite'
 import { shortId } from './hash'
 import { clone, commit, headCommit, stage } from './repo'
 import { getStatus, isClean } from './status'
-import { appendLine, fastForward, fetch, pull, push, remoteCommit, replaceText } from './sync'
+import {
+  appendLine,
+  applyEdits,
+  fastForward,
+  fetch,
+  pull,
+  push,
+  remoteCommit,
+  replaceText,
+} from './sync'
 import { formatFetch, formatPull, formatPush } from './syncOutput'
 import type { LocalRepo, RemoteRepo } from './types'
 
@@ -322,5 +331,18 @@ describe('scripted coworker commits', () => {
   it('replaceText fails loudly when content drifts', () => {
     expect(() => replaceText('team.md', 'nope', 'x')({ 'team.md': 'hi' })).toThrow(/not found/)
     expect(replaceText('team.md', 'hi', 'bye')({ 'team.md': 'hi' })).toEqual({ 'team.md': 'bye' })
+  })
+})
+
+describe('applyEdits', () => {
+  it('applies serialisable edits in order', () => {
+    expect(
+      applyEdits({ 'a.md': 'one\n', 'b.md': 'x' }, [
+        { kind: 'appendLine', path: 'a.md', text: 'two' },
+        { kind: 'replaceText', path: 'a.md', search: 'one', replace: 'uno' },
+        { kind: 'writeFile', path: 'c.md', content: 'new\n' },
+        { kind: 'deleteFile', path: 'b.md' },
+      ])
+    ).toEqual({ 'a.md': 'uno\ntwo\n', 'c.md': 'new\n' })
   })
 })

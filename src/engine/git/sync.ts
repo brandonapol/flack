@@ -348,3 +348,28 @@ export function replaceText(path: string, search: string, replacement: string) {
     return { ...tree, [path]: current.replace(search, replacement) }
   }
 }
+
+/** A serialisable description of a change, so scripted pushes can wait in a saved game. */
+export type FileEdit =
+  | { kind: 'appendLine'; path: string; text: string }
+  | { kind: 'replaceText'; path: string; search: string; replace: string }
+  | { kind: 'writeFile'; path: string; content: string }
+  | { kind: 'deleteFile'; path: string }
+
+export function applyEdits(tree: FileTree, edits: FileEdit[]): FileTree {
+  return edits.reduce<FileTree>((current, edit) => {
+    switch (edit.kind) {
+      case 'appendLine':
+        return appendLine(edit.path, edit.text)(current)
+      case 'replaceText':
+        return replaceText(edit.path, edit.search, edit.replace)(current)
+      case 'writeFile':
+        return { ...current, [edit.path]: edit.content }
+      case 'deleteFile': {
+        const next = { ...current }
+        delete next[edit.path]
+        return next
+      }
+    }
+  }, tree)
+}
