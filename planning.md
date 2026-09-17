@@ -123,6 +123,26 @@ golden-path test harness. New action types: `switchBranch(name)`,
 `openPullRequest(branch)`, `mergePullRequest(id, strategy)`,
 `updateBranch(id)`, and Commit Lab's own `dragCommit(fromId, ontoId, mode)`.
 
+Implementation notes (#6):
+
+- The engine never imports content. `reduce(config, state, action)` takes a
+  `GameConfig` (chapters, command registry, characters, `createRemotes`,
+  mentor FAQ) that `src/content` provides and the store passes in.
+- **Effects are plain data**, so delayed ones can be saved and still fire
+  after a reload. A scripted push is `{ type: 'remoteCommit', slug, author,
+message, edits: FileEdit[] }`, where `FileEdit` is `appendLine` /
+  `replaceText` / `writeFile` / `deleteFile`, rather than a `change`
+  function.
+- `reduce` applies immediate effects itself and returns only the delayed
+  ones. The store schedules those and dispatches `applyEffect` when they're
+  due.
+- Goals see the state _after_ the event. A `stepEntered` event fires when a
+  step becomes current, so a goal that's already true completes at once.
+- Steps can have an `apply(state, event)` hook for state changes that
+  effects can't express, such as capturing the player's name.
+- Chapter phases: `playing` → `complete` (summary) → `continueStory` →
+  the next chapter, or `finished` after the last one.
+
 ## State, persistence and reset
 
 Unchanged (#7): `localStorage` key `flack:v1`, debounced writes, schema
