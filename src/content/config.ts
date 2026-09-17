@@ -4,6 +4,7 @@ import type { GameState } from '../engine/game'
 import { currentStep } from '../engine/story/runner'
 import { interpolate } from '../engine/story/template'
 import { DOCS } from './docsLinks'
+import { CHANNELS, DEFAULT_CHANNEL } from './channels'
 import { characters } from './characters'
 import { createRemotes, WORLD_START } from './world'
 
@@ -43,6 +44,8 @@ export function createGameConfig(): GameConfig {
       },
     }),
     characters,
+    channels: CHANNELS,
+    defaultChannel: DEFAULT_CHANNEL,
     createRemotes,
     startTime: WORLD_START,
   }

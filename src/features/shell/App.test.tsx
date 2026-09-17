@@ -44,7 +44,7 @@ describe('App shell', () => {
   it('opens on the Flack tab and puts it in the URL', async () => {
     renderApp()
     expect(screen.getByRole('tab', { name: /Flack/ })).toHaveAttribute('aria-selected', 'true')
-    expect(window.location.hash).toBe('#/flack')
+    expect(window.location.hash).toBe('#/flack/docs-team')
   })
 
   it('a deep link to GitNub opens the GitNub tab', async () => {
@@ -66,7 +66,7 @@ describe('App shell', () => {
     expect(editor).toHaveAccessibleName(/you'll unlock this soon/)
     await user.click(editor)
     expect(store.getState().game.ui.activeTab).toBe('flack')
-    expect(window.location.hash).toBe('#/flack')
+    expect(window.location.hash).toBe('#/flack/docs-team')
   })
 
   it('a deep link to a locked tab falls back to the active tab', async () => {
@@ -75,7 +75,7 @@ describe('App shell', () => {
       'aria-selected',
       'true'
     )
-    expect(window.location.hash).toBe('#/flack')
+    expect(window.location.hash).toBe('#/flack/docs-team')
   })
 
   it('tabs follow the ARIA tabs pattern with arrow keys', async () => {
@@ -109,7 +109,8 @@ describe('App shell', () => {
     act(() =>
       store.getState().dispatch({
         type: 'applyEffect',
-        effect: { type: 'flackMessage', channel: 'docs-team', from: 'jordan', text: 'Welcome!' },
+        // #general isn't the channel on screen, so it stays unread.
+        effect: { type: 'flackMessage', channel: 'general', from: 'jordan', text: 'Welcome!' },
       })
     )
     expect(screen.getByRole('tab', { name: /Flack/ })).toHaveAccessibleName('Flack, 1 unread')

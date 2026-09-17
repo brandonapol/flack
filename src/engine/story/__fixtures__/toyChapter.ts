@@ -139,6 +139,14 @@ export function toyConfig(): GameConfig {
       return { [remote.slug]: remote }
     },
     characters: {
+      jordan: {
+        id: 'jordan',
+        name: 'Jordan Lee',
+        email: 'jordan@inkwell.example',
+        initials: 'JL',
+        role: 'Lead',
+        color: '#74c',
+      },
       sam: {
         id: 'sam',
         name: 'Sam Rivera',
@@ -156,6 +164,10 @@ export function toyConfig(): GameConfig {
         color: '#a50',
       },
     },
+    channels: [
+      { id: 'docs-team', name: 'docs-team', kind: 'channel' },
+      { id: 'dm-robin', name: 'Robin Okafor', kind: 'dm', characterId: 'robin' },
+    ],
     mentor: {
       characterId: 'robin',
       channel: 'dm-robin',
