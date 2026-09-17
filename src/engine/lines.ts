@@ -16,6 +16,7 @@ export type Tone =
   | 'branch'
   | 'remote'
   | 'bold'
+  | 'prompt'
 
 export interface Span {
   text: string
