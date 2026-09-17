@@ -1,1 +1,1 @@
-export {}
+export { Instructions } from './Instructions'
