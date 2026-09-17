@@ -157,6 +157,8 @@ function createWebsite(): RemoteRepo {
   return createRemote({
     slug: WEBSITE,
     description: 'Marketing site for inkwell.example',
+    cloneNote:
+      "That's Inkwell's marketing website, not the docs. Nothing was cloned. Go back to GitNub and copy the address for inkwell/docs-site instead.",
     history: [
       {
         message: 'Launch the new homepage',
@@ -176,6 +178,8 @@ function createOldWiki(): RemoteRepo {
     slug: OLD_WIKI,
     description: 'The old internal wiki. Archived: everything moved to docs-site.',
     archived: true,
+    cloneNote:
+      'inkwell/old-wiki is archived: it’s read-only and nobody works on it any more, so there’s nothing to add your name to. Nothing was cloned. The docs moved to inkwell/docs-site.',
     history: [
       {
         message: 'Archive the wiki',

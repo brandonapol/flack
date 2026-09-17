@@ -29,6 +29,8 @@ export interface RemoteRepo {
   slug: string
   description: string
   archived: boolean
+  /** When set, `git clone` prints this instead of cloning (decoy repos). */
+  cloneNote?: string
   commits: CommitMap
   branches: Record<string, CommitId>
   defaultBranch: string

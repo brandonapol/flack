@@ -268,9 +268,16 @@ export type PullResult =
   | { ok: false; kind: 'no-tracking'; branch: string }
   | { ok: false; kind: 'no-such-ref'; local: LocalRepo; fetch: FetchResult; remoteBranch: string }
 
-/** `git pull` for the fast-forward case. A diverged branch is reported, not merged. */
-export function pull(local: LocalRepo, remote: RemoteRepo): PullResult {
-  const remoteBranch = local.upstreams[local.head]
+/**
+ * `git pull` for the fast-forward case. A diverged branch is reported, not merged.
+ * `remoteBranch` is for `git pull origin <branch>`; otherwise the current branch's upstream is used.
+ */
+export function pull(
+  local: LocalRepo,
+  remote: RemoteRepo,
+  options: { remoteBranch?: string } = {}
+): PullResult {
+  const remoteBranch = options.remoteBranch ?? local.upstreams[local.head]
   if (!remoteBranch) return { ok: false, kind: 'no-tracking', branch: local.head }
 
   const fetched = fetch(local, remote)

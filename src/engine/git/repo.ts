@@ -52,6 +52,7 @@ export interface CreateRemoteInput {
   slug: string
   description?: string
   archived?: boolean
+  cloneNote?: string
   /** Oldest first. Becomes a straight line of commits on `main`. */
   history: HistoryEntry[]
 }
@@ -69,6 +70,7 @@ export function createRemote(input: CreateRemoteInput): RemoteRepo {
     slug: input.slug,
     description: input.description ?? '',
     archived: input.archived ?? false,
+    ...(input.cloneNote ? { cloneNote: input.cloneNote } : {}),
     commits,
     branches: { main: tip },
     defaultBranch: 'main',
