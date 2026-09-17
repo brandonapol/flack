@@ -4,7 +4,8 @@ import type { GameState } from '../engine/game'
 import { currentStep } from '../engine/story/runner'
 import { interpolate } from '../engine/story/template'
 import { DOCS } from './docsLinks'
-import { CHANNELS, DEFAULT_CHANNEL } from './channels'
+import { GENERAL_QUESTIONS, MENTOR_FAQ } from './mentorFaq'
+import { CHANNELS, DEFAULT_CHANNEL, MENTOR_CHANNEL } from './channels'
 import { characters } from './characters'
 import { createRemotes, WORLD_START } from './world'
 
@@ -27,7 +28,7 @@ const placeholderChapter: Chapter = {
       goal: (_state, event) => event.type === 'tabOpened' && event.tab === 'gitnub',
     },
   ],
-  mentorQuestions: [],
+  mentorQuestions: ['what-is-a-repo', 'how-do-i-clone'],
   summary: [],
 }
 
@@ -48,6 +49,8 @@ export function createGameConfig(): GameConfig {
     defaultChannel: DEFAULT_CHANNEL,
     createRemotes,
     startTime: WORLD_START,
+    mentor: { characterId: 'robin', channel: MENTOR_CHANNEL, entries: MENTOR_FAQ },
+    mentorGeneralQuestions: GENERAL_QUESTIONS,
   }
   return config
 }

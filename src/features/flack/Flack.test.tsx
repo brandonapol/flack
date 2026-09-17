@@ -155,3 +155,28 @@ describe('Flack', () => {
     expect(screen.queryByRole('button', { name: /Right here/ })).not.toBeInTheDocument()
   })
 })
+
+describe('Ask Robin', () => {
+  it('offers this chapter’s questions in the DM, and answers when asked', () => {
+    const { store } = setup('/flack/dm-robin')
+    const panel = screen.getByRole('list', { name: 'Questions you can ask Robin' })
+    const question = within(panel).getByRole('button', { name: 'What is Git?' })
+    click(question)
+    const log = screen.getByRole('log')
+    expect(log).toHaveTextContent('What is Git?')
+    expect(log).toHaveTextContent('A time machine for files.')
+    expect(
+      store
+        .getState()
+        .game.flack.messages.slice(-2)
+        .map((m) => m.from)
+    ).toEqual(['player', 'robin'])
+  })
+
+  it('is only in the mentor DM', () => {
+    setup('/flack/docs-team')
+    expect(
+      screen.queryByRole('list', { name: 'Questions you can ask Robin' })
+    ).not.toBeInTheDocument()
+  })
+})

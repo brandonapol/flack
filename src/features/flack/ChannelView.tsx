@@ -6,6 +6,7 @@ import { useGame } from '../../store'
 import { Avatar } from '../shared/Avatar'
 import { Markdown } from '../shared/Markdown'
 import { clockTime } from '../shared/time'
+import { AskRobin } from './AskRobin'
 import styles from './Flack.module.css'
 
 /** Messages from the same person within this many fake seconds are grouped under one heading. */
@@ -27,6 +28,7 @@ export function ChannelView({ channelId }: { channelId: string }) {
     [allTyping, channelId]
   )
   const dispatch = useGame((s) => s.dispatch)
+  const isMentorChannel = useGame((s) => s.config.mentor?.channel === channelId)
   const endRef = useRef<HTMLDivElement>(null)
 
   useLayoutEffect(() => {
@@ -83,6 +85,8 @@ export function ChannelView({ channelId }: { channelId: string }) {
         ))}
         <div ref={endRef} />
       </div>
+
+      {isMentorChannel && <AskRobin />}
 
       <div className={styles.composer}>
         <input

@@ -5,6 +5,7 @@ import { log } from '../engine/git/repo'
 import { characters } from './characters'
 import { ALLOWED_DOCS_HOSTS, DOCS } from './docsLinks'
 import { findGlossaryEntry, GLOSSARY } from './glossary'
+import { GENERAL_QUESTIONS, MENTOR_FAQ } from './mentorFaq'
 import {
   createRemotes,
   DOCS_SITE,
@@ -124,5 +125,45 @@ describe('world', () => {
   it('is deterministic and clones cleanly', () => {
     expect(createRemotes()[DOCS_SITE].branches.main).toBe(docsSite.branches.main)
     expect(clone(docsSite).working).toEqual(tree)
+  })
+})
+
+describe('Ask Robin', () => {
+  it('every general question exists, and answers link only to known docs', () => {
+    for (const id of GENERAL_QUESTIONS) expect(MENTOR_FAQ[id], id).toBeDefined()
+    const hrefs = Object.values(DOCS).map((link) => link.href)
+    for (const [id, entry] of Object.entries(MENTOR_FAQ)) {
+      expect(entry.question.trim(), id).not.toBe('')
+      expect(entry.answer.trim(), id).not.toBe('')
+      for (const [, href] of entry.answer.matchAll(/\]\((https?:[^)]+)\)/g)) {
+        expect(hrefs, id).toContain(href)
+      }
+    }
+  })
+
+  it('answers avoid gendered pronouns and trunk-based language', () => {
+    for (const entry of Object.values(MENTOR_FAQ)) {
+      expect(entry.answer).not.toMatch(GENDERED)
+      expect(entry.answer.toLowerCase()).not.toContain('trunk')
+    }
+  })
+
+  it('covers the branch and pull request workflow', () => {
+    for (const id of [
+      'what-is-a-branch',
+      'what-is-a-pr',
+      'what-is-squash-merge',
+      'out-of-date-branch',
+      'what-is-a-rebase',
+      'what-is-cherry-pick',
+      'pr-has-conflicts',
+      'what-are-markers',
+      'delete-branch',
+    ]) {
+      expect(MENTOR_FAQ[id], id).toBeDefined()
+    }
+    expect(Object.values(MENTOR_FAQ).some((entry) => /merge --abort/.test(entry.answer))).toBe(
+      false
+    )
   })
 })
