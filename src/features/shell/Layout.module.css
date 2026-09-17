@@ -1,0 +1,40 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 22fr) minmax(420px, 46fr) minmax(320px, 32fr);
+  height: 100vh;
+  overflow: hidden;
+}
+
+.instructions,
+.desktop,
+.terminal {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.instructions {
+  background: var(--paper);
+  border-right: 1px solid var(--border);
+}
+
+.desktop {
+  border-right: 1px solid var(--border-strong);
+}
+
+.terminal {
+  background: var(--term-bg);
+  color: var(--term-fg);
+}
+
+.placeholder {
+  margin: 0;
+  padding: 1rem;
+  opacity: 0.6;
+}
+
+@media (max-width: 1099px) {
+  .layout {
+    display: none;
+  }
+}
