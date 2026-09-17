@@ -17,6 +17,11 @@ export type GameEvent =
   | { type: 'branchSwitched'; branch: string }
   /** A push that updated (or created) a branch on GitNub. */
   | { type: 'branchPushed'; branch: string; created: boolean }
+  | { type: 'pullRequestOpened'; number: number; branch: string }
+  | { type: 'pullRequestReviewed'; number: number; approved: boolean }
+  | { type: 'pullRequestMerged'; number: number; branch: string }
+  | { type: 'branchUpdated'; number: number; branch: string }
+  | { type: 'remoteBranchDeleted'; branch: string }
   | { type: 'fileSaved'; path: string }
   | { type: 'fileOpened'; path: string }
   | { type: 'tabOpened'; tab: Tab }

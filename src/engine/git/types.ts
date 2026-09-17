@@ -1,3 +1,5 @@
+import type { PullRequest } from './pullRequests'
+
 /** path → file content. Paths are repo-relative with forward slashes: `docs/welcome.md`. */
 export type FileTree = Record<string, string>
 
@@ -34,6 +36,9 @@ export interface RemoteRepo {
   commits: CommitMap
   branches: Record<string, CommitId>
   defaultBranch: string
+  pullRequests: PullRequest[]
+  /** The number the next pull request gets. */
+  nextPullRequest: number
 }
 
 /** The learner's clone. */

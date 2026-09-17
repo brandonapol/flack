@@ -1,5 +1,6 @@
 import type { GameEvent } from '../events'
 import type { GameState } from '../game'
+import { refreshPullRequests, reviewPullRequest } from '../git/pullRequests'
 import { applyEdits, remoteCommit } from '../git/sync'
 import { interpolate } from './template'
 import type { Effect, GameConfig } from './types'
@@ -66,7 +67,10 @@ export function applyEffect(config: GameConfig, state: GameState, effect: Effect
       return {
         state: {
           ...state,
-          git: { ...state.git, remotes: { ...state.git.remotes, [effect.slug]: result.remote } },
+          git: {
+            ...state.git,
+            remotes: { ...state.git.remotes, [effect.slug]: refreshPullRequests(result.remote) },
+          },
         },
         events: [
           {
@@ -75,6 +79,27 @@ export function applyEffect(config: GameConfig, state: GameState, effect: Effect
             branch: effect.branch ?? remote.defaultBranch,
             author: effect.author,
           },
+        ],
+      }
+    }
+
+    case 'reviewPullRequest': {
+      const remote = state.git.remotes[effect.slug]
+      const author = config.characters[effect.author]
+      if (!remote || !author) throw new Error(`reviewPullRequest: unknown repo or character`)
+      const reviewed = reviewPullRequest(remote, effect.number, {
+        author: effect.author,
+        body: interpolate(effect.body, state),
+        approve: effect.approve ?? true,
+        timestamp: state.clock,
+      })
+      return {
+        state: {
+          ...state,
+          git: { ...state.git, remotes: { ...state.git.remotes, [effect.slug]: reviewed } },
+        },
+        events: [
+          { type: 'pullRequestReviewed', number: effect.number, approved: effect.approve ?? true },
         ],
       }
     }

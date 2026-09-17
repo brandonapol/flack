@@ -516,3 +516,260 @@
 .notFound {
   padding: 2rem 0;
 }
+
+/* ---- pull requests */
+
+.tabCount {
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--chrome-hover);
+  font-size: 0.6875rem;
+}
+
+.comparePrompt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid #99c2ff;
+  border-radius: 8px;
+  background: #e7f1ff;
+}
+
+.gitnub .compareButton {
+  margin-left: auto;
+  padding: 5px 12px;
+  border-radius: 6px;
+  background: var(--gn-green);
+  color: white;
+  font-weight: 600;
+}
+
+.gitnub .compareButton:hover {
+  background: var(--gn-green-hover);
+  text-decoration: none;
+}
+
+.prTitle {
+  margin: 14px 0 6px;
+  font-size: 1.375rem;
+  font-weight: 400;
+}
+
+.prNumber {
+  color: var(--text-muted);
+}
+
+.prMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.statusOpen,
+.statusMerged {
+  padding: 3px 10px;
+  border-radius: 999px;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.statusOpen {
+  background: var(--gn-green);
+}
+
+.statusMerged {
+  background: #7048e8;
+}
+
+.branchChip {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #e7f1ff;
+  color: #1a4bb5;
+  font-size: 0.8125rem;
+}
+
+.prTabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.prTab {
+  padding: 5px 12px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.prTab[aria-selected='true'] {
+  border-color: var(--border-strong);
+  background: var(--gn-subtle);
+  font-weight: 600;
+}
+
+.prBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.prComment {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.prCommentHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--gn-subtle);
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.prComment > :not(.prCommentHeader) {
+  padding: 12px;
+}
+
+.approved {
+  color: var(--gn-green);
+  font-weight: 600;
+}
+
+.prNotice {
+  padding: 12px;
+  border: 1px solid #ffd43b;
+  border-radius: 8px;
+  background: #fff9db;
+}
+
+.prNoticeTitle {
+  margin: 0 0 4px;
+  font-weight: 700;
+}
+
+.mergeBox {
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.mergeSummary {
+  margin: 0 0 10px;
+}
+
+.mergeConfirm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.mergePreview {
+  width: 100%;
+  margin: 0;
+  padding: 10px;
+  border-radius: 6px;
+  background: var(--gn-subtle);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  white-space: pre-wrap;
+}
+
+.mergedLine {
+  margin: 0 0 10px;
+}
+
+.secondaryButton {
+  padding: 5px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--surface);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.prForm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 34rem;
+  margin-top: 12px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.field input,
+.field textarea {
+  padding: 6px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  font: inherit;
+  font-weight: 400;
+}
+
+.prForm .codeButton {
+  align-self: flex-start;
+}
+
+.diffHeader {
+  margin: 0;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--gn-subtle);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.hunkHeader {
+  padding: 2px 12px;
+  background: #eef2ff;
+  color: #4c6ef5;
+  font-size: 0.75rem;
+}
+
+.added {
+  background: #e6ffed;
+}
+
+.removed {
+  background: #ffeef0;
+}
+
+.graph {
+  margin: 8px 0;
+}
+
+.graphLabel {
+  font-size: 11px;
+  fill: #868e96;
+}
+
+.backLink {
+  margin-top: 16px;
+  font-size: 0.8125rem;
+}

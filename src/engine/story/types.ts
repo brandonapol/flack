@@ -33,6 +33,15 @@ export type Effect = (
       edits: FileEdit[]
       branch?: string
     }
+  | {
+      type: 'reviewPullRequest'
+      slug: string
+      number: number
+      /** Character id of the reviewer. */
+      author: string
+      body: string
+      approve?: boolean
+    }
   | { type: 'unlockTab'; tab: Tab }
   | { type: 'openTab'; tab: Tab }
   | { type: 'openFile'; path: string }

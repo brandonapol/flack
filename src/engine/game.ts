@@ -1,6 +1,15 @@
 import type { Tab } from './events'
 import { line, spans } from './lines'
 import { promptFor } from './shell/prompt'
+import {
+  deleteRemoteBranch,
+  findPullRequest,
+  openPullRequest,
+  openPullRequestFor,
+  squashMerge,
+  updateBranch,
+} from './git/pullRequests'
+import type { RemoteRepo } from './git/types'
 import { runLine } from './shell/run'
 import { HOME, type CoreState } from './state'
 import { applyEffect } from './story/effects'
@@ -78,6 +87,10 @@ export type Action =
   | { type: 'copyCloneUrl'; slug: string }
   | { type: 'flackReply'; messageId: string; replyId: string }
   | { type: 'askMentor'; questionId: string }
+  | { type: 'openPullRequest'; slug: string; branch: string; title: string; body?: string }
+  | { type: 'mergePullRequest'; slug: string; number: number }
+  | { type: 'updateBranch'; slug: string; number: number }
+  | { type: 'deleteRemoteBranch'; slug: string; branch: string }
   | { type: 'applyEffect'; effect: Effect }
   | { type: 'showHint' }
   | { type: 'revealSolution' }
@@ -264,6 +277,67 @@ export function reduce(config: GameConfig, previous: GameState, action: Action):
       return advanceStory(config, next, [{ type: 'channelOpened', channel: action.channel }])
     }
 
+    case 'openPullRequest': {
+      const remote = state.git.remotes[action.slug]
+      if (!remote || !remote.branches[action.branch]) return { state: previous, effects: [] }
+      if (openPullRequestFor(remote, action.branch)) return { state: previous, effects: [] }
+      const result = openPullRequest(remote, {
+        branch: action.branch,
+        title: action.title,
+        body: action.body,
+        timestamp: state.clock,
+      })
+      return advanceStory(config, withRemote(state, result.remote), [
+        { type: 'pullRequestOpened', number: result.pullRequest.number, branch: action.branch },
+      ])
+    }
+
+    case 'mergePullRequest': {
+      const remote = state.git.remotes[action.slug]
+      const pr = remote && findPullRequest(remote, action.number)
+      if (!remote || !pr || pr.status === 'merged') return { state: previous, effects: [] }
+      const result = squashMerge(remote, pr, {
+        author: {
+          name: state.git.config.userName ?? state.player.name ?? 'You',
+          email: state.git.config.userEmail ?? 'you@inkwell.example',
+        },
+        timestamp: state.clock,
+      })
+      return advanceStory(config, withRemote(state, result.remote), [
+        { type: 'pullRequestMerged', number: pr.number, branch: pr.branch },
+      ])
+    }
+
+    case 'updateBranch': {
+      const remote = state.git.remotes[action.slug]
+      const pr = remote && findPullRequest(remote, action.number)
+      if (!remote || !pr || pr.status === 'merged') return { state: previous, effects: [] }
+      const result = updateBranch(
+        remote,
+        pr,
+        state.git.local?.slug === action.slug ? state.git.local : undefined
+      )
+      const next: GameState = {
+        ...state,
+        git: {
+          ...state.git,
+          remotes: { ...state.git.remotes, [action.slug]: result.remote },
+          local: result.local ?? state.git.local,
+        },
+      }
+      return advanceStory(config, next, [
+        { type: 'branchUpdated', number: pr.number, branch: pr.branch },
+      ])
+    }
+
+    case 'deleteRemoteBranch': {
+      const remote = state.git.remotes[action.slug]
+      if (!remote || !remote.branches[action.branch]) return { state: previous, effects: [] }
+      return advanceStory(config, withRemote(state, deleteRemoteBranch(remote, action.branch)), [
+        { type: 'remoteBranchDeleted', branch: action.branch },
+      ])
+    }
+
     case 'viewRepo':
       return advanceStory(config, state, [{ type: 'repoViewed', slug: action.slug }])
 
@@ -363,4 +437,11 @@ function unsavedPathsChanged(before: GameState, after: GameState): string[] {
   const was = before.git.local?.working ?? {}
   const now = after.git.local?.working ?? {}
   return paths.filter((path) => was[path] !== now[path]).sort()
+}
+
+function withRemote(state: GameState, remote: RemoteRepo): GameState {
+  return {
+    ...state,
+    git: { ...state.git, remotes: { ...state.git.remotes, [remote.slug]: remote } },
+  }
 }
