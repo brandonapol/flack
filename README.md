@@ -19,7 +19,9 @@ npm ci
 npm run dev
 ```
 
-Node 24 (see `.nvmrc`).
+Node 24 (see `.nvmrc`). The first time you run `npm run e2e`, install its browser with
+`npx playwright install chromium`. Add `?fast=1` to the URL to shrink every scripted delay a
+hundredfold (the E2E tests do).
 
 Every push to `main` publishes the built site to the `github-pages` branch, which GitHub Pages
 serves (`.github/workflows/pages-branch.yml`). Builds use the base path `/flack/`; set
@@ -36,6 +38,7 @@ serves (`.github/workflows/pages-branch.yml`). Builds use the base path `/flack/
 | `npm test`           | Vitest once (engine in Node, UI in jsdom) |
 | `npm run test:watch` | Vitest in watch mode                      |
 | `npm run format`     | Prettier                                  |
+| `npm run e2e`        | Playwright playthrough against the build  |
 
 ## How the code is laid out
 

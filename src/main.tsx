@@ -13,6 +13,8 @@ if (!root) {
 }
 
 const store = createGameStore({ config: createGameConfig(), search: window.location.search })
+// Saves are debounced; don't lose the last few moments to a reload or a closed tab.
+window.addEventListener('pagehide', () => store.getState().flushSave())
 
 createRoot(root).render(
   <StrictMode>

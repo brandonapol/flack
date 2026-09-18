@@ -1,7 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { toyConfig } from '../engine/story/__fixtures__/toyChapter'
-import { createGameStore, SAVE_DEBOUNCE_MS, TYPING_LEAD_MS, type Timers } from './gameStore'
+import {
+  createGameStore,
+  FAST_DELAY_FACTOR,
+  SAVE_DEBOUNCE_MS,
+  TYPING_LEAD_MS,
+  type Timers,
+} from './gameStore'
 import { MAX_SAVED_OUTPUT, STORAGE_KEY, type StorageLike } from './persistence'
 
 const config = toyConfig()
@@ -97,6 +103,15 @@ describe('game store', () => {
     expect(hasSamMessage(second)).toBe(true)
   })
 
+  it('flushSave writes a pending save straight away, so a quick reload loses nothing', () => {
+    const storage = memoryStorage()
+    const first = createGameStore({ config, storage, timers })
+    playToSave(first)
+    expect(storage.data.has(STORAGE_KEY)).toBe(false)
+    first.getState().flushSave()
+    expect(createGameStore({ config, storage, timers }).getState().game.story.stepIndex).toBe(3)
+  })
+
   it('an effect that came due while the page was closed fires right away', () => {
     const storage = memoryStorage()
     playToSave(createGameStore({ config, storage, timers }))
@@ -161,6 +176,14 @@ describe('game store', () => {
     const saved = JSON.parse(storage.data.get(STORAGE_KEY)!)
     expect(saved.game.shell.output).toHaveLength(MAX_SAVED_OUTPUT)
     expect(saved.game.shell.output.at(-1).text).toBe(`${MAX_SAVED_OUTPUT - 1}`)
+  })
+
+  it('?fast=1 shrinks delays but keeps them in order', () => {
+    const store = createGameStore({ config, storage: memoryStorage(), timers, search: '?fast=1' })
+    playToSave(store)
+    expect(hasSamMessage(store)).toBe(false)
+    vi.advanceTimersByTime(3000 * FAST_DELAY_FACTOR)
+    expect(hasSamMessage(store)).toBe(true)
   })
 
   it('?chapter= jumps straight to a chapter and ?debug=1 sets the flag', () => {
