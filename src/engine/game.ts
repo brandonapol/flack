@@ -316,7 +316,8 @@ export function reduce(config: GameConfig, previous: GameState, action: Action):
     case 'mergePullRequest': {
       const remote = state.git.remotes[action.slug]
       const pr = remote && findPullRequest(remote, action.number)
-      if (!remote || !pr || pr.status === 'merged' || pr.status === 'has-conflicts') {
+      // Inkwell's GitNub only merges branches that are up to date with their base.
+      if (!remote || !pr || pr.status !== 'open') {
         return { state: previous, effects: [] }
       }
       const result = squashMerge(remote, pr, {

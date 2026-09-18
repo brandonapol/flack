@@ -34,6 +34,7 @@ export function PullRequestPage() {
   const dispatch = useGame((s) => s.dispatch)
   const [tab, setTab] = useState<Tab>('conversation')
   const [confirming, setConfirming] = useState(false)
+  const [triedWhileOutOfDate, setTriedWhileOutOfDate] = useState(false)
   const [updated, setUpdated] = useState<{ from: string; to: string }>()
 
   if (!repo) return <NotFound />
@@ -228,11 +229,20 @@ export function PullRequestPage() {
                 ) : (
                   <>
                     <p className={styles.mergeSummary}>
-                      {pr.reviewState === 'approved'
-                        ? '✔ Changes approved. This branch has no conflicts with the base branch.'
-                        : 'Waiting for a review. You can still merge when you’re ready.'}
+                      {needsUpdate
+                        ? 'This branch is out of date with the base branch.'
+                        : pr.reviewState === 'approved'
+                          ? '✔ Changes approved. This branch has no conflicts with the base branch.'
+                          : 'Waiting for a review. You can still merge when you’re ready.'}
                     </p>
-                    {confirming ? (
+                    {needsUpdate && triedWhileOutOfDate && (
+                      <p className={styles.mergeBlocked} role="alert">
+                        Update the branch first: someone else’s work landed on{' '}
+                        <code>{pr.base}</code> after you opened this. Use{' '}
+                        <strong>Update branch</strong> above, then merge.
+                      </p>
+                    )}
+                    {confirming && !needsUpdate ? (
                       <div className={styles.mergeConfirm}>
                         <p className={styles.muted}>
                           Your {commits.length} {commits.length === 1 ? 'commit' : 'commits'} will
@@ -261,7 +271,9 @@ export function PullRequestPage() {
                       <button
                         type="button"
                         className={styles.codeButton}
-                        onClick={() => setConfirming(true)}
+                        onClick={() =>
+                          needsUpdate ? setTriedWhileOutOfDate(true) : setConfirming(true)
+                        }
                       >
                         Squash and merge
                       </button>

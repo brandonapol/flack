@@ -5,6 +5,7 @@ import { signTheListChapter } from './02-sign-the-list'
 import { pullRequestChapter } from './03-pull-request'
 import { pullChapter } from './04-pull'
 import { fetchChapter } from './05-fetch'
+import { updateBranchChapter } from './06-update-branch'
 
 /** Every chapter, in order: Day one, then Keeping in sync. */
 export const CHAPTERS: Chapter[] = [
@@ -14,6 +15,7 @@ export const CHAPTERS: Chapter[] = [
   pullRequestChapter,
   pullChapter,
   fetchChapter,
+  updateBranchChapter,
 ]
 
 export * from './helpers'

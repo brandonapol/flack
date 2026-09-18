@@ -88,7 +88,14 @@ export function applyEffect(config: GameConfig, state: GameState, effect: Effect
       const remote = state.git.remotes[effect.slug]
       const author = config.characters[effect.author]
       if (!remote || !author) throw new Error(`reviewPullRequest: unknown repo or character`)
-      const reviewed = reviewPullRequest(remote, effect.number, {
+      const number =
+        effect.number === 'latest'
+          ? remote.pullRequests
+              .filter((pr) => pr.status !== 'merged' && pr.status !== 'closed')
+              .at(-1)?.number
+          : effect.number
+      if (number === undefined) return { state, events: [] }
+      const reviewed = reviewPullRequest(remote, number, {
         author: effect.author,
         body: interpolate(effect.body, state),
         approve: effect.approve ?? true,
@@ -99,9 +106,7 @@ export function applyEffect(config: GameConfig, state: GameState, effect: Effect
           ...state,
           git: { ...state.git, remotes: { ...state.git.remotes, [effect.slug]: reviewed } },
         },
-        events: [
-          { type: 'pullRequestReviewed', number: effect.number, approved: effect.approve ?? true },
-        ],
+        events: [{ type: 'pullRequestReviewed', number, approved: effect.approve ?? true }],
       }
     }
 

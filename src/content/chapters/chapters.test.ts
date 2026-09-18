@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { blankState, type Action, type GameState } from '../../engine/game'
 import { log } from '../../engine/git/repo'
-import { findPullRequest } from '../../engine/git/pullRequests'
+import { findPullRequest, pullRequestCommits } from '../../engine/git/pullRequests'
 import { play, playChapter } from '../../engine/story/harness'
 import { startChapter } from '../../engine/game'
 import { flushEffects } from '../../engine/story/harness'
@@ -336,5 +336,114 @@ describe('Chapter 5: Look before you leap', () => {
   it('can be started on its own, with a fresh clone', () => {
     const { trace } = playChapter(config, '05-look-before-you-leap', CHAPTER_5)
     expect(trace).toEqual(['fetch', 'status', 'log', 'merge', 'look'])
+  })
+})
+
+describe('Chapter 6: Two PRs, one file', () => {
+  const STYLE_GUIDE = 'docs/style-guide.md'
+  const fixTypo = (state: GameState): Action => ({
+    type: 'saveFile',
+    path: STYLE_GUIDE,
+    content: state.git.local!.working[STYLE_GUIDE].replace('recieve', 'receive'),
+  })
+  const UP_TO_THE_PR = (state: GameState): Action[] => [
+    cmd('git switch -c ada-typo'),
+    { type: 'openFile', path: STYLE_GUIDE },
+    fixTypo(state),
+    cmd(`git add ${STYLE_GUIDE}`),
+    cmd('git commit -m "Fix a typo in the style guide"'),
+    cmd('git push -u origin ada-typo'),
+    { type: 'openPullRequest', slug: DOCS_SITE, branch: 'ada-typo', title: 'Fix a typo' },
+  ]
+
+  /** Days one and two up to the start of Chapter 6. */
+  function start(): GameState {
+    const afterFive = playChapter(
+      config,
+      '05-look-before-you-leap',
+      [
+        cmd('git fetch'),
+        cmd('git status'),
+        cmd('git log --oneline origin/main'),
+        cmd('git merge origin/main'),
+      ],
+      { from: playDayOne().state }
+    ).state
+    return flushEffects(config, ...startChapterAt(afterFive, '06-update-branch'))
+  }
+
+  it('the PR goes out of date, Update branch rebases it onto Alex’s commit, and it merges', () => {
+    const initial = start()
+    const upToPr = play(config, initial, UP_TO_THE_PR(initial))
+    const pr = findPullRequest(upToPr.git.remotes[DOCS_SITE], 7)!
+    expect(pr.branch).toBe('ada-typo')
+    expect(pr.status).toBe('needs-update')
+    expect(upToPr.story.completedSteps).toEqual([
+      'branch',
+      'fix',
+      'commit',
+      'push',
+      'open-pr',
+      'out-of-date',
+    ])
+    expect(upToPr.flack.messages.at(-1)).toMatchObject({ from: 'robin', lab: 'out-of-date' })
+
+    const updated = play(config, upToPr, [{ type: 'updateBranch', slug: DOCS_SITE, number: 7 }])
+    const remote = updated.git.remotes[DOCS_SITE]
+    const alex = remote.branches.main
+    const [mine] = pullRequestCommits(remote, findPullRequest(remote, 7)!)
+    // The PR's commit now sits on top of Alex's, and the banner is gone.
+    expect(mine.parents).toEqual([alex])
+    expect(remote.commits[alex].message).toBe('Add two team tips (#8)')
+    expect(findPullRequest(remote, 7)!.status).toBe('open')
+    expect(findPullRequest(remote, 7)!.reviewState).toBe('approved')
+
+    const done = play(config, updated, [
+      { type: 'mergePullRequest', slug: DOCS_SITE, number: 7 },
+      cmd('git switch main'),
+      cmd('git pull'),
+    ])
+    expect(done.story.completedSteps).toEqual([
+      'branch',
+      'fix',
+      'commit',
+      'push',
+      'open-pr',
+      'out-of-date',
+      'update',
+      'merge',
+      'catch-up',
+    ])
+    expect(done.story.phase).toBe('complete')
+    const guide = done.git.local!.working[STYLE_GUIDE]
+    expect(guide).toContain('so readers receive it clearly')
+    expect(guide).toContain('Ask for a review early')
+    const main = done.git.remotes[DOCS_SITE].branches.main
+    expect(done.git.remotes[DOCS_SITE].commits[main].parents).toEqual([alex])
+  })
+
+  it('GitNub will not merge while the branch is out of date', () => {
+    const initial = start()
+    const upToPr = play(config, initial, UP_TO_THE_PR(initial))
+    const tried = play(config, upToPr, [{ type: 'mergePullRequest', slug: DOCS_SITE, number: 7 }])
+    expect(findPullRequest(tried.git.remotes[DOCS_SITE], 7)!.status).toBe('needs-update')
+    expect(tried.git.remotes[DOCS_SITE].branches.main).toBe(
+      upToPr.git.remotes[DOCS_SITE].branches.main
+    )
+  })
+
+  it('git push --force gets a friendly no, and changes nothing', () => {
+    const initial = start()
+    const upToPr = play(config, initial, UP_TO_THE_PR(initial))
+    const forced = play(config, upToPr, [cmd('git push --force')])
+    expect(JSON.stringify(forced.shell.output.slice(-4))).toContain('Flack won’t force-push')
+    expect(forced.git).toEqual(upToPr.git)
+    expect(forced.story.completedSteps).toEqual(upToPr.story.completedSteps)
+  })
+
+  it('can be started on its own', () => {
+    const initial = flushEffects(config, ...startChapterAt(blankState(config), '06-update-branch'))
+    const after = play(config, initial, UP_TO_THE_PR(initial))
+    expect(after.story.completedSteps).toContain('out-of-date')
   })
 })
