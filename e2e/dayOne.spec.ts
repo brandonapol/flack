@@ -1,38 +1,11 @@
 import { expect, test, type Page } from '@playwright/test'
 
+import { expectDone, gitnub, keepGoing, openTab, run, step } from './helpers'
+
 // `?fast=1` shrinks every scripted delay (typing, Jordan's review, Sam's push) a hundredfold.
 const START = './?fast=1'
 const NAME = 'Ada Lovelace'
 const BRANCH = 'ada-team-list'
-
-async function run(page: Page, line: string) {
-  const input = page.getByRole('textbox', { name: /Terminal command/ })
-  await input.fill(line)
-  await input.press('Enter')
-  await expect(page.getByRole('log', { name: 'Terminal output' })).toContainText(line)
-}
-
-async function openTab(page: Page, name: RegExp) {
-  await page.getByRole('tab', { name }).click()
-}
-
-const gitnub = (page: Page) => page.getByRole('tabpanel', { name: 'GitNub' })
-
-function step(page: Page, title: string) {
-  return page
-    .getByRole('complementary', { name: 'Instructions' })
-    .getByRole('listitem')
-    .filter({ hasText: title })
-}
-
-async function expectDone(page: Page, title: string) {
-  await expect(step(page, title)).toContainText('(done)')
-}
-
-async function keepGoing(page: Page) {
-  await expect(page.getByRole('region', { name: 'Chapter complete' })).toBeVisible()
-  await page.getByRole('button', { name: 'Keep going' }).click()
-}
 
 async function chapter0(page: Page) {
   await page.getByRole('button', { name: 'Thanks! Happy to be here 👋' }).click()

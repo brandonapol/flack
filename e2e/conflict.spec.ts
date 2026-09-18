@@ -1,16 +1,9 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test } from '@playwright/test'
+
+import { gitnub, run } from './helpers'
 
 const STYLE_GUIDE = 'docs/style-guide.md'
 const TIP = '- Say the most important thing first.'
-
-async function run(page: Page, line: string) {
-  const input = page.getByRole('textbox', { name: /Terminal command/ })
-  await input.fill(line)
-  await input.press('Enter')
-  await expect(page.getByRole('log', { name: 'Terminal output' })).toContainText(line)
-}
-
-const gitnub = (page: Page) => page.getByRole('tabpanel', { name: 'GitNub' })
 
 test('Chapter 8: a PR conflict, the Commit Lab, Keep both, and graduation', async ({ page }) => {
   await page.goto('./?fast=1&chapter=08')

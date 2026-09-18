@@ -1,5 +1,6 @@
 import type { GameEvent } from '../../engine/events'
 import type { GameState } from '../../engine/game'
+import { clone } from '../../engine/git/repo'
 import { getStatus } from '../../engine/git/status'
 import { DOCS_SITE } from '../world'
 
@@ -26,6 +27,17 @@ export function local(state: GameState) {
 
 export function docsSite(state: GameState) {
   return state.git.remotes[DOCS_SITE]
+}
+
+/** For a chapter jumped to directly (`?chapter=`): a fresh clone to work in, if there isn't one. */
+export function withClone(state: GameState): GameState {
+  if (state.git.local) return state
+  const repo = clone(docsSite(state))
+  return {
+    ...state,
+    git: { ...state.git, local: repo },
+    shell: { ...state.shell, cwd: `/Users/you/${repo.dir}` },
+  }
 }
 
 export function working(state: GameState, path: string): string | undefined {

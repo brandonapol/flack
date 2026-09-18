@@ -1,8 +1,7 @@
-import { clone } from '../../engine/git/repo'
 import type { Chapter } from '../../engine/story/types'
 import { DOCS } from '../docsLinks'
 import { DOCS_SITE } from '../world'
-import { ran, working } from './helpers'
+import { ran, withClone, working } from './helpers'
 
 export const pullChapter: Chapter = {
   id: '04-someone-else-changed-it',
@@ -10,15 +9,10 @@ export const pullChapter: Chapter = {
   milestone: 'day-one',
   intro:
     'Sam Rivera started today too, and has just been through the same loop. Their change is on GitNub. Yours isn’t affected — but your copy is now out of date.',
-  setup: (state) => {
-    const repo = state.git.local ?? clone(state.git.remotes[DOCS_SITE])
-    return {
-      ...state,
-      git: { ...state.git, local: repo },
-      shell: state.git.local ? state.shell : { ...state.shell, cwd: `/Users/you/${repo.dir}` },
-      ui: { ...state.ui, unlockedTabs: ['flack', 'gitnub', 'editor'] },
-    }
-  },
+  setup: (state) => ({
+    ...withClone(state),
+    ui: { ...state.ui, unlockedTabs: ['flack', 'gitnub', 'editor'] },
+  }),
   steps: [
     {
       id: 'read-sam',

@@ -487,6 +487,12 @@ describe('Chapter 6: Two PRs, one file', () => {
 })
 
 describe('Chapter 7: A tidier history', () => {
+  it('has a clone to work in when jumped to directly (?chapter=07)', () => {
+    const { state } = playChapter(config, '07-tidier-history', [])
+    expect(state.git.local?.head).toBe('main')
+    expect(state.shell.cwd).toBe('/Users/you/docs-site')
+  })
+
   it('Robin explains, then both Commit Lab challenges complete the chapter, with no terminal', () => {
     const initial = flushEffects(config, ...startChapterAt(blankState(config), '07-tidier-history'))
     let state = play(config, initial, [{ type: 'openChannel', channel: 'dm-robin' }])

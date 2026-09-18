@@ -38,6 +38,15 @@ afterEach(() => {
 })
 
 describe('App shell', () => {
+  it('says so when a saved game couldn’t be loaded, until dismissed', async () => {
+    const oldSave: StorageLike = { ...noStorage, getItem: () => '{"version":0}' }
+    render(<App store={createGameStore({ config: createGameConfig(), storage: oldSave })} />)
+    const notice = screen.getByRole('status')
+    expect(notice).toHaveTextContent('your saved progress couldn’t be loaded')
+    await userEvent.click(within(notice).getByRole('button', { name: 'OK' }))
+    expect(screen.queryByText(/saved progress couldn’t be loaded/)).not.toBeInTheDocument()
+  })
+
   it('has labelled landmarks for the three panels', () => {
     renderApp()
     expect(screen.getByRole('complementary', { name: 'Instructions' })).toBeInTheDocument()
