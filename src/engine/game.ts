@@ -2,10 +2,12 @@ import type { Tab } from './events'
 import { line } from './lines'
 import { ECHO_LINES, echoLines } from './shell/prompt'
 import {
+  commitsAhead,
   deleteRemoteBranch,
   findPullRequest,
   openPullRequest,
   openPullRequestFor,
+  pullRequestCommits,
   squashMerge,
   resolvePullRequestConflicts,
   undoConflictResolution,
@@ -306,6 +308,8 @@ export function reduce(config: GameConfig, previous: GameState, action: Action):
       const remote = state.git.remotes[action.slug]
       if (!remote || !remote.branches[action.branch]) return { state: previous, effects: [] }
       if (openPullRequestFor(remote, action.branch)) return { state: previous, effects: [] }
+      // Nothing to review: GitNub doesn't open an empty merge request.
+      if (commitsAhead(remote, action.branch) === 0) return { state: previous, effects: [] }
       const result = openPullRequest(remote, {
         branch: action.branch,
         title: action.title,
@@ -321,7 +325,7 @@ export function reduce(config: GameConfig, previous: GameState, action: Action):
       const remote = state.git.remotes[action.slug]
       const pr = remote && findPullRequest(remote, action.number)
       // Inkwell's GitNub only merges branches that are up to date with their base.
-      if (!remote || !pr || pr.status !== 'open') {
+      if (!remote || !pr || pr.status !== 'open' || pullRequestCommits(remote, pr).length === 0) {
         return { state: previous, effects: [] }
       }
       const result = squashMerge(remote, pr, {

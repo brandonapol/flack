@@ -47,6 +47,13 @@ export function ComparePage() {
         <code className={styles.branchChip}>{repo.defaultBranch}</code> · {commits.length}{' '}
         {commits.length === 1 ? 'commit' : 'commits'}
       </p>
+      {commits.length === 0 && (
+        <p className={styles.prNotice} role="note">
+          Nothing to review yet: <code>{branch}</code> has no commits that{' '}
+          <code>{repo.defaultBranch}</code> doesn’t already have. Commit a change on it and push
+          again, then come back.
+        </p>
+      )}
       <form
         className={styles.prForm}
         onSubmit={(event) => {
@@ -63,7 +70,7 @@ export function ComparePage() {
           <span>Description (optional)</span>
           <textarea rows={4} value={body} onChange={(event) => setBody(event.target.value)} />
         </label>
-        <button type="submit" className={styles.codeButton}>
+        <button type="submit" className={styles.codeButton} disabled={commits.length === 0}>
           Create merge request
         </button>
       </form>
