@@ -80,6 +80,7 @@ test.describe('axe: no serious or critical violations', () => {
       .getByRole('navigation', { name: 'Channels' })
       .getByRole('button', { name: /Robin Okafor/ })
       .click()
+    await page.getByRole('button', { name: 'Try it in the Commit Lab' }).click()
     await expect(page.getByRole('dialog', { name: 'Four commits, one change' })).toBeVisible()
     expect(await violations(page)).toEqual([])
   })

@@ -134,7 +134,7 @@
 
 .label {
   fill: var(--text);
-  font-size: 11px;
+  font-size: 12px;
   text-anchor: middle;
   pointer-events: none;
 }

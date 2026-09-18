@@ -12,7 +12,7 @@ export const tidierHistoryChapter: Chapter = {
   title: 'A tidier history',
   milestone: 'keeping-in-sync',
   intro:
-    'No terminal today. You’ve squashed and rebased already — by clicking buttons on GitNub. Now you’ll do both by hand in the Commit Lab, so you can see what they do to history.',
+    'The terminal gets a rest today. You’ve squashed and rebased already — by clicking buttons on GitNub. Now you’ll do both by hand in the Commit Lab, so you can see what they do to history.',
   setup: (state) => ({
     ...withClone(state),
     ui: { ...state.ui, unlockedTabs: ['flack', 'gitnub', 'editor'] },
@@ -31,22 +31,22 @@ export const tidierHistoryChapter: Chapter = {
           channel: 'dm-robin',
           from: 'robin',
           text: 'Here’s why we squash. On a team that doesn’t, `main` reads like this: `wip` · `fix typo` · `actually fix typo` · `final`. Ours reads like `Add two team tips` · `Fix a typo in the style guide` — one line per finished change. Much easier to follow when something goes wrong! Let’s tidy a branch by hand.',
+          lab: 'tidy-squash',
         },
       ],
     },
     {
       id: 'squash',
       title: 'Squash four commits into one',
-      body: 'In the Commit Lab, drag `wip` onto `final` — or select one with Enter, then the other — and choose **Squash into here**. Four commits become one.',
+      body: 'Click **Try it in the Commit Lab** under Robin’s message. Then drag `wip` onto `final` — or select one with Enter, then the other — and choose **Squash into here**. Four commits become one.',
       hints: [
-        'Pick up the first commit on your branch and drop it on the last one.',
+        'The button is under Robin’s message in your DM. In the lab, pick up the first commit on your branch and drop it on the last one.',
         'Choose **Squash into here** from the menu.',
       ],
       goal: finished('tidy-squash'),
       afterNote:
         'Same change, one commit. That’s what **Squash commits** does on GitNub, every time you merge.',
       docs: [DOCS.squashMerge],
-      onEnter: [{ type: 'openCommitLab', scenario: 'tidy-squash', delayMs: 1200 }],
     },
     {
       id: 'rebase',
