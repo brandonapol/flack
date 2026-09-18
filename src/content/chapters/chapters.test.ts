@@ -484,3 +484,156 @@ describe('Chapter 7: A tidier history', () => {
     expect(rebased.nodes.every((node) => node.parents.length <= 1)).toBe(true)
   })
 })
+
+describe('Chapter 8: Two people, one spot', () => {
+  const STYLE_GUIDE = 'docs/style-guide.md'
+  const MY_TIP = '- Say the most important thing first.'
+  const SAM = '- Keep screenshots up to date, or leave them out.'
+
+  const addTip = (state: GameState, tip = MY_TIP): Action => ({
+    type: 'saveFile',
+    path: STYLE_GUIDE,
+    content: `${state.git.local!.working[STYLE_GUIDE]}${tip}\n`,
+  })
+
+  /** Branch, tip, commit, push, PR: up to the conflict. */
+  function upToTheConflict(from?: GameState) {
+    const initial = flushEffects(
+      config,
+      ...startChapterAt(from ?? blankState(config), '08-conflict')
+    )
+    const state = play(config, initial, [
+      cmd('git switch -c ada-tip'),
+      { type: 'openFile', path: STYLE_GUIDE },
+      addTip(initial),
+      cmd(`git add ${STYLE_GUIDE}`),
+      cmd('git commit -m "Add my writing tip"'),
+      cmd('git push -u origin ada-tip'),
+      { type: 'openPullRequest', slug: DOCS_SITE, branch: 'ada-tip', title: 'Add my writing tip' },
+    ])
+    const pr = state.git.remotes[DOCS_SITE].pullRequests.at(-1)!
+    return { state, number: pr.number }
+  }
+
+  it('conflict → Commit Lab → Keep both → merge, with both tips in order', () => {
+    const { state, number } = upToTheConflict()
+    expect(findPullRequest(state.git.remotes[DOCS_SITE], number)!.status).toBe('has-conflicts')
+    expect(state.story.completedSteps).toEqual([
+      'branch',
+      'add-tip',
+      'commit',
+      'open-pr',
+      'conflict',
+    ])
+    expect(state.flack.messages.at(-1)?.text).toContain('nothing is broken')
+
+    const done = play(config, state, [
+      { type: 'openCommitLab', scenario: 'pr-conflict' },
+      { type: 'completeCommitLab' },
+      { type: 'closeCommitLab' },
+      { type: 'resolveConflicts', slug: DOCS_SITE, number, choices: { [STYLE_GUIDE]: 'both' } },
+      { type: 'mergePullRequest', slug: DOCS_SITE, number },
+      { type: 'flackReply', messageId: 'sam-both', replyId: 'high-five' },
+    ])
+    expect(done.story.completedSteps).toEqual([
+      'branch',
+      'add-tip',
+      'commit',
+      'open-pr',
+      'conflict',
+      'see-why',
+      'resolve',
+      'merge',
+      'reply-sam',
+    ])
+    const remote = done.git.remotes[DOCS_SITE]
+    const guide = remote.commits[remote.branches.main].tree[STYLE_GUIDE]
+    expect(guide.endsWith(`${MY_TIP}\n${SAM}\n`)).toBe(true)
+    expect(guide).not.toContain('<<<<<<<')
+  })
+
+  it('Keep mine gets a nudge instead of a pass, and Undo lets you choose again', () => {
+    const { state, number } = upToTheConflict()
+    const labbed = play(config, state, [
+      { type: 'openCommitLab', scenario: 'pr-conflict' },
+      { type: 'completeCommitLab' },
+    ])
+    const mine = play(config, labbed, [
+      { type: 'resolveConflicts', slug: DOCS_SITE, number, choices: { [STYLE_GUIDE]: 'ours' } },
+    ])
+    expect(mine.story.completedSteps).not.toContain('resolve')
+    expect(mine.flack.messages.at(-1)).toMatchObject({ from: 'robin', channel: 'dm-robin' })
+    expect(mine.flack.messages.at(-1)?.text).toContain('Undo and choose again')
+    expect(findPullRequest(mine.git.remotes[DOCS_SITE], number)!.status).toBe('open')
+
+    const undone = play(config, mine, [{ type: 'undoResolveConflicts', slug: DOCS_SITE, number }])
+    expect(findPullRequest(undone.git.remotes[DOCS_SITE], number)!.status).toBe('has-conflicts')
+
+    const both = play(config, undone, [
+      { type: 'resolveConflicts', slug: DOCS_SITE, number, choices: { [STYLE_GUIDE]: 'both' } },
+    ])
+    expect(both.story.completedSteps).toContain('resolve')
+  })
+
+  it('a tip that isn’t at the bottom gets a word from Robin', () => {
+    const initial = flushEffects(config, ...startChapterAt(blankState(config), '08-conflict'))
+    const text = initial.git.local!.working[STYLE_GUIDE]
+    const state = play(config, initial, [
+      cmd('git switch -c ada-tip'),
+      { type: 'openFile', path: STYLE_GUIDE },
+      {
+        type: 'saveFile',
+        path: STYLE_GUIDE,
+        content: text.replace('## Team tips\n', `## Team tips\n\n${MY_TIP}\n`),
+      },
+    ])
+    expect(state.story.completedSteps).toEqual(['branch'])
+    expect(state.flack.messages.at(-1)?.text).toContain('very last line')
+  })
+
+  it('the bonus round completes the chapter’s optional last step', () => {
+    const { state, number } = upToTheConflict()
+    const done = play(config, state, [
+      { type: 'openCommitLab', scenario: 'pr-conflict' },
+      { type: 'completeCommitLab' },
+      { type: 'resolveConflicts', slug: DOCS_SITE, number },
+      { type: 'mergePullRequest', slug: DOCS_SITE, number },
+      { type: 'flackReply', messageId: 'sam-both', replyId: 'nice-tip' },
+    ])
+    expect(done.flack.messages.at(-1)).toMatchObject({ from: 'robin', lab: 'bonus-reword' })
+    const bonus = play(config, done, [
+      { type: 'openCommitLab', scenario: 'bonus-reword' },
+      { type: 'completeCommitLab' },
+    ])
+    expect(bonus.story.completedSteps.at(-1)).toBe('bonus')
+    expect(bonus.story.phase).toBe('complete')
+  })
+
+  it('the bonus round can be skipped, which finishes the chapter', () => {
+    const { state, number } = upToTheConflict()
+    const done = play(config, state, [
+      { type: 'openCommitLab', scenario: 'pr-conflict' },
+      { type: 'completeCommitLab' },
+      { type: 'resolveConflicts', slug: DOCS_SITE, number },
+      { type: 'mergePullRequest', slug: DOCS_SITE, number },
+      { type: 'flackReply', messageId: 'sam-both', replyId: 'nice-tip' },
+      { type: 'skipStep' },
+    ])
+    expect(done.story.skippedSteps).toEqual(['bonus'])
+    expect(done.story.phase).toBe('complete')
+    expect(done.story.completedChapters).toContain('08-conflict')
+  })
+
+  it('only an optional step can be skipped', () => {
+    const { state } = upToTheConflict()
+    expect(play(config, state, [{ type: 'skipStep' }]).story).toEqual(state.story)
+  })
+
+  it('after Day one, the new PR still conflicts with Sam’s tip', () => {
+    const { state: afterDayOne } = playDayOne()
+    const { state, number } = upToTheConflict(afterDayOne)
+    // #4 was the learner's first pull request and #5 Sam's, so this one is #6.
+    expect(number).toBe(6)
+    expect(findPullRequest(state.git.remotes[DOCS_SITE], number)!.status).toBe('has-conflicts')
+  })
+})

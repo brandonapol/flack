@@ -181,4 +181,15 @@ describe('glossary terms', () => {
       expect.stringContaining('git-scm.com')
     )
   })
+
+  it('an optional step can be skipped', () => {
+    const { store } = setup()
+    run(store, 'echo hello')
+    expect(screen.getAllByRole('listitem')[1]).toHaveTextContent('(current step)')
+    click(screen.getByRole('button', { name: 'Skip this step' }))
+    expect(store.getState().game.story.skippedSteps).toEqual(['peek'])
+    expect(screen.getAllByRole('listitem')[1]).toHaveTextContent('(skipped)')
+    expect(screen.getAllByRole('listitem')[2]).toHaveTextContent('(current step)')
+    expect(screen.queryByRole('button', { name: 'Skip this step' })).not.toBeInTheDocument()
+  })
 })

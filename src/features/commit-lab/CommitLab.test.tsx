@@ -180,6 +180,28 @@ describe('Commit Lab', () => {
     expect(screen.queryByRole('button', { name: 'I get it' })).not.toBeInTheDocument()
   })
 
+  it('the bonus round: keeping both is flagged, picking one completes it', () => {
+    const { dispatch } = setup('bonus-reword')
+    const completions = () =>
+      dispatch.mock.calls.filter(([action]) => action.type === 'completeCommitLab')
+    // Both commits have the same label; the first is on main, the second on yours.
+    const [, yours] = screen.getAllByRole('button', { name: /^Reword the voice sentence,/ })
+    press(yours)
+    press(screen.getAllByRole('button', { name: /^Reword the voice sentence,/ })[0])
+    click(screen.getByRole('button', { name: 'Merge with here' }))
+    click(screen.getByRole('button', { name: 'Keep both' }))
+    expect(screen.getByText(/says the same thing twice/)).toBeVisible()
+    expect(completions()).toHaveLength(0)
+
+    click(screen.getByRole('button', { name: 'Undo' }))
+    press(screen.getAllByRole('button', { name: /^Reword the voice sentence,/ })[1])
+    press(screen.getAllByRole('button', { name: /^Reword the voice sentence,/ })[0])
+    click(screen.getByRole('button', { name: 'Merge with here' }))
+    click(screen.getByRole('button', { name: 'Keep theirs' }))
+    expect(completions()).toHaveLength(1)
+    expect(screen.getByText('That’s the shape.')).toBeInTheDocument()
+  })
+
   it('free mode closes with “I get it”', () => {
     const { store } = setup()
     click(screen.getByRole('button', { name: 'I get it' }))

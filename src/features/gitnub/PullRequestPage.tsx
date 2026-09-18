@@ -16,6 +16,7 @@ import { Markdown } from '../shared/Markdown'
 import markdownStyles from '../shared/markdown.module.css'
 import { relativeTime } from '../shared/time'
 import { BranchGraph } from './BranchGraph'
+import { ConflictResolver } from './ConflictResolver'
 import { repoPath, subjectOf } from './data'
 import { DiffView } from './DiffView'
 import styles from './GitNub.module.css'
@@ -153,28 +154,22 @@ export function PullRequestPage() {
             </div>
           )}
 
-          {conflicted.length > 0 && (
-            <div className={styles.prNotice} role="note">
-              <p className={styles.prNoticeTitle}>
-                This branch has conflicts that must be resolved
-              </p>
+          {conflicted.length > 0 && !merged && (
+            <ConflictResolver slug={slug} pr={pr} conflicts={conflicted} />
+          )}
+          {pr.resolvedFrom && pr.status === 'open' && (
+            <div className={styles.prNotice} role="status">
+              <p className={styles.prNoticeTitle}>Conflicts resolved</p>
               <p className={styles.muted}>
-                Your branch and <code>{pr.base}</code> both changed the same lines. Nothing is
-                broken and nothing is lost — someone just has to choose what to keep.
+                GitNub added a commit to your branch that merges <code>{pr.base}</code> in, with the
+                choices you made. Changed your mind?
               </p>
-              <ul className={styles.conflictFiles} aria-label="Conflicting files">
-                {conflicted.map((file) => (
-                  <li key={file.path}>
-                    <code>{file.path}</code>
-                  </li>
-                ))}
-              </ul>
               <button
                 type="button"
                 className={styles.secondaryButton}
-                onClick={() => dispatch({ type: 'openCommitLab', scenario: 'sandbox' })}
+                onClick={() => dispatch({ type: 'undoResolveConflicts', slug, number: pr.number })}
               >
-                See what’s going on in the Commit Lab →
+                Undo and choose again
               </button>
             </div>
           )}

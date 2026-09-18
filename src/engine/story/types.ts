@@ -3,7 +3,7 @@ import type { Person } from '../git/types'
 import type { GameEvent, Tab } from '../events'
 import type { Registry } from '../shell/registry'
 import type { GameState } from '../game'
-import type { LabGraph } from '../lab/graph'
+import type { LabGraph, Resolution } from '../lab/graph'
 
 export interface QuickReply {
   id: string
@@ -152,6 +152,10 @@ export interface LabScenario {
   squashLabel?: string
   /** Said after an operation, on top of its caption: why it is (or isn't) the one we're after. */
   hints?: Partial<Record<'rebase' | 'merge' | 'squash' | 'cherryPick', string>>
+  /** Said after a conflict is settled a particular way. */
+  resolutionHints?: Partial<Record<Resolution, string>>
+  /** Guided mode isn't finished if the last conflict was settled this way (e.g. `both`). */
+  avoid?: Resolution
 }
 
 /** Commit graphs side by side, drawn in Instructions with the Commit Lab's renderer. */

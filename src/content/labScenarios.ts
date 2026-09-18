@@ -228,9 +228,95 @@ export const MERGE_VS_REBASE: LabFigure = {
   ],
 }
 
+/** Sam's tip in Chapter 8, landing at the same spot as the learner's. */
+export const SAM_TIP = '- Keep screenshots up to date, or leave them out.'
+
+/** Chapter 8: your tip and Sam's, both added at the bottom of Team tips. Opened from the PR. */
+const prConflict: LabScenario = {
+  id: 'pr-conflict',
+  title: 'Two tips, one spot',
+  intro:
+    'Your pull request and Sam’s both added a line at the very bottom of **Team tips** — the same spot. Drag your commit onto Sam’s and choose **Merge with here** to see the conflict. Try **Keep mine**, then Undo and try **Keep theirs**: see what each one leaves out.',
+  start: {
+    lanes: ['main', 'yours'],
+    branches: { main: 's1', yours: 'y1' },
+    nodes: [
+      ...MAIN_SO_FAR,
+      {
+        id: 's1',
+        label: 'Add Sam’s tip',
+        author: 'SR',
+        lane: 'main',
+        parents: ['m2'],
+        touches: ['team tips'],
+        snippet: SAM_TIP,
+      },
+      {
+        id: 'y1',
+        label: 'Add my tip',
+        author: 'You',
+        lane: 'yours',
+        parents: ['m2'],
+        touches: ['team tips'],
+        snippet: '- (your tip)',
+      },
+    ],
+  },
+  resolutionHints: {
+    mine: 'Your tip stayed — and Sam’s is gone. Git is happy, but Sam wouldn’t be. Undo and try another.',
+    theirs: 'Sam’s tip stayed — and yours is gone. Undo and try **Keep both**.',
+    both: 'Both tips, one after the other. For a list like this, that’s almost always the answer.',
+  },
+}
+
+/** Chapter 8's bonus round: the rarer kind, where keeping both is wrong. */
+const rewordStart: LabGraph = {
+  lanes: ['main', 'yours'],
+  branches: { main: 'a1', yours: 'y1' },
+  nodes: [
+    ...MAIN_SO_FAR,
+    {
+      id: 'a1',
+      label: 'Reword the voice sentence',
+      author: 'AC',
+      lane: 'main',
+      parents: ['m2'],
+      touches: ['voice'],
+      snippet: 'Write like you’re explaining something to a busy friend.',
+    },
+    {
+      id: 'y1',
+      label: 'Reword the voice sentence',
+      author: 'You',
+      lane: 'yours',
+      parents: ['m2'],
+      touches: ['voice'],
+      snippet: 'Write the way you’d talk to a smart friend in a hurry.',
+    },
+  ],
+}
+
+const bonusReword: LabScenario = {
+  id: 'bonus-reword',
+  title: 'Bonus: one sentence, two rewrites',
+  intro:
+    'The rarer kind of conflict. You and Alex both **rewrote the same sentence**. Merge your branch into `main` and settle it — but this time, think about whether keeping both makes sense.',
+  start: rewordStart,
+  target: after(merge(rewordStart, 'yours', 'main', { resolution: 'mine' })),
+  avoid: 'both',
+  resolutionHints: {
+    both: 'Now the paragraph says the same thing twice. When two people rewrite the *same sentence*, both can’t stay. Undo and pick one.',
+    mine: 'One sentence, reworded once. Here someone genuinely has to pick — and that’s all a conflict ever asks.',
+    theirs:
+      'One sentence, reworded once. Here someone genuinely has to pick — and that’s all a conflict ever asks.',
+  },
+}
+
 export const LAB_SCENARIOS: Record<string, LabScenario> = {
   sandbox,
   'out-of-date': outOfDate,
   'tidy-squash': tidySquash,
   'tidy-rebase': tidyRebase,
+  'pr-conflict': prConflict,
+  'bonus-reword': bonusReword,
 }
