@@ -5,6 +5,7 @@ import type { Tab } from '../../engine/events'
 import { useGame } from '../../store'
 import { Flack } from '../flack'
 import { GitNub } from '../gitnub'
+import { PanelBoundary } from '../shared/PanelBoundary'
 import styles from './DesktopTabs.module.css'
 import { TABS } from './tabs'
 
@@ -117,14 +118,30 @@ export function DesktopTabs() {
         data-skin={activeTab}
       >
         <Routes>
-          <Route path="/flack/:channel?" element={<Flack />} />
-          <Route path="/gitnub/*" element={<GitNub />} />
+          <Route
+            path="/flack/:channel?"
+            element={
+              <PanelBoundary name="Flack">
+                <Flack />
+              </PanelBoundary>
+            }
+          />
+          <Route
+            path="/gitnub/*"
+            element={
+              <PanelBoundary name="GitNub">
+                <GitNub />
+              </PanelBoundary>
+            }
+          />
           <Route
             path="/editor/*"
             element={
-              <Suspense fallback={<Placeholder title="Opening the editor…" />}>
-                <Editor />
-              </Suspense>
+              <PanelBoundary name="the editor">
+                <Suspense fallback={<Placeholder title="Opening the editor…" />}>
+                  <Editor />
+                </Suspense>
+              </PanelBoundary>
             }
           />
           <Route path="*" element={null} />
