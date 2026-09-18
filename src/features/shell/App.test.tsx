@@ -41,7 +41,9 @@ describe('App shell', () => {
   it('says so when a saved game couldn’t be loaded, until dismissed', async () => {
     const oldSave: StorageLike = { ...noStorage, getItem: () => '{"version":0}' }
     render(<App store={createGameStore({ config: createGameConfig(), storage: oldSave })} />)
-    const notice = screen.getByRole('status')
+    const notice = screen
+      .getAllByRole('status')
+      .find((region) => region.textContent?.includes('saved progress'))!
     expect(notice).toHaveTextContent('your saved progress couldn’t be loaded')
     await userEvent.click(within(notice).getByRole('button', { name: 'OK' }))
     expect(screen.queryByText(/saved progress couldn’t be loaded/)).not.toBeInTheDocument()
@@ -77,9 +79,12 @@ describe('App shell', () => {
     expect(editor).toHaveAttribute('aria-disabled', 'true')
     expect(editor).toHaveAttribute('title', "You'll unlock this soon")
     expect(editor).toHaveAccessibleName(/you'll unlock this soon/)
+    expect(screen.queryByText(/unlocks later in the story/)).not.toBeInTheDocument()
     await user.click(editor)
     expect(store.getState().game.ui.activeTab).toBe('flack')
     expect(window.location.hash).toBe('#/flack/docs-team')
+    // The click isn't swallowed silently.
+    expect(screen.getByText(/Editor unlocks later in the story/)).toBeInTheDocument()
   })
 
   it('a deep link to a locked tab falls back to the active tab', async () => {

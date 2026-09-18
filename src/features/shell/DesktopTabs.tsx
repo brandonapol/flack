@@ -1,4 +1,4 @@
-import { lazy, Suspense, useRef, type KeyboardEvent } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { Route, Routes, useNavigate } from 'react-router'
 
 import type { Tab } from '../../engine/events'
@@ -44,10 +44,25 @@ export function DesktopTabs() {
   const unlockedTabs = useGame((s) => s.game.ui.unlockedTabs)
   const unread = useUnreadCount()
   const tabRefs = useRef<Partial<Record<Tab, HTMLButtonElement | null>>>({})
+  const [lockedNote, setLockedNote] = useState<string>()
+
+  useEffect(() => {
+    if (!lockedNote) return
+    const timer = setTimeout(() => setLockedNote(undefined), 5000)
+    return () => clearTimeout(timer)
+  }, [lockedNote])
 
   const open = (tab: Tab) => {
-    if (!unlockedTabs.includes(tab)) return
-    navigate(TABS.find((info) => info.id === tab)!.path)
+    const info = TABS.find((candidate) => candidate.id === tab)!
+    if (!unlockedTabs.includes(tab)) {
+      // A locked tab says why, rather than swallowing the click.
+      setLockedNote(
+        `${info.label} unlocks later in the story. For now, follow the step on the left.`
+      )
+      return
+    }
+    setLockedNote(undefined)
+    navigate(info.path)
   }
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -110,6 +125,14 @@ export function DesktopTabs() {
           )
         })}
       </div>
+      <p className={styles.lockedNote} role="status">
+        {lockedNote && (
+          <>
+            <span aria-hidden="true">🔒 </span>
+            {lockedNote}
+          </>
+        )}
+      </p>
       <div
         role="tabpanel"
         id="desktop-panel"

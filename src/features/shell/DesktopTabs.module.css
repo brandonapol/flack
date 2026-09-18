@@ -1,9 +1,28 @@
 .desktop {
+  position: relative;
   display: flex;
   flex-direction: column;
   min-height: 0;
   height: 100%;
   background: var(--surface);
+}
+
+/* Floats under the tab strip, so showing it doesn't shift the panel. */
+.lockedNote {
+  position: absolute;
+  top: 40px;
+  left: 8px;
+  z-index: 5;
+  margin: 0;
+}
+
+.lockedNote:not(:empty) {
+  padding: 6px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--surface);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 12%);
+  font-size: 0.8125rem;
 }
 
 .tablist {
