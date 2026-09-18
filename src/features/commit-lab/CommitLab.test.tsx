@@ -220,3 +220,23 @@ describe('Commit Lab', () => {
     expect(serious.map((violation) => `${violation.id}: ${violation.help}`)).toEqual([])
   })
 })
+
+describe('Commit Lab focus', () => {
+  it('moves focus to its title when it opens, and back where it was when it closes', () => {
+    const store = createGameStore({ config: createGameConfig(), storage: noStorage })
+    render(
+      <GameStoreProvider store={store}>
+        <button type="button">Try it in the Commit Lab</button>
+        <CommitLab />
+      </GameStoreProvider>
+    )
+    const opener = screen.getByRole('button', { name: 'Try it in the Commit Lab' })
+    act(() => opener.focus())
+    act(() => store.getState().dispatch({ type: 'openCommitLab', scenario: 'sandbox' }))
+    expect(screen.getByRole('heading', { level: 2 })).toHaveFocus()
+
+    click(screen.getByRole('button', { name: 'Close' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(opener).toHaveFocus()
+  })
+})

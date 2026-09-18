@@ -15,7 +15,7 @@ export const characters: Record<string, Character> = {
     email: 'robin@inkwell.example',
     initials: 'RO',
     role: 'Senior technical writer',
-    color: '#d9480f',
+    color: '#c2410c',
   },
   sam: {
     id: 'sam',
@@ -23,7 +23,7 @@ export const characters: Record<string, Character> = {
     email: 'sam@inkwell.example',
     initials: 'SR',
     role: 'Technical writer (also new today)',
-    color: '#0c8599',
+    color: '#0b7285',
   },
   alex: {
     id: 'alex',
@@ -31,6 +31,6 @@ export const characters: Record<string, Character> = {
     email: 'alex@inkwell.example',
     initials: 'AC',
     role: 'Software engineer',
-    color: '#2f9e44',
+    color: '#237032',
   },
 }

@@ -94,7 +94,7 @@
 }
 
 .inputRow:focus-within {
-  outline: 1px dashed #4b5260;
+  outline: 1px dashed var(--term-muted);
   outline-offset: 3px;
 }
 

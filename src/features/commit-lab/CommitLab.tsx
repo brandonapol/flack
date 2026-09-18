@@ -10,6 +10,7 @@ import {
 import type { LabScenario } from '../../engine/story/types'
 import { useGame } from '../../store'
 import { Markdown } from '../shared/Markdown'
+import { useRestoreFocus } from '../shared/useRestoreFocus'
 import { actionsFor, type LabAction } from './actions'
 import styles from './CommitLab.module.css'
 import { GraphView } from './GraphView'
@@ -55,6 +56,7 @@ function Lab({ scenario }: { scenario: LabScenario }) {
       ? actionsFor(graph, selected, target, { squashLabel: scenario.squashLabel })
       : []
 
+  useRestoreFocus()
   useEffect(() => heading.current?.focus(), [])
 
   // Guided mode is done once the graph has the target's shape. Tell the story once.
