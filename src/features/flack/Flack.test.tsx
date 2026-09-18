@@ -132,11 +132,28 @@ describe('Flack', () => {
     expect(store.getState().game.flack.messages.filter((m) => m.from === 'player')).toHaveLength(1)
   })
 
-  it('has a disabled composer that explains itself', () => {
-    setup()
+  it('has a disabled composer that points at reply buttons only while there are some (#86)', () => {
+    const { store } = setup()
     const composer = screen.getByRole('textbox', { name: /Message box/ })
     expect(composer).toBeDisabled()
-    expect(composer).toHaveAttribute('placeholder', 'Use the reply buttons for now')
+    expect(composer).toHaveAttribute(
+      'placeholder',
+      'No typing needed here: follow the step on the left'
+    )
+    act(() =>
+      store.getState().dispatch({
+        type: 'applyEffect',
+        effect: {
+          type: 'flackMessage',
+          id: 'ask',
+          channel: 'docs-team',
+          from: 'jordan',
+          text: 'Ready?',
+          quickReplies: [{ id: 'yes', text: 'Yes!' }],
+        },
+      })
+    )
+    expect(composer).toHaveAttribute('placeholder', 'Use the reply buttons above')
   })
 
   it('pops a notification for a message in another channel, and opens it when clicked', () => {
