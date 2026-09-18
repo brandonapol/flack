@@ -249,7 +249,9 @@ export function Instructions() {
                       dispatch({ type: 'startChapter', chapterId: candidate.id })
                     }}
                   >
-                    {index + 1}. {candidate.title}
+                    {candidate.milestone === 'bonus'
+                      ? `Bonus: ${candidate.title}`
+                      : `${index + 1}. ${candidate.title}`}
                     {!playable && <span className={styles.srOnly}> (not unlocked yet)</span>}
                   </button>
                 </li>

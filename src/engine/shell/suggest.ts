@@ -23,10 +23,12 @@ export function levenshtein(a: string, b: string): number {
 export function suggest(input: string, candidates: Iterable<string>): string | undefined {
   let best: string | undefined
   let bestDistance = Infinity
+  // Short words are close to everything: two edits turn `npm` into `vim`. Allow one there.
+  const allowed = input.length <= 3 ? 1 : 2
   for (const candidate of candidates) {
     if (candidate === input) return candidate
     const distance = Math.min(levenshtein(input, candidate), transposedDistance(input, candidate))
-    if (distance <= 2 && distance < bestDistance) {
+    if (distance <= allowed && distance < bestDistance) {
       best = candidate
       bestDistance = distance
     }

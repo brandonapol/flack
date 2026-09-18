@@ -14,10 +14,36 @@ export interface RunLineResult<S extends CoreState> {
   effects: CommandEffect[]
 }
 
+/** Tools people reach for out of habit. None of them exist here, and that's fine. */
+const INSTALLERS = new Set([
+  'npm',
+  'npx',
+  'yarn',
+  'pnpm',
+  'pip',
+  'pip3',
+  'python',
+  'python3',
+  'node',
+  'brew',
+])
+
 function defaultUnknownCommand<S extends CoreState>(
   ctx: CommandContext<S>,
   suggestion?: string
 ): CommandResult<S> {
+  if (INSTALLERS.has(ctx.argv[0])) {
+    return {
+      ok: false,
+      output: [
+        line(`bash: ${ctx.argv[0]}: command not found`, 'error'),
+        line(
+          '💡 This terminal only runs Git and a few basics — `help` lists them. There’s nothing to install for these docs.',
+          'muted'
+        ),
+      ],
+    }
+  }
   return {
     ok: false,
     output: [
