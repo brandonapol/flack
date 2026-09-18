@@ -42,6 +42,9 @@ function Lab({ scenario }: { scenario: LabScenario }) {
   const [announcement, setAnnouncement] = useState('')
   const [resolved, setResolved] = useState<string>()
   const [hint, setHint] = useState<string>()
+  /** How each graph in `history` settled a conflict, if it did. */
+  const [resolutions, setResolutions] = useState<Array<Resolution | undefined>>([undefined])
+  const lastResolution = resolutions[resolutions.length - 1]
   const [drag, setDrag] = useState<{ id: string; x0: number; y0: number; dx: number; dy: number }>()
   const dragged = useRef(false)
   const heading = useRef<HTMLHeadingElement>(null)
@@ -55,7 +58,11 @@ function Lab({ scenario }: { scenario: LabScenario }) {
   useEffect(() => heading.current?.focus(), [])
 
   // Guided mode is done once the graph has the target's shape. Tell the story once.
-  const done = Boolean(scenario.target && shapeOf(graph) === shapeOf(scenario.target))
+  const done = Boolean(
+    scenario.target &&
+    shapeOf(graph) === shapeOf(scenario.target) &&
+    (!scenario.avoid || lastResolution !== scenario.avoid)
+  )
   const completed = useRef(false)
   useEffect(() => {
     if (done && !completed.current) {
@@ -69,13 +76,14 @@ function Lab({ scenario }: { scenario: LabScenario }) {
     setTarget(undefined)
   }
 
-  const apply = (result: LabResult, action: LabAction) => {
+  const apply = (result: LabResult, action: LabAction, resolution?: Resolution) => {
     if (result.ok) {
       setHistory((previous) => [...previous, result.graph])
+      setResolutions((previous) => [...previous, resolution])
       setCaption(result.caption)
       setAnnouncement(result.announcement)
       setResolved(result.resolved)
-      setHint(scenario.hints?.[action.id])
+      setHint((resolution && scenario.resolutionHints?.[resolution]) ?? scenario.hints?.[action.id])
       setPending(undefined)
       clearSelection()
     } else if (result.kind === 'conflict') {
@@ -156,6 +164,7 @@ function Lab({ scenario }: { scenario: LabScenario }) {
   const undo = () => {
     if (history.length < 2) return
     setHistory((previous) => previous.slice(0, -1))
+    setResolutions((previous) => previous.slice(0, -1))
     setCaption(undefined)
     setResolved(undefined)
     setHint(undefined)
@@ -166,6 +175,7 @@ function Lab({ scenario }: { scenario: LabScenario }) {
 
   const reset = () => {
     setHistory([scenario.start])
+    setResolutions([undefined])
     setCaption(undefined)
     setResolved(undefined)
     setHint(undefined)
@@ -248,7 +258,9 @@ function Lab({ scenario }: { scenario: LabScenario }) {
       {pending && (
         <ConflictCallout
           conflict={pending.conflict}
-          onChoose={(resolution) => apply(pending.action.run(resolution), pending.action)}
+          onChoose={(resolution) =>
+            apply(pending.action.run(resolution), pending.action, resolution)
+          }
         />
       )}
 

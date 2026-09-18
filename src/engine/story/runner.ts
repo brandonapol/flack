@@ -36,6 +36,29 @@ function candidateIndexes(chapter: Chapter, from: number): number[] {
   return indexes
 }
 
+/** Moves the story to `stepIndex`, finishing the chapter if that's past its last step. */
+function moveTo(state: GameState, chapter: Chapter, stepIndex: number): GameState {
+  const finished = stepIndex >= chapter.steps.length
+  return {
+    ...state,
+    story: {
+      ...state.story,
+      stepIndex,
+      misses: 0,
+      hintsShown: 0,
+      solutionShown: false,
+      ...(finished
+        ? {
+            phase: 'complete' as const,
+            completedChapters: state.story.completedChapters.includes(chapter.id)
+              ? state.story.completedChapters
+              : [...state.story.completedChapters, chapter.id],
+          }
+        : {}),
+    },
+  }
+}
+
 function completeStep(
   state: GameState,
   chapter: Chapter,
@@ -44,30 +67,21 @@ function completeStep(
 ): { state: GameState; effects: Effect[]; events: GameEvent[] } {
   const step = chapter.steps[index]
   const skipped = chapter.steps.slice(state.story.stepIndex, index).map((s) => s.id)
-  let next: GameState = step.apply ? step.apply(state, event) : state
+  const applied: GameState = step.apply ? step.apply(state, event) : state
   const stepIndex = index + 1
   const finished = stepIndex >= chapter.steps.length
-  next = {
-    ...next,
-    story: {
-      ...next.story,
-      stepIndex,
-      completedSteps: [...next.story.completedSteps, step.id],
-      skippedSteps: [...next.story.skippedSteps, ...skipped],
-      misses: 0,
-      firedReactions: next.story.firedReactions,
-      hintsShown: 0,
-      solutionShown: false,
-      ...(finished
-        ? {
-            phase: 'complete' as const,
-            completedChapters: next.story.completedChapters.includes(chapter.id)
-              ? next.story.completedChapters
-              : [...next.story.completedChapters, chapter.id],
-          }
-        : {}),
+  const next = moveTo(
+    {
+      ...applied,
+      story: {
+        ...applied.story,
+        completedSteps: [...applied.story.completedSteps, step.id],
+        skippedSteps: [...applied.story.skippedSteps, ...skipped],
+      },
     },
-  }
+    chapter,
+    stepIndex
+  )
   const effects = [...(step.onComplete ?? [])]
   const events: GameEvent[] = []
   if (!finished) {
@@ -178,4 +192,17 @@ export function enterStep(config: GameConfig, state: GameState): ReduceResult {
   const step = currentStep(config, state)
   if (!step) return { state, effects: [] }
   return advanceStory(config, state, [{ type: 'stepEntered', stepId: step.id }], step.onEnter ?? [])
+}
+
+/** "Skip this step" on an optional step: move on without doing it. */
+export function skipStep(config: GameConfig, state: GameState): ReduceResult {
+  const chapter = currentChapter(config, state)
+  const step = currentStep(config, state)
+  if (!chapter || !step?.optional || state.story.phase !== 'playing') return { state, effects: [] }
+  const next = moveTo(
+    { ...state, story: { ...state.story, skippedSteps: [...state.story.skippedSteps, step.id] } },
+    chapter,
+    state.story.stepIndex + 1
+  )
+  return next.story.phase === 'complete' ? { state: next, effects: [] } : enterStep(config, next)
 }

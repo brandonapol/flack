@@ -1,7 +1,9 @@
 import { Link } from 'react-router'
 
 import { DOCS } from '../../content/docsLinks'
+import { useGame } from '../../store'
 import styles from './CheatSheet.module.css'
+import { hasGraduated } from './progress'
 
 interface Line {
   command: string
@@ -80,7 +82,39 @@ const ALSO: Array<{ title: string; body: string }> = [
   },
 ]
 
+/** Cheat sheet v2, once Keeping in sync is done: what to do when GitNub says… */
+const WHEN_PR: Array<{ title: string; steps: string[]; docs: { label: string; href: string } }> = [
+  {
+    title: '…it’s out of date',
+    steps: [
+      'Nothing is wrong: someone else’s work landed on main first.',
+      'Click **Update branch**. It rebases your commits onto the latest main.',
+      'Then **Squash and merge** as usual.',
+    ],
+    docs: DOCS.updateBranch,
+  },
+  {
+    title: '…it has conflicts',
+    steps: [
+      '**See what’s conflicting** (optional): you and someone else changed the same lines.',
+      'Choose **Keep both** — or mine or theirs, if only one can stay.',
+      '**Mark as resolved**, then merge. No markers to edit.',
+    ],
+    docs: DOCS.mergeConflicts,
+  },
+]
+
+const NEXT = [DOCS.branching, DOCS.rebasing, DOCS.pullRequests, DOCS.mergeConflicts]
+
+/** `**bold**` only: the cheat sheet's steps need nothing more. */
+function bold(text: string) {
+  return text
+    .split(/\*\*([^*]+)\*\*/g)
+    .map((part, index) => (index % 2 === 1 ? <strong key={index}>{part}</strong> : part))
+}
+
 export function CheatSheet() {
+  const graduated = useGame((s) => hasGraduated(s.config, s.game))
   return (
     <div className={styles.page}>
       <div className={styles.toolbar}>
@@ -94,7 +128,9 @@ export function CheatSheet() {
         <header>
           <h1 className={styles.title}>The daily loop</h1>
           <p className={styles.subtitle}>
-            Flack cheat sheet · everything you did on day one, in the order you do it.
+            {graduated
+              ? 'Flack cheat sheet · the loop you use every day, and what to do when GitNub says “wait”.'
+              : 'Flack cheat sheet · everything you did on day one, in the order you do it.'}
           </p>
         </header>
 
@@ -114,17 +150,57 @@ export function CheatSheet() {
           ))}
         </ol>
 
-        <section className={styles.also}>
-          <h2 className={styles.alsoTitle}>You’ll also hear about…</h2>
-          <dl className={styles.alsoList}>
-            {ALSO.map((item) => (
-              <div key={item.title}>
-                <dt>{item.title}</dt>
-                <dd>{item.body}</dd>
+        {graduated ? (
+          <>
+            <section className={styles.also}>
+              <h2 className={styles.alsoTitle}>When your pull request says…</h2>
+              <div className={styles.alsoList}>
+                {WHEN_PR.map((item) => (
+                  <div key={item.title}>
+                    <h3 className={styles.whenTitle}>{item.title}</h3>
+                    <ol className={styles.whenSteps}>
+                      {item.steps.map((step) => (
+                        <li key={step}>{bold(step)}</li>
+                      ))}
+                    </ol>
+                    <a
+                      className={styles.docs}
+                      href={item.docs.href}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      docs ↗
+                    </a>
+                  </div>
+                ))}
               </div>
-            ))}
-          </dl>
-        </section>
+            </section>
+            <section className={styles.next}>
+              <h2 className={styles.alsoTitle}>Where to go next</h2>
+              <ul>
+                {NEXT.map((link) => (
+                  <li key={link.href}>
+                    <a href={link.href} target="_blank" rel="noreferrer">
+                      {link.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          </>
+        ) : (
+          <section className={styles.also}>
+            <h2 className={styles.alsoTitle}>You’ll also hear about…</h2>
+            <dl className={styles.alsoList}>
+              {ALSO.map((item) => (
+                <div key={item.title}>
+                  <dt>{item.title}</dt>
+                  <dd>{item.body}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        )}
 
         <p className={styles.footer}>
           Stuck? Nothing you do with Git throws work away. Ask a teammate, and read the docs at

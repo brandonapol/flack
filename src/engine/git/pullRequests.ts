@@ -37,6 +37,8 @@ export interface PullRequest {
   openedAt: number
   /** The squash commit, once merged. */
   mergedCommit?: CommitId
+  /** Set after conflicts were resolved on GitNub: where the branch was before, for Undo. */
+  resolvedFrom?: CommitId
   branchDeleted?: boolean
 }
 
@@ -236,8 +238,27 @@ export function resolvePullRequestConflicts(
       ...remote,
       commits: { ...remote.commits, [commit.id]: commit },
       branches: { ...remote.branches, [pr.branch]: commit.id },
+      pullRequests: remote.pullRequests.map((candidate) =>
+        candidate.number === pr.number ? { ...candidate, resolvedFrom: branchTip } : candidate
+      ),
     }),
   }
+}
+
+/**
+ * Takes back a conflict resolution that hasn't been merged yet, so a different choice can be
+ * made. Flack's own safety net: nothing here should be permanently wrong.
+ */
+export function undoConflictResolution(remote: RemoteRepo, pr: PullRequest): RemoteRepo {
+  const tip = remote.branches[pr.branch]
+  if (!pr.resolvedFrom || !tip || remote.commits[tip].parents[0] !== pr.resolvedFrom) return remote
+  return refreshPullRequests({
+    ...remote,
+    branches: { ...remote.branches, [pr.branch]: pr.resolvedFrom },
+    pullRequests: remote.pullRequests.map((candidate) =>
+      candidate.number === pr.number ? { ...candidate, resolvedFrom: undefined } : candidate
+    ),
+  })
 }
 
 function resolvedTree(

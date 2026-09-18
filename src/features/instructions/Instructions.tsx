@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { useNavigate } from 'react-router'
 
 import { currentChapter, currentStep, shouldPulseHint } from '../../engine/story/runner'
 import { interpolate } from '../../engine/story/template'
@@ -8,8 +8,10 @@ import { LabFigureView } from '../commit-lab'
 import { Markdown } from '../shared/Markdown'
 import { ConfirmButton } from './ConfirmButton'
 import { DayOneComplete } from './DayOneComplete'
+import { Graduation } from './Graduation'
 import styles from './Instructions.module.css'
 import { InstructionsText } from './InstructionsText'
+import { endsMilestone } from './progress'
 import { StepList } from './StepList'
 
 export function Instructions() {
@@ -31,8 +33,8 @@ export function Instructions() {
 
   const number = config.chapters.findIndex((candidate) => candidate.id === chapter.id) + 1
   // The chapter that closes Day one: the next one (if any) belongs to a later milestone.
-  const endsDayOne =
-    chapter.milestone === 'day-one' && config.chapters[number]?.milestone !== 'day-one'
+  const endsDayOne = chapter.milestone === 'day-one' && endsMilestone(config, chapter.id)
+  const endsSync = chapter.milestone === 'keeping-in-sync' && endsMilestone(config, chapter.id)
   const done = story.completedSteps.length + story.skippedSteps.length
   const progress = Math.round((done / chapter.steps.length) * 100)
   const lastCompleted = chapter.steps.find(
@@ -86,16 +88,8 @@ export function Instructions() {
 
         {endsDayOne && story.phase !== 'playing' ? (
           <DayOneComplete />
-        ) : story.phase === 'finished' ? (
-          <section className={styles.card} aria-label="All caught up">
-            <h2 className={styles.cardTitle}>You’re all caught up 🎉</h2>
-            <p>That’s every chapter so far. More of Keeping in sync is on its way.</p>
-            <div className={styles.actions}>
-              <Link className={styles.primary} to="/cheat-sheet">
-                Open the cheat sheet
-              </Link>
-            </div>
-          </section>
+        ) : endsSync && story.phase !== 'playing' ? (
+          <Graduation />
         ) : story.phase === 'complete' ? (
           <section className={styles.card} aria-label="Chapter complete">
             <h2 className={styles.cardTitle}>Chapter complete 🎉</h2>
@@ -165,6 +159,15 @@ export function Instructions() {
                     onClick={() => navigate(`/flack/${mentorChannel}`)}
                   >
                     Ask Robin
+                  </button>
+                )}
+                {step.optional && (
+                  <button
+                    type="button"
+                    className={styles.action}
+                    onClick={() => dispatch({ type: 'skipStep' })}
+                  >
+                    Skip this step
                   </button>
                 )}
               </div>

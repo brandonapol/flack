@@ -117,6 +117,35 @@
   font-size: 0.75rem;
 }
 
+.whenTitle {
+  margin: 0 0 4px;
+  font-size: 0.8125rem;
+}
+
+.whenSteps {
+  margin: 0 0 4px;
+  padding-left: 18px;
+  color: var(--text-muted);
+}
+
+.next {
+  margin-top: 12px;
+  font-size: 0.8125rem;
+}
+
+.next ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.next a {
+  color: var(--accent);
+}
+
 @media print {
   .page {
     padding: 0;

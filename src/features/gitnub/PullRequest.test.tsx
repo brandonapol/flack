@@ -268,6 +268,64 @@ describe('a pull request with conflicts', () => {
   })
 })
 
+describe('resolving a conflict on GitNub', () => {
+  function conflicted() {
+    const store = setup(`/gitnub/${SLUG}`)
+    const pr = openPr(store)
+    act(() =>
+      store.getState().dispatch({
+        type: 'applyEffect',
+        effect: {
+          type: 'remoteCommit',
+          slug: SLUG,
+          author: 'sam',
+          message: 'Add Sam Rivera to the team list (#5)',
+          edits: [{ kind: 'appendLine', path: 'team.md', text: '- Sam Rivera' }],
+        },
+      })
+    )
+    return { store, pr }
+  }
+
+  it('previews each choice, nudges when one drops a change, and shows the markers', () => {
+    conflicted()
+    const resolve = screen.getByRole('button', { name: 'Mark as resolved' })
+    expect(resolve).toBeDisabled()
+    const choices = screen.getByRole('group', { name: 'Resolve team.md' })
+
+    click(within(choices).getByRole('button', { name: 'Keep mine' }))
+    expect(within(choices).getByRole('button', { name: 'Keep mine' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+    expect(screen.getByText(/That drops what’s on main/)).toHaveTextContent('- Sam Rivera')
+    expect(resolve).toBeEnabled()
+
+    click(within(choices).getByRole('button', { name: 'Keep both' }))
+    expect(screen.queryByText(/That drops/)).not.toBeInTheDocument()
+    expect(
+      screen.getByText('- Ada Lovelace - Sam Rivera', { normalizer: (t) => t.replace(/\n/g, ' ') })
+    ).toBeInTheDocument()
+
+    expect(screen.getByText(/<<<<<<< ada-team-list/)).toHaveTextContent('>>>>>>> main')
+  })
+
+  it('Mark as resolved merges main in with the choice, and Undo takes it back', () => {
+    const { store, pr } = conflicted()
+    click(screen.getByRole('button', { name: 'Keep theirs' }))
+    click(screen.getByRole('button', { name: 'Mark as resolved' }))
+    expect(findPullRequest(remote(store), pr.number)?.status).toBe('open')
+    const tip = remote(store).branches['ada-team-list']
+    expect(remote(store).commits[tip].message).toBe("Merge branch 'main' into ada-team-list")
+    expect(remote(store).commits[tip].tree['team.md']).not.toContain('Ada Lovelace')
+    expect(screen.getByText('Conflicts resolved')).toBeInTheDocument()
+
+    click(screen.getByRole('button', { name: 'Undo and choose again' }))
+    expect(findPullRequest(remote(store), pr.number)?.status).toBe('has-conflicts')
+    expect(screen.getByText('This branch has conflicts that must be resolved')).toBeInTheDocument()
+  })
+})
+
 describe('the pull requests list', () => {
   it('shows open and merged pull requests', () => {
     const store = setup(`/gitnub/${SLUG}`)

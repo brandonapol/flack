@@ -787,3 +787,73 @@
   background: #fff8f0;
   font-size: 0.8125rem;
 }
+
+.conflictFile {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.conflictPath {
+  margin: 0 0 8px;
+  font-size: 0.875rem;
+}
+
+.conflictSides {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.sideLabel {
+  margin: 0 0 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.sideText {
+  margin: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.choiceRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0;
+}
+
+.choiceRow [aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.preview {
+  margin-bottom: 10px;
+}
+
+.nudge {
+  margin: 6px 0 0;
+  padding: 6px 8px;
+  border-left: 3px solid #f0a35e;
+  background: #fff8f0;
+  font-size: 0.8125rem;
+}
+
+.markers {
+  margin-bottom: 12px;
+  font-size: 0.8125rem;
+}
+
+.markers summary {
+  cursor: pointer;
+  color: var(--accent);
+}

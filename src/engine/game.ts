@@ -8,6 +8,7 @@ import {
   openPullRequestFor,
   squashMerge,
   resolvePullRequestConflicts,
+  undoConflictResolution,
   updateBranch,
 } from './git/pullRequests'
 import type { ConflictChoice } from './git/merge'
@@ -15,7 +16,7 @@ import type { Person, RemoteRepo } from './git/types'
 import { runLine } from './shell/run'
 import { HOME, type CoreState } from './state'
 import { applyEffect } from './story/effects'
-import { advanceStory, enterStep } from './story/runner'
+import { advanceStory, enterStep, skipStep } from './story/runner'
 import type { Effect, GameConfig, QuickReply } from './story/types'
 
 export const GAME_STATE_VERSION = 1
@@ -105,6 +106,7 @@ export type Action =
       number: number
       choices?: Record<string, ConflictChoice | ConflictChoice[]>
     }
+  | { type: 'undoResolveConflicts'; slug: string; number: number }
   | { type: 'deleteRemoteBranch'; slug: string; branch: string }
   | { type: 'openCommitLab'; scenario: string }
   | { type: 'closeCommitLab' }
@@ -117,6 +119,8 @@ export type Action =
   | { type: 'restartChapter' }
   | { type: 'startChapter'; chapterId: string }
   | { type: 'continueStory' }
+  /** An optional step the learner chose not to do. */
+  | { type: 'skipStep' }
 
 export interface ReduceResult {
   state: GameState
@@ -393,6 +397,15 @@ export function reduce(config: GameConfig, previous: GameState, action: Action):
       ])
     }
 
+    case 'undoResolveConflicts': {
+      const remote = state.git.remotes[action.slug]
+      const pr = remote && findPullRequest(remote, action.number)
+      if (!remote || !pr || pr.status === 'merged') return { state: previous, effects: [] }
+      return advanceStory(config, withRemote(state, undoConflictResolution(remote, pr)), [
+        { type: 'conflictsUnresolved', number: pr.number, branch: pr.branch },
+      ])
+    }
+
     case 'deleteRemoteBranch': {
       const remote = state.git.remotes[action.slug]
       if (!remote || !remote.branches[action.branch]) return { state: previous, effects: [] }
@@ -480,6 +493,9 @@ export function reduce(config: GameConfig, previous: GameState, action: Action):
 
     case 'startChapter':
       return startChapter(config, state, action.chapterId)
+
+    case 'skipStep':
+      return skipStep(config, state)
 
     case 'continueStory': {
       if (state.story.phase !== 'complete') return { state: previous, effects: [] }

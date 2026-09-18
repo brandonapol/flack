@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -101,13 +101,17 @@ describe('Day one complete', () => {
   })
 })
 
-describe('the end of the last chapter', () => {
-  it('says you’re all caught up', () => {
+describe('the end of Keeping in sync', () => {
+  it('graduates, with what you learned, the cheat sheet and where to go next', () => {
     const config = createGameConfig()
-    setupFinished(config, config.chapters.at(-1)!, 'finished')
-    expect(screen.getByRole('region', { name: 'All caught up' })).toHaveTextContent(
-      'You’re all caught up'
-    )
-    expect(screen.getByRole('link', { name: 'Open the cheat sheet' })).toBeInTheDocument()
+    const last = config.chapters.at(-1)!
+    expect(last.milestone).toBe('keeping-in-sync')
+    setupFinished(config, last)
+    const card = screen.getByRole('region', { name: 'You’ve graduated' })
+    expect(card).toHaveTextContent('You’ve graduated 🎓')
+    expect(card).toHaveTextContent('Update branch')
+    expect(card).not.toHaveTextContent('git clone')
+    expect(within(card).getByRole('link', { name: 'Open the cheat sheet' })).toBeInTheDocument()
+    expect(within(card).getByRole('link', { name: 'Rebasing ↗' })).toBeInTheDocument()
   })
 })
