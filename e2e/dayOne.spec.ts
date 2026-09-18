@@ -37,6 +37,8 @@ async function keepGoing(page: Page) {
 async function chapter0(page: Page) {
   await page.getByRole('button', { name: 'Thanks! Happy to be here 👋' }).click()
   await openTab(page, /GitNub/)
+  // The tab click reaches the story a moment after the route changes; wait for it.
+  await expectDone(page, 'Open the GitNub tab')
   await run(page, 'help')
   await keepGoing(page)
 }

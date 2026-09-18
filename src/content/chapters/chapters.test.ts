@@ -447,3 +447,40 @@ describe('Chapter 6: Two PRs, one file', () => {
     expect(after.story.completedSteps).toContain('out-of-date')
   })
 })
+
+describe('Chapter 7: A tidier history', () => {
+  it('Robin explains, then both Commit Lab challenges complete the chapter, with no terminal', () => {
+    const initial = flushEffects(config, ...startChapterAt(blankState(config), '07-tidier-history'))
+    let state = play(config, initial, [{ type: 'openChannel', channel: 'dm-robin' }])
+    expect(state.story.completedSteps).toEqual(['read-robin'])
+    expect(state.ui.commitLab).toEqual({ scenario: 'tidy-squash' })
+
+    // Closing it, or finishing a different scenario, doesn't count.
+    state = play(config, state, [
+      { type: 'openCommitLab', scenario: 'sandbox' },
+      { type: 'completeCommitLab' },
+    ])
+    expect(state.story.completedSteps).toEqual(['read-robin'])
+
+    state = play(config, state, [
+      { type: 'openCommitLab', scenario: 'tidy-squash' },
+      { type: 'completeCommitLab' },
+    ])
+    expect(state.story.completedSteps).toEqual(['read-robin', 'squash'])
+    expect(state.ui.commitLab).toEqual({ scenario: 'tidy-rebase' })
+
+    state = play(config, state, [{ type: 'completeCommitLab' }])
+    expect(state.story.completedSteps).toEqual(['read-robin', 'squash', 'rebase'])
+    expect(state.story.phase).toBe('complete')
+    expect(state.shell.history).toEqual([])
+  })
+
+  it('shows merge and rebase side by side on the rebase step', () => {
+    const chapter = config.chapters.find((candidate) => candidate.id === '07-tidier-history')!
+    const figure = chapter.steps.find((step) => step.id === 'rebase')!.figure!
+    expect(figure.panels.map((panel) => panel.label)).toEqual(['Merge', 'Rebase'])
+    const [merged, rebased] = figure.panels.map((panel) => panel.graph)
+    expect(merged.nodes.some((node) => node.parents.length === 2)).toBe(true)
+    expect(rebased.nodes.every((node) => node.parents.length <= 1)).toBe(true)
+  })
+})

@@ -4,6 +4,8 @@ import { Link, useNavigate } from 'react-router'
 import { currentChapter, currentStep, shouldPulseHint } from '../../engine/story/runner'
 import { interpolate } from '../../engine/story/template'
 import { useGame } from '../../store'
+import { LabFigureView } from '../commit-lab'
+import { Markdown } from '../shared/Markdown'
 import { ConfirmButton } from './ConfirmButton'
 import { DayOneComplete } from './DayOneComplete'
 import styles from './Instructions.module.css'
@@ -115,11 +117,13 @@ export function Instructions() {
             <section className={styles.card} aria-label="What to do now">
               {lastCompleted?.afterNote && (
                 <p className={styles.afterNote}>
-                  <strong>What just happened:</strong> {fill(lastCompleted.afterNote)}
+                  <strong>What just happened:</strong>{' '}
+                  <Markdown source={fill(lastCompleted.afterNote)} inline />
                 </p>
               )}
               <h2 className={styles.cardTitle}>{fill(step.title)}</h2>
               <InstructionsText source={fill(step.body)} />
+              {step.figure && <LabFigureView figure={step.figure} />}
 
               {shownHints.map((hint, index) => (
                 <div key={index} className={styles.hint}>

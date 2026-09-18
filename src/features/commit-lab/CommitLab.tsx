@@ -10,9 +10,10 @@ import {
 import type { LabScenario } from '../../engine/story/types'
 import { useGame } from '../../store'
 import { Markdown } from '../shared/Markdown'
-import { actionsFor, tipsOf, type LabAction } from './actions'
+import { actionsFor, type LabAction } from './actions'
 import styles from './CommitLab.module.css'
-import { layout, laneY, MARGIN } from './layout'
+import { GraphView } from './GraphView'
+import { layout, nearestNode } from './layout'
 
 /** The Commit Lab overlay, when something has opened it. */
 export function CommitLab() {
@@ -40,13 +41,12 @@ function Lab({ scenario }: { scenario: LabScenario }) {
   const [caption, setCaption] = useState<string>()
   const [announcement, setAnnouncement] = useState('')
   const [resolved, setResolved] = useState<string>()
+  const [hint, setHint] = useState<string>()
   const [drag, setDrag] = useState<{ id: string; x0: number; y0: number; dx: number; dy: number }>()
   const dragged = useRef(false)
   const heading = useRef<HTMLHeadingElement>(null)
 
   const guided = Boolean(scenario.target)
-  const { placed, width, height } = layout(graph)
-  const position = new Map(placed.map((p) => [p.node.id, p]))
   const actions =
     selected && target
       ? actionsFor(graph, selected, target, { squashLabel: scenario.squashLabel })
@@ -75,6 +75,7 @@ function Lab({ scenario }: { scenario: LabScenario }) {
       setCaption(result.caption)
       setAnnouncement(result.announcement)
       setResolved(result.resolved)
+      setHint(scenario.hints?.[action.id])
       setPending(undefined)
       clearSelection()
     } else if (result.kind === 'conflict') {
@@ -128,12 +129,28 @@ function Lab({ scenario }: { scenario: LabScenario }) {
     const source = drag.id
     setDrag(undefined)
     if (!dragged.current) return
+    // Swallow the click that may follow this drag, but no later one (Enter on a commit included).
+    setTimeout(() => (dragged.current = false))
     const hit = document
       .elementFromPoint?.(event.clientX, event.clientY)
       ?.closest<SVGElement>('[data-node-id]')
-    const dropped = hit?.dataset.nodeId
+    // Dropped near a commit rather than exactly on its circle still counts.
+    const dropped = hit?.dataset.nodeId ?? nearestTo(event)
     if (!dropped || dropped === source) return
     openMenu(source, dropped)
+  }
+
+  const nearestTo = (event: ReactPointerEvent) => {
+    const svg = event.currentTarget as SVGSVGElement
+    const box = svg.getBoundingClientRect()
+    if (box.width === 0) return undefined
+    const { placed, width } = layout(graph)
+    const scale = width / box.width
+    return nearestNode(
+      placed,
+      (event.clientX - box.left) * scale,
+      (event.clientY - box.top) * scale
+    )
   }
 
   const undo = () => {
@@ -141,6 +158,7 @@ function Lab({ scenario }: { scenario: LabScenario }) {
     setHistory((previous) => previous.slice(0, -1))
     setCaption(undefined)
     setResolved(undefined)
+    setHint(undefined)
     setPending(undefined)
     clearSelection()
     setAnnouncement('Undone.')
@@ -150,6 +168,7 @@ function Lab({ scenario }: { scenario: LabScenario }) {
     setHistory([scenario.start])
     setCaption(undefined)
     setResolved(undefined)
+    setHint(undefined)
     setPending(undefined)
     clearSelection()
     setAnnouncement('Back to the start.')
@@ -180,107 +199,27 @@ function Lab({ scenario }: { scenario: LabScenario }) {
       </div>
 
       <div className={styles.canvas}>
-        <svg
-          width={width}
-          height={height}
-          className={styles.graph}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerLeave={() => setDrag(undefined)}
-          aria-label="Commit graph"
-          role="group"
-        >
-          {graph.lanes.map((lane) => (
-            <g key={lane}>
-              <line
-                x1={MARGIN.left - 28}
-                x2={width}
-                y1={laneY(graph, lane)}
-                y2={laneY(graph, lane)}
-                className={styles.laneLine}
-              />
-              <text x={8} y={laneY(graph, lane) + 4} className={styles.laneLabel}>
-                {lane}
-              </text>
-            </g>
-          ))}
-
-          {placed.flatMap(({ node, x, y }) =>
-            node.parents.map((parent) => {
-              const from = position.get(parent)
-              if (!from) return null
-              return (
-                <line
-                  key={`${parent}-${node.id}`}
-                  x1={from.x}
-                  y1={from.y}
-                  x2={x}
-                  y2={y}
-                  className={styles.edge}
-                />
-              )
-            })
-          )}
-
-          {placed.map(({ node, x, y }) => {
-            const offset = drag?.id === node.id ? { x: drag.dx, y: drag.dy } : { x: 0, y: 0 }
-            const tips = tipsOf(graph, node.id)
-            const classes = [
-              styles.node,
-              node.copyOf ? styles.copy : '',
-              node.lane === 'main' ? styles.main : '',
-              selected === node.id ? styles.selected : '',
-              target === node.id ? styles.target : '',
-              drag?.id === node.id ? styles.dragging : '',
-            ]
-            return (
-              <g
-                key={node.id}
-                data-node-id={node.id}
-                className={classes.filter(Boolean).join(' ')}
-                style={{ transform: `translate(${x + offset.x}px, ${y + offset.y}px)` }}
-                role="button"
-                tabIndex={0}
-                aria-pressed={selected === node.id}
-                aria-label={[
-                  node.label,
-                  `by ${node.author}`,
-                  `on ${node.lane}`,
-                  node.copyOf ? 'a new copy' : '',
-                  node.squashed ? `squashed from ${node.squashed.length} commits` : '',
-                  tips.length > 0 ? `newest on ${tips.join(' and ')}` : '',
-                ]
-                  .filter(Boolean)
-                  .join(', ')}
-                onPointerDown={(event) => onPointerDown(event, node.id)}
-                onClick={() => {
-                  if (dragged.current) {
-                    dragged.current = false
-                    return
-                  }
-                  choose(node.id)
-                }}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault()
-                    choose(node.id)
-                  } else if (event.key === 'Escape') {
-                    clearSelection()
-                  }
-                }}
-              >
-                <title>{node.squashed ? node.squashed.join('\n') : node.label}</title>
-                <circle r={node.parents.length > 1 ? 16 : 14} />
-                <text className={styles.initials} dy={4}>
-                  {node.author.length <= 3 ? node.author : node.author.slice(0, 2)}
-                </text>
-                <text className={styles.label} dy={34}>
-                  {node.label.length > 22 ? `${node.label.slice(0, 21)}…` : node.label}
-                </text>
-              </g>
-            )
-          })}
-        </svg>
+        <GraphView
+          graph={graph}
+          label="Commit graph"
+          interaction={{
+            selected,
+            target,
+            drag,
+            onPointerDown,
+            onPointerMove,
+            onPointerUp,
+            onPointerLeave: () => setDrag(undefined),
+            onActivate: (id) => {
+              if (dragged.current) {
+                dragged.current = false
+                return
+              }
+              choose(id)
+            },
+            onEscape: clearSelection,
+          }}
+        />
       </div>
 
       {selected && target && !pending && (
@@ -316,6 +255,11 @@ function Lab({ scenario }: { scenario: LabScenario }) {
       {caption && (
         <div className={styles.caption}>
           <p>{caption}</p>
+          {hint && (
+            <p className={styles.hint}>
+              <Markdown source={hint} inline />
+            </p>
+          )}
           {resolved && (
             <>
               <p className={styles.muted}>The spot you chose for now reads:</p>
