@@ -53,6 +53,9 @@ export default function Editor() {
   const saved = path ? working[path] : ''
   const value = path ? (buffers[path] ?? saved) : ''
   const readOnly = Boolean(path && step?.editableFiles && !step.editableFiles.includes(path))
+  // The step says `open team.md`? Then that's the file to offer when nothing is open yet.
+  const suggested = /^open (\S+)$/.exec(step?.solution ?? '')?.[1]
+  const offer = !path && suggested && exists(suggested) ? suggested : undefined
 
   const save = () => {
     if (path && isDirty && !readOnly) dispatch({ type: 'saveFile', path, content: value })
@@ -118,7 +121,17 @@ export default function Editor() {
           </div>
         ) : (
           <div className={styles.empty}>
-            <p>Pick a file on the left to open it.</p>
+            <p className={styles.emptyTitle}>No file open yet</p>
+            <p>Pick a file in the list on the left to open it.</p>
+            {offer && (
+              <button
+                type="button"
+                className={styles.openSuggested}
+                onClick={() => dispatch({ type: 'openFile', path: offer })}
+              >
+                Open {offer}
+              </button>
+            )}
           </div>
         )}
       </section>
