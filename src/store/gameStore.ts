@@ -43,6 +43,8 @@ export interface GameStoreState {
   restartChapter: () => void
   resetEverything: () => void
   dismissNotice: () => void
+  /** Writes a pending (debounced) save now. Call it when the page is going away. */
+  flushSave: () => void
 }
 
 export interface Timers {
@@ -55,11 +57,14 @@ export interface GameStoreOptions {
   config: GameConfig
   storage?: StorageLike
   timers?: Timers
-  /** `location.search`, for `?chapter=` and `?debug=1`. */
+  /** `location.search`, for `?chapter=`, `?debug=1` and `?fast=1`. */
   search?: string
 }
 
 export type GameStore = StoreApi<GameStoreState>
+
+/** `?fast=1` (for E2E runs) shrinks every delay by this much. Not zero, so order is kept. */
+export const FAST_DELAY_FACTOR = 0.01
 
 const browserTimers: Timers = {
   now: () => Date.now(),
@@ -76,6 +81,7 @@ export function createGameStore(options: GameStoreOptions): GameStore {
   const storage = options.storage ?? browserStorage()
   const timers = options.timers ?? browserTimers
   const params = new URLSearchParams(options.search ?? '')
+  const delayFactor = params.get('fast') === '1' ? FAST_DELAY_FACTOR : 1
   const handles = new Map<string, unknown[]>()
   let saveHandle: unknown
   let nextId = 1
@@ -90,15 +96,24 @@ export function createGameStore(options: GameStoreOptions): GameStore {
     restartChapter: () => undefined,
     resetEverything: () => undefined,
     dismissNotice: () => undefined,
+    flushSave: () => undefined,
   }))
+
+  const saveNow = () => {
+    saveHandle = undefined
+    const { game, scheduled } = store.getState()
+    writeSave(storage, game, scheduled)
+  }
 
   const persistSoon = () => {
     if (saveHandle !== undefined) timers.clearTimeout(saveHandle)
-    saveHandle = timers.setTimeout(() => {
-      saveHandle = undefined
-      const { game, scheduled } = store.getState()
-      writeSave(storage, game, scheduled)
-    }, SAVE_DEBOUNCE_MS)
+    saveHandle = timers.setTimeout(saveNow, SAVE_DEBOUNCE_MS)
+  }
+
+  const flushSave = () => {
+    if (saveHandle === undefined) return
+    timers.clearTimeout(saveHandle)
+    saveNow()
   }
 
   const cancelAll = () => {
@@ -132,7 +147,7 @@ export function createGameStore(options: GameStoreOptions): GameStore {
     const entries = effects.map((effect) => ({
       id: `fx-${nextId++}`,
       effect,
-      dueAt: timers.now() + (effect.delayMs ?? 0),
+      dueAt: timers.now() + (effect.delayMs ?? 0) * delayFactor,
     }))
     store.setState((s) => ({ scheduled: [...s.scheduled, ...entries] }))
     entries.forEach(arm)
@@ -174,6 +189,7 @@ export function createGameStore(options: GameStoreOptions): GameStore {
     restartChapter: () => dispatch({ type: 'restartChapter' }),
     resetEverything,
     dismissNotice: () => store.setState({ notice: undefined }),
+    flushSave,
   })
 
   // Starting point: an explicit ?chapter= jump, then a save, then a new game.
