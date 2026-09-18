@@ -63,6 +63,20 @@ describe('git push', () => {
   })
 })
 
+describe('git push --force', () => {
+  it('explains why not, and changes nothing', () => {
+    for (const flag of ['--force', '-f', '--force-with-lease']) {
+      const s = commitAda(inRepo())
+      const before = s.state
+      s.run(`git push ${flag}`)
+      expect(s.ok).toBe(false)
+      expect(s.lastText).toContain('Flack won’t force-push')
+      expect(s.lastText).toContain('anyone else’s work')
+      expect(s.state.git).toEqual(before.git)
+    }
+  })
+})
+
 describe('git pull', () => {
   it('is already up to date', () => {
     expect(inRepo().run('git pull').lastText).toBe('Already up to date.')

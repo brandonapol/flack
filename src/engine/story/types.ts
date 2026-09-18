@@ -39,7 +39,8 @@ export type Effect = (
   | {
       type: 'reviewPullRequest'
       slug: string
-      number: number
+      /** `latest`: the newest pull request that's still open. */
+      number: number | 'latest'
       /** Character id of the reviewer. */
       author: string
       body: string

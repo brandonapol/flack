@@ -779,3 +779,11 @@
   padding-left: 20px;
   font-size: 0.8125rem;
 }
+
+.mergeBlocked {
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  border-left: 3px solid #f0a35e;
+  background: #fff8f0;
+  font-size: 0.8125rem;
+}

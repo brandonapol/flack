@@ -36,6 +36,20 @@ export function registerGitSyncCommands<S extends CoreState>(registry: Registry<
     run: ({ state, argv }) => {
       const repo = repoContext(state)
       if (!repo) return notARepo(state)
+      if (argv.some((arg) => arg === '-f' || arg.startsWith('--force'))) {
+        return fail(
+          line('Flack won’t force-push, and at work you almost never should either.', 'muted'),
+          line(
+            '💡 `--force` tells GitNub to throw away what it has and take your copy instead — including',
+            'muted'
+          ),
+          line(
+            '   anyone else’s work. If a push is refused, bring their changes in first: `git pull`, or',
+            'muted'
+          ),
+          line('   Update branch on your pull request.', 'muted')
+        )
+      }
       const parsed = parseArgs(argv.slice(2), { flags: ['-u', '--set-upstream'] })
       if (parsed.unknown.length > 0) {
         return fail(

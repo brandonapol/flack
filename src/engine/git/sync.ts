@@ -327,12 +327,17 @@ export function remoteCommit(
     timestamp: input.timestamp,
     tree: input.change({ ...remote.commits[parent].tree }),
   })
+  // A scripted "(#7)" is a pull request someone merged: the next one opened can't reuse its number.
+  const numbered = /\(#(\d+)\)\s*$/.exec(input.message.split('\n')[0])
   return {
     commit: created,
     remote: {
       ...remote,
       commits: { ...remote.commits, [created.id]: created },
       branches: { ...remote.branches, [branch]: created.id },
+      nextPullRequest: numbered
+        ? Math.max(remote.nextPullRequest, Number(numbered[1]) + 1)
+        : remote.nextPullRequest,
     },
   }
 }

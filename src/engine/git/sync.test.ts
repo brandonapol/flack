@@ -346,3 +346,23 @@ describe('applyEdits', () => {
     ).toEqual({ 'a.md': 'uno\ntwo\n', 'c.md': 'new\n' })
   })
 })
+
+describe('remoteCommit', () => {
+  it('a merged pull request’s number in the message is taken', () => {
+    const remote = { ...docsSite(), nextPullRequest: 4 }
+    const after = remoteCommit(remote, {
+      author: sam,
+      message: 'Add Sam to the team list (#5)',
+      change: appendLine('team.md', '- Sam'),
+      timestamp: T0 + 900,
+    }).remote
+    expect(after.nextPullRequest).toBe(6)
+    const plain = remoteCommit(after, {
+      author: sam,
+      message: 'Tidy up',
+      change: appendLine('team.md', '- Sam again'),
+      timestamp: T0 + 950,
+    }).remote
+    expect(plain.nextPullRequest).toBe(6)
+  })
+})

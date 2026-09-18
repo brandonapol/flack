@@ -68,4 +68,50 @@ const sandbox: LabScenario = {
   },
 }
 
-export const LAB_SCENARIOS: Record<string, LabScenario> = { sandbox }
+/** Chapter 6: your pull request after Alex's merged first. Rebasing it is what Update branch does. */
+const outOfDate: LabScenario = {
+  id: 'out-of-date',
+  title: 'What “out of date” looks like',
+  intro:
+    'This is your pull request right now: your fix started from the style guide, and Alex’s tips landed on `main` after. Drag **your commit** onto **Alex’s** and choose **Rebase onto here** — that’s exactly what **Update branch** does.',
+  start: {
+    lanes: ['main', 'yours'],
+    branches: { main: 'm3', yours: 'y1' },
+    nodes: [
+      {
+        id: 'm1',
+        label: 'Start the docs site',
+        author: 'JL',
+        lane: 'main',
+        parents: [],
+        touches: [],
+      },
+      {
+        id: 'm2',
+        label: 'Add the style guide',
+        author: 'RO',
+        lane: 'main',
+        parents: ['m1'],
+        touches: ['style guide'],
+      },
+      {
+        id: 'm3',
+        label: 'Add two team tips',
+        author: 'AC',
+        lane: 'main',
+        parents: ['m2'],
+        touches: ['team tips'],
+      },
+      {
+        id: 'y1',
+        label: 'Fix a typo in the style guide',
+        author: 'You',
+        lane: 'yours',
+        parents: ['m2'],
+        touches: ['formatting'],
+      },
+    ],
+  },
+}
+
+export const LAB_SCENARIOS: Record<string, LabScenario> = { sandbox, 'out-of-date': outOfDate }

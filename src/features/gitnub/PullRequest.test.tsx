@@ -184,6 +184,25 @@ describe('an out-of-date branch', () => {
     )
   }
 
+  it('trying to merge an out-of-date branch explains it needs updating first', () => {
+    const store = setup(`/gitnub/${SLUG}`)
+    const pr = openPr(store)
+    samMerges(store)
+    const mainBefore = remote(store).branches.main
+    click(screen.getByRole('button', { name: 'Squash and merge' }))
+    expect(screen.getByRole('alert')).toHaveTextContent('Update the branch first')
+    expect(
+      screen.queryByRole('button', { name: 'Confirm squash and merge' })
+    ).not.toBeInTheDocument()
+    expect(remote(store).branches.main).toBe(mainBefore)
+    expect(findPullRequest(remote(store), pr.number)?.status).toBe('needs-update')
+
+    click(screen.getByRole('button', { name: 'Update branch' }))
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    click(screen.getByRole('button', { name: 'Squash and merge' }))
+    expect(screen.getByRole('button', { name: 'Confirm squash and merge' })).toBeInTheDocument()
+  })
+
   it('Update branch replays the commits and clears the banner', () => {
     const store = setup(`/gitnub/${SLUG}`)
     const pr = openPr(store)
