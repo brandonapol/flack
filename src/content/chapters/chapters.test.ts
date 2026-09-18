@@ -228,6 +228,34 @@ describe('Chapter 3: Save it to GitNub', () => {
     ).toHaveLength(1)
   })
 
+  it('can be jumped to directly (?chapter=03): cloned, with a name already saved', () => {
+    const { trace, state } = playChapter(config, '03-pull-request', [
+      cmd('git config --global user.name "Ada Lovelace"'),
+      cmd('git config --global user.email "ada@inkwell.example"'),
+      cmd('git switch -c ada-team-list'),
+      cmd('git add team.md'),
+      cmd('git commit -m "Add me to the team list"'),
+      ...CHAPTER_3_AFTER_COMMIT,
+    ])
+    expect(trace).toEqual([
+      'branch',
+      'add',
+      'commit',
+      'push',
+      'open-pr',
+      'merge',
+      'delete-branch',
+      'switch-main',
+      'pull',
+    ])
+    expect(state.shell.cwd).toBe('/Users/you/docs-site')
+    expect(
+      state.git.remotes[DOCS_SITE].commits[state.git.remotes[DOCS_SITE].branches.main].tree[
+        'team.md'
+      ]
+    ).toContain('- You')
+  })
+
   it('squash-merging leaves one new commit on main, by the learner', () => {
     const { state } = playDayOne()
     const remote = state.git.remotes[DOCS_SITE]
@@ -252,6 +280,16 @@ describe('Chapter 4: Someone else changed it', () => {
     expect(state.git.local!.working['team.md']).toContain(`- ${NAME}`)
     expect(state.git.local!.branches.main).toBe(state.git.remotes[DOCS_SITE].branches.main)
     expect(state.story.phase).toBe('complete')
+  })
+
+  it('can be jumped to directly (?chapter=04)', () => {
+    const { trace } = playChapter(config, '04-someone-else-changed-it', [
+      { type: 'openChannel', channel: 'docs-team' },
+      { type: 'openFile', path: 'team.md' },
+      cmd('git pull'),
+      { type: 'flackReply', messageId: 'sam-hello', replyId: 'welcome' },
+    ])
+    expect(trace).toEqual(['read-sam', 'look-at-team', 'pull', 'reply-sam'])
   })
 
   it('finishes day one with the whole loop behind them', () => {
