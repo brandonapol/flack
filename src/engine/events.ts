@@ -21,6 +21,7 @@ export type GameEvent =
   | { type: 'pullRequestReviewed'; number: number; approved: boolean }
   | { type: 'pullRequestMerged'; number: number; branch: string }
   | { type: 'branchUpdated'; number: number; branch: string }
+  | { type: 'conflictsResolved'; number: number; branch: string }
   | { type: 'remoteBranchDeleted'; branch: string }
   | { type: 'fileSaved'; path: string }
   | { type: 'fileOpened'; path: string }

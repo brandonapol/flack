@@ -23,12 +23,25 @@ export interface ConflictHunk {
 export interface ConflictedFile {
   path: string
   hunks: ConflictHunk[]
+  /**
+   * The whole file in order: runs of lines both sides agree on, and the index of each hunk where
+   * it sits. Enough to rebuild the file once someone picks a side.
+   */
+  chunks: Array<string[] | number>
+  /** Set when one side deleted the file and the other changed it. */
+  deletedBy?: 'ours' | 'theirs'
 }
 
-export type MergeTreesResult =
-  { ok: true; tree: FileTree } | { ok: false; conflicts: ConflictedFile[] }
+export type ConflictChoice = 'ours' | 'theirs' | 'both'
 
-type MergeTextResult = { ok: true; text: string } | { ok: false; hunks: ConflictHunk[] }
+export type MergeTreesResult =
+  | { ok: true; tree: FileTree }
+  /** `tree` has every file that merged cleanly; the conflicted ones are left out. */
+  | { ok: false; conflicts: ConflictedFile[]; tree: FileTree }
+
+type MergeTextResult =
+  | { ok: true; text: string }
+  | { ok: false; hunks: ConflictHunk[]; chunks: ConflictedFile['chunks'] }
 
 /** Line-level 3-way merge of one file's text. */
 export function mergeText(base: string, ours: string, theirs: string): MergeTextResult {
@@ -38,14 +51,18 @@ export function mergeText(base: string, ours: string, theirs: string): MergeText
   const regions = diff3Merge(ours.split('\n'), base.split('\n'), theirs.split('\n'))
   const lines: string[] = []
   const hunks: ConflictHunk[] = []
+  const chunks: ConflictedFile['chunks'] = []
   for (const region of regions) {
-    if (region.ok) lines.push(...region.ok)
-    else if (region.conflict) {
+    if (region.ok) {
+      lines.push(...region.ok)
+      chunks.push(region.ok)
+    } else if (region.conflict) {
       const { a, o, b } = region.conflict
+      chunks.push(hunks.length)
       hunks.push({ ours: a, theirs: b, context: o })
     }
   }
-  return hunks.length > 0 ? { ok: false, hunks } : { ok: true, text: lines.join('\n') }
+  return hunks.length > 0 ? { ok: false, hunks, chunks } : { ok: true, text: lines.join('\n') }
 }
 
 /**
@@ -70,12 +87,14 @@ export function mergeTrees(base: FileTree, ours: FileTree, theirs: FileTree): Me
       conflicts.push({
         path,
         hunks: [{ ours: lines(o), theirs: lines(t), context: lines(b) }],
+        chunks: [0],
+        deletedBy: o === undefined ? 'ours' : 'theirs',
       })
       continue
     } else {
       const result = mergeText(b ?? '', o, t)
       if (!result.ok) {
-        conflicts.push({ path, hunks: result.hunks })
+        conflicts.push({ path, hunks: result.hunks, chunks: result.chunks })
         continue
       }
       merged = result.text
@@ -83,11 +102,65 @@ export function mergeTrees(base: FileTree, ours: FileTree, theirs: FileTree): Me
     if (merged !== undefined) tree[path] = merged
   }
 
-  return conflicts.length > 0 ? { ok: false, conflicts } : { ok: true, tree }
+  return conflicts.length > 0 ? { ok: false, conflicts, tree } : { ok: true, tree }
 }
 
 function lines(text: string | undefined): string[] {
   return text === undefined ? [] : text.replace(/\n$/, '').split('\n')
+}
+
+/**
+ * The file after picking a side, for every hunk or one choice per hunk. "Both" keeps our lines
+ * then theirs. Undefined means the file is deleted (keeping the side that deleted it).
+ */
+export function resolveConflict(
+  file: ConflictedFile,
+  choice: ConflictChoice | ConflictChoice[]
+): string | undefined {
+  const pick = (index: number) => (Array.isArray(choice) ? choice[index] : choice)
+  if (file.deletedBy) {
+    const kept = pick(0) === 'both' ? (file.deletedBy === 'ours' ? 'theirs' : 'ours') : pick(0)
+    if (kept === file.deletedBy) return undefined
+    return `${file.hunks[0][kept === 'ours' ? 'ours' : 'theirs'].join('\n')}\n`
+  }
+  return file.chunks
+    .flatMap((chunk) => {
+      if (Array.isArray(chunk)) return chunk
+      const hunk = file.hunks[chunk]
+      const choice = pick(chunk)
+      return choice === 'ours'
+        ? hunk.ours
+        : choice === 'theirs'
+          ? hunk.theirs
+          : [...hunk.ours, ...hunk.theirs]
+    })
+    .join('\n')
+}
+
+/**
+ * The file as a text editor would show it mid-merge, with Git's conflict markers. For display
+ * only — "this is what it looks like on your computer". Nothing reads it back.
+ */
+export function renderMarkers(
+  file: ConflictedFile,
+  labels: { ours: string; theirs: string } = { ours: 'HEAD', theirs: 'origin/main' }
+): string {
+  if (file.deletedBy) {
+    return resolveConflict(file, file.deletedBy === 'ours' ? 'theirs' : 'ours') ?? ''
+  }
+  return file.chunks
+    .flatMap((chunk) => {
+      if (Array.isArray(chunk)) return chunk
+      const hunk = file.hunks[chunk]
+      return [
+        `<<<<<<< ${labels.ours}`,
+        ...hunk.ours,
+        '=======',
+        ...hunk.theirs,
+        `>>>>>>> ${labels.theirs}`,
+      ]
+    })
+    .join('\n')
 }
 
 /** The best common ancestor of two commits: the newest commit reachable from both. */
