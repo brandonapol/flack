@@ -7,7 +7,7 @@ import { Markdown } from '../shared/Markdown'
 import styles from './Instructions.module.css'
 
 const SHARE_MESSAGE =
-  'I finished Flack’s Git tutorial! 🎓 The daily loop, keeping a pull request in sync, squash, rebase — and conflicts don’t scare me any more.'
+  'I finished Flack’s Git tutorial! 🎓 The daily loop, keeping a merge request in sync, squash, rebase — and conflicts don’t scare me any more.'
 
 const NEXT = [DOCS.branching, DOCS.rebasing, DOCS.pullRequests, DOCS.mergeConflicts]
 
@@ -26,7 +26,7 @@ export function Graduation() {
     <section className={styles.card} aria-label="You’ve graduated">
       <h2 className={styles.cardTitle}>You’ve graduated 🎓</h2>
       <p>
-        {game.player.name ? `${game.player.name}, you` : 'You'} can keep a pull request in sync,
+        {game.player.name ? `${game.player.name}, you` : 'You'} can keep a merge request in sync,
         tidy a history, and settle a conflict without breaking a sweat. That’s everything most
         writers ever need from Git.
       </p>

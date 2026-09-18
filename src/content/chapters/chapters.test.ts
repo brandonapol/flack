@@ -261,7 +261,9 @@ describe('Chapter 3: Save it to GitNub', () => {
     const remote = state.git.remotes[DOCS_SITE]
     const history = log(remote.commits, remote.branches.main)
     const mine = history.find((commit) => commit.message.startsWith(`Add ${NAME}`))!
-    expect(mine.message).toBe(`Add ${NAME} to the team list (#4)\n\n* Add ${NAME} to the team list`)
+    expect(mine.message).toBe(
+      `Add ${NAME} to the team list\n\nSee merge request inkwell/docs-site!4`
+    )
     expect(mine.author.name).toBe(NAME)
     expect(mine.tree['team.md']).toContain(`- ${NAME}`)
   })
@@ -410,7 +412,7 @@ describe('Chapter 6: Two PRs, one file', () => {
     return flushEffects(config, ...startChapterAt(afterFive, '06-update-branch'))
   }
 
-  it('the PR goes out of date, Update branch rebases it onto Alex’s commit, and it merges', () => {
+  it('the MR needs a rebase, Rebase puts it onto Alex’s commit, and it merges', () => {
     const initial = start()
     const upToPr = play(config, initial, UP_TO_THE_PR(initial))
     const pr = findPullRequest(upToPr.git.remotes[DOCS_SITE], 7)!
@@ -432,7 +434,9 @@ describe('Chapter 6: Two PRs, one file', () => {
     const [mine] = pullRequestCommits(remote, findPullRequest(remote, 7)!)
     // The PR's commit now sits on top of Alex's, and the banner is gone.
     expect(mine.parents).toEqual([alex])
-    expect(remote.commits[alex].message).toBe('Add two team tips (#8)')
+    expect(remote.commits[alex].message).toBe(
+      'Add two team tips\n\nSee merge request inkwell/docs-site!8'
+    )
     expect(findPullRequest(remote, 7)!.status).toBe('open')
     expect(findPullRequest(remote, 7)!.reviewState).toBe('approved')
 

@@ -144,9 +144,7 @@ describe('pushing a branch', () => {
     expect(s.state.git.remotes['inkwell/docs-site'].branches['ada-team-list']).toBe(
       s.state.git.local!.branches['ada-team-list']
     )
-    expect(s.lastText).toContain(
-      "remote: Create a pull request for 'ada-team-list' on GitNub by visiting:"
-    )
+    expect(s.lastText).toContain('remote: To create a merge request for ada-team-list, visit:')
     expect(s.lastText).toContain(' * [new branch]      ada-team-list -> ada-team-list')
     expect(s.lastText).toContain("branch 'ada-team-list' set up to track 'origin/ada-team-list'.")
     expect(s.run('git status').lastText).toContain(

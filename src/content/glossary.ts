@@ -132,17 +132,19 @@ export const GLOSSARY: GlossaryEntry[] = [
     docs: 'remotes',
   },
   {
-    id: 'pull-request',
-    term: 'pull request',
-    aliases: ['pr', 'prs', 'pull requests'],
+    id: 'merge-request',
+    term: 'merge request',
+    aliases: ['mr', 'mrs', 'merge requests', 'pull request', 'pull requests', 'pr', 'prs'],
     definition:
-      'A request on GitNub to bring your branch into `main`. Teammates review it there before it’s merged.',
+      'A request on GitNub to bring your branch into `main`. Teammates review it there before it’s merged. GitHub calls it a pull request.',
     docs: 'pullRequests',
   },
   {
-    id: 'base-branch',
-    term: 'base branch',
-    definition: 'The branch a pull request wants to join, usually `main`.',
+    id: 'target-branch',
+    term: 'target branch',
+    aliases: ['base branch'],
+    definition:
+      'The branch a merge request wants to join, usually `main`. Your branch is the source branch.',
     docs: 'pullRequests',
   },
   {
@@ -150,7 +152,7 @@ export const GLOSSARY: GlossaryEntry[] = [
     term: 'review',
     aliases: ['approve', 'approval', 'reviewer'],
     definition:
-      'A teammate reads your pull request, leaves comments, and approves it when it’s ready to merge.',
+      'A teammate reads your merge request, leaves comments, and approves it when it’s ready to merge.',
     docs: 'pullRequests',
   },
   {
@@ -164,9 +166,9 @@ export const GLOSSARY: GlossaryEntry[] = [
   {
     id: 'squash-merge',
     term: 'squash merge',
-    aliases: ['squash', 'squashed', 'squash and merge'],
+    aliases: ['squash', 'squashed', 'squash commits', 'squash and merge'],
     definition:
-      'Merge a pull request as one single commit on `main`, however many commits the branch had.',
+      'Merge a merge request as one single commit on `main`, however many commits the branch had.',
     docs: 'squashMerge',
   },
   {
@@ -182,7 +184,7 @@ export const GLOSSARY: GlossaryEntry[] = [
     term: 'rebase',
     aliases: ['rebased', 'rebasing'],
     definition:
-      'Replaying your commits on top of newer work: same changes, new commits. GitNub’s Update branch button does this.',
+      'Replaying your commits on top of newer work: same changes, new commits. GitNub’s Rebase button does this.',
     docs: 'rebasing',
   },
   {

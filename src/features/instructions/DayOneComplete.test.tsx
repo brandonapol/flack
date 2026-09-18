@@ -55,7 +55,7 @@ describe('Day one complete', () => {
     const panel = screen.getByRole('region', { name: 'Day one complete' })
     expect(panel).toHaveTextContent('Day one complete 🎉')
     expect(panel).toHaveTextContent('git clone')
-    expect(panel).toHaveTextContent('Squash and merge')
+    expect(panel).toHaveTextContent('Squash commits')
     expect(screen.getByRole('link', { name: 'Open the cheat sheet' })).toHaveAttribute(
       'href',
       '/cheat-sheet'
@@ -110,7 +110,7 @@ describe('the end of Keeping in sync', () => {
     setupFinished(config, last)
     const card = screen.getByRole('region', { name: 'You’ve graduated' })
     expect(card).toHaveTextContent('You’ve graduated 🎓')
-    expect(card).toHaveTextContent('Update branch')
+    expect(card).toHaveTextContent('Rebase')
     expect(card).not.toHaveTextContent('git clone')
     expect(within(card).getByRole('link', { name: 'Open the cheat sheet' })).toBeInTheDocument()
     expect(within(card).getByRole('link', { name: 'Rebasing ↗' })).toBeInTheDocument()

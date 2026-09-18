@@ -45,20 +45,23 @@ const LOOP: Line[] = [
   },
   {
     command: 'git push -u origin my-change',
-    what: 'Send your branch up to GitHub.',
+    what: 'Send your branch up to GitLab.',
     docs: DOCS.gitPush,
   },
   {
-    command: 'Open the pull request',
-    what: 'On the website: “Compare & pull request”, then “Create pull request”.',
+    command: 'Create the merge request',
+    what: 'On GitLab: “Create merge request” in the banner, then again on the form.',
     docs: DOCS.pullRequests,
   },
   {
-    command: 'Squash and merge',
-    what: 'After review. Your commits become one tidy commit on main.',
+    command: 'Merge',
+    what: 'After review, with “Squash commits” on. Your commits become one tidy commit on main.',
     docs: DOCS.squashMerge,
   },
-  { command: 'Delete branch', what: 'Safe: your work is on main now.' },
+  {
+    command: 'Delete source branch',
+    what: 'Leave it ticked when you merge. Your work is on main.',
+  },
   { command: 'git switch main', what: 'Back to the shared branch…' },
   { command: 'git pull', what: '…and bring your merged change down. Ready for the next one.' },
 ]
@@ -73,8 +76,8 @@ const ALSO: Array<{ title: string; body: string }> = [
     body: 'However many commits your branch has, squash-merging lands them on main as one. That’s why the history reads like a list of finished changes.',
   },
   {
-    title: 'Update branch',
-    body: 'If someone else’s work lands first, your pull request says it’s out of date. One button fixes it. That’s coming in the next module.',
+    title: 'Rebase',
+    body: 'If someone else’s work lands first, your merge request says it must be rebased. One button fixes it. That’s coming in the next module.',
   },
   {
     title: 'Conflicts',
@@ -85,20 +88,20 @@ const ALSO: Array<{ title: string; body: string }> = [
 /** Cheat sheet v2, once Keeping in sync is done: what to do when GitNub says… */
 const WHEN_PR: Array<{ title: string; steps: string[]; docs: { label: string; href: string } }> = [
   {
-    title: '…it’s out of date',
+    title: '…the source branch must be rebased',
     steps: [
       'Nothing is wrong: someone else’s work landed on main first.',
-      'Click **Update branch**. It rebases your commits onto the latest main.',
-      'Then **Squash and merge** as usual.',
+      'Click **Rebase**. It replays your commits onto the latest main.',
+      'Then **Merge** as usual.',
     ],
     docs: DOCS.updateBranch,
   },
   {
     title: '…it has conflicts',
     steps: [
-      '**See what’s conflicting** (optional): you and someone else changed the same lines.',
-      'Choose **Keep both** — or mine or theirs, if only one can stay.',
-      '**Mark as resolved**, then merge. No markers to edit.',
+      'Nothing is broken: you and someone else changed the same lines.',
+      'Click **Resolve conflicts**. **Use ours** or **Use theirs**, or **Edit inline** to keep both.',
+      '**Commit to source branch**, then merge.',
     ],
     docs: DOCS.mergeConflicts,
   },
@@ -153,7 +156,7 @@ export function CheatSheet() {
         {graduated ? (
           <>
             <section className={styles.also}>
-              <h2 className={styles.alsoTitle}>When your pull request says…</h2>
+              <h2 className={styles.alsoTitle}>When your merge request says…</h2>
               <div className={styles.alsoList}>
                 {WHEN_PR.map((item) => (
                   <div key={item.title}>

@@ -90,10 +90,10 @@ export function describeChanges(summary: ChangesSummary): string {
     `${count(summary.staged, 'change')} staged`,
     `${count(summary.commits, 'commit')} waiting to push`,
     summary.pr
-      ? `pull request #${summary.pr.number} ${summary.pr.words}`
+      ? `merge request !${summary.pr.number} ${summary.pr.words}`
       : summary.pushedWithoutPr
-        ? 'your branch is on GitNub with no pull request yet'
-        : 'no pull request',
+        ? 'your branch is on GitNub with no merge request yet'
+        : 'no merge request',
     summary.behind > 0
       ? `GitNub’s main has ${count(summary.behind, 'commit')} you don’t have yet`
       : 'you have everything on GitNub’s main',

@@ -3,7 +3,7 @@ import { getStatus } from '../../engine/git/status'
 import type { GameState } from '../../engine/game'
 import type { Chapter } from '../../engine/story/types'
 import { DOCS } from '../docsLinks'
-import { DOCS_SITE, WELCOME_TYPO } from '../world'
+import { DOCS_SITE, WELCOME_TYPO, mergedAs } from '../world'
 import { docsSite, local, ran, tried } from './helpers'
 
 /** Has the learner's `origin/main` caught up with GitNub? */
@@ -21,7 +21,7 @@ export const fetchChapter: Chapter = {
   title: 'Look before you leap',
   milestone: 'keeping-in-sync',
   intro:
-    'Day two. Pull requests have been merging while you were away, so before you start anything new it’s worth checking what changed on GitNub — without changing your files yet.',
+    'Day two. Merge requests have been merging while you were away, so before you start anything new it’s worth checking what changed on GitNub — without changing your files yet.',
   setup: (state) => {
     const repo = state.git.local ?? clone(state.git.remotes[DOCS_SITE])
     return {
@@ -50,7 +50,7 @@ export const fetchChapter: Chapter = {
           type: 'remoteCommit',
           slug: DOCS_SITE,
           author: 'alex',
-          message: 'Fix a typo on the welcome page (#6)',
+          message: mergedAs('Fix a typo on the welcome page', 6),
           edits: [
             {
               kind: 'replaceText',

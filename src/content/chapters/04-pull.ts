@@ -1,6 +1,6 @@
 import type { Chapter } from '../../engine/story/types'
 import { DOCS } from '../docsLinks'
-import { DOCS_SITE } from '../world'
+import { DOCS_SITE, mergedAs } from '../world'
 import { ran, withClone, working } from './helpers'
 
 export const pullChapter: Chapter = {
@@ -25,7 +25,7 @@ export const pullChapter: Chapter = {
           type: 'remoteCommit',
           slug: DOCS_SITE,
           author: 'sam',
-          message: 'Add Sam Rivera to the team list (#5)',
+          message: mergedAs('Add Sam Rivera to the team list', 5),
           edits: [{ kind: 'appendLine', path: 'team.md', text: '- Sam Rivera' }],
           delayMs: 3000,
         },
@@ -34,7 +34,7 @@ export const pullChapter: Chapter = {
           id: 'sam-hello',
           channel: 'docs-team',
           from: 'sam',
-          text: 'Hi all — Sam here, also new today. Just merged my first pull request, I added my name to `team.md` 👋',
+          text: 'Hi all — Sam here, also new today. Just merged my first merge request, I added my name to `team.md` 👋',
           delayMs: 4000,
           quickReplies: [
             { id: 'welcome', text: 'Welcome, Sam! 🎉' },
@@ -79,13 +79,13 @@ export const pullChapter: Chapter = {
           type: 'flackMessage',
           channel: 'docs-team',
           from: 'jordan',
-          text: 'Nice work today, {{player.name}}! 🎉 That’s the whole loop, by the way — branch, commit, push, pull request, squash-merge, pull. Everything else builds on it. ☕',
+          text: 'Nice work today, {{player.name}}! 🎉 That’s the whole loop, by the way — branch, commit, push, merge request, squash-merge, pull. Everything else builds on it. ☕',
           delayMs: 3000,
         },
       ],
     },
   ],
-  mentorQuestions: ['what-is-a-pr', 'save-vs-commit', 'i-broke-it'],
+  mentorQuestions: ['what-is-an-mr', 'save-vs-commit', 'i-broke-it'],
   summary: [
     'Your copy doesn’t update on its own: `git pull` brings down what other people merged.',
     'Everyone on the team uses the same loop, including the people reviewing your work.',

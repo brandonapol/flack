@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 
-import { expectDone, gitnub, keepGoing, openTab, run, step } from './helpers'
+import { expectDone, gitnub, keepGoing, mergeWhenApproved, openTab, run, step } from './helpers'
 
 // `?fast=1` shrinks every scripted delay (typing, Jordan's review, Sam's push) a hundredfold.
 const START = './?fast=1'
@@ -73,17 +73,14 @@ async function chapter3FromCommit(page: Page) {
 
   await openTab(page, /GitNub/)
   await gitnub(page).getByRole('link', { name: 'docs-site' }).click()
-  await gitnub(page)
-    .getByRole('link', { name: /Compare & pull request/ })
-    .click()
+  await gitnub(page).getByRole('link', { name: 'Create merge request' }).click()
   await expect(gitnub(page).getByRole('textbox', { name: 'Title' })).toHaveValue(
     `Add ${NAME} to the team list`
   )
-  await gitnub(page).getByRole('button', { name: 'Create pull request' }).click()
-  await expect(gitnub(page).getByText('approved these changes')).toBeVisible()
-  await gitnub(page).getByRole('button', { name: 'Squash and merge' }).click()
-  await gitnub(page).getByRole('button', { name: 'Confirm squash and merge' }).click()
-  await gitnub(page).getByRole('button', { name: 'Delete branch' }).click()
+  await gitnub(page).getByRole('button', { name: 'Create merge request' }).click()
+  // Delete source branch is ticked, so merging deletes it: Chapter 3's optional step, done.
+  await mergeWhenApproved(page)
+  await expectDone(page, 'Delete the source branch (optional)')
 
   await run(page, 'git switch main')
   await run(page, 'git pull')
@@ -127,7 +124,9 @@ test('plays all of Day one, from hello to the cheat sheet', async ({ page }) => 
     .getByRole('link', { name: /Commits/ })
     .first()
     .click()
-  await expect(gitnub(page).getByText(`Add ${NAME} to the team list (#4)`)).toHaveCount(1)
+  await expect(gitnub(page).getByText(`Add ${NAME} to the team list`, { exact: true })).toHaveCount(
+    1
+  )
 
   await done.getByRole('link', { name: 'Open the cheat sheet' }).click()
   await expect(page).toHaveURL(/#\/cheat-sheet$/)

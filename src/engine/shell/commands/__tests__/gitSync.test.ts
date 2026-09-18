@@ -107,10 +107,10 @@ describe('git pull', () => {
     expect(s.ok).toBe(false)
   })
 
-  it('stops on diverged history and points at Update branch', () => {
+  it('stops on diverged history and points at the Rebase button', () => {
     const s = samPushes(commitAda(inRepo()), 'README.md').run('git pull')
     expect(s.lastText).toContain('fatal: Need to specify how to reconcile divergent branches.')
-    expect(s.lastText).toContain('Update branch')
+    expect(s.lastText).toContain('the Rebase button on its GitNub page')
     expect(s.ok).toBe(false)
   })
 })

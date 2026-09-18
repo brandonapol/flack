@@ -65,25 +65,25 @@ export const DOCS = {
     href: 'https://git-scm.com/book/en/v2/Git-Tools-Rewriting-History',
   },
 
-  // Pull requests, as GitHub does them
+  // Merge requests, as GitLab does them
   pullRequests: {
-    label: 'About pull requests (GitHub)',
-    href: 'https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests',
+    label: 'Merge requests (GitLab)',
+    href: 'https://docs.gitlab.com/user/project/merge_requests/',
   },
   squashMerge: {
-    label: 'About pull request merges (GitHub)',
-    href: 'https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/about-pull-request-merges',
+    label: 'Squash and merge (GitLab)',
+    href: 'https://docs.gitlab.com/user/project/merge_requests/squash_and_merge/',
   },
   updateBranch: {
-    label: 'Keeping your pull request in sync (GitHub)',
-    href: 'https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/keeping-your-pull-request-in-sync-with-the-base-branch',
+    label: 'Merge methods and rebasing (GitLab)',
+    href: 'https://docs.gitlab.com/user/project/merge_requests/methods/',
   },
   mergeConflicts: {
-    label: 'About merge conflicts (GitHub)',
-    href: 'https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/addressing-merge-conflicts/about-merge-conflicts',
+    label: 'Merge conflicts (GitLab)',
+    href: 'https://docs.gitlab.com/user/project/merge_requests/conflicts/',
   },
 } satisfies Record<string, DocsLink>
 
 export type DocsKey = keyof typeof DOCS
 
-export const ALLOWED_DOCS_HOSTS = ['git-scm.com', 'docs.github.com', 'developer.mozilla.org']
+export const ALLOWED_DOCS_HOSTS = ['git-scm.com', 'docs.gitlab.com', 'developer.mozilla.org']

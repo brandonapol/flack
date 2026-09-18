@@ -70,8 +70,10 @@ export function formatPush(result: PushResult, slug: string): TerminalLine[] {
       if (!result.update.from && result.remoteBranch !== 'main') {
         out.push(
           line('remote: '),
-          line(`remote: Create a pull request for '${result.remoteBranch}' on GitNub by visiting:`),
-          line(`remote:      ${GITNUB_HOST}/${slug}/pull/new/${result.remoteBranch}`),
+          line(`remote: To create a merge request for ${result.remoteBranch}, visit:`),
+          line(
+            `remote:   ${GITNUB_HOST}/${slug}/-/merge_requests/new?merge_request%5Bsource_branch%5D=${result.remoteBranch}`
+          ),
           line('remote: ')
         )
       }

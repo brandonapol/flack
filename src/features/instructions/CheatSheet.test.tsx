@@ -49,20 +49,20 @@ describe('cheat sheet', () => {
       'git add my-file.md',
       'git commit -m "What I changed"',
       'git push -u origin my-change',
-      'Open the pull request',
-      'Squash and merge',
-      'Delete branch',
+      'Create the merge request',
+      'Merge',
+      'Delete source branch',
       'git switch main',
       'git pull',
     ])
   })
 
-  it('says what a branch, a squash, Update branch and conflicts are, without going deep', () => {
+  it('says what a branch, a squash, Rebase and conflicts are, without going deep', () => {
     renderSheet()
     const also = screen.getByRole('heading', { name: /You’ll also hear about/ }).parentElement!
     expect(within(also).getByText('A branch')).toBeInTheDocument()
     expect(within(also).getByText('Squash')).toBeInTheDocument()
-    expect(within(also).getByText('Update branch')).toBeInTheDocument()
+    expect(within(also).getByText('Rebase')).toBeInTheDocument()
     expect(within(also).getByText('Conflicts')).toBeInTheDocument()
     expect(also).toHaveTextContent('next module')
   })
@@ -72,17 +72,20 @@ describe('cheat sheet', () => {
     expect(container.textContent?.toLowerCase()).not.toContain('trunk')
   })
 
-  it('after Keeping in sync, says what to do when a pull request is out of date or conflicts', () => {
+  it('after Keeping in sync, says what to do when a merge request needs a rebase or conflicts', () => {
     renderSheet({ graduated: true })
     expect(screen.getByRole('heading', { name: 'The daily loop', level: 1 })).toBeInTheDocument()
     const when = screen.getByRole('heading', {
-      name: 'When your pull request says…',
+      name: 'When your merge request says…',
     }).parentElement!
-    expect(within(when).getByRole('heading', { name: '…it’s out of date' })).toBeInTheDocument()
+    expect(
+      within(when).getByRole('heading', { name: '…the source branch must be rebased' })
+    ).toBeInTheDocument()
     expect(within(when).getByRole('heading', { name: '…it has conflicts' })).toBeInTheDocument()
-    expect(when).toHaveTextContent('Keep both')
-    expect(when).toHaveTextContent('Mark as resolved')
-    expect(when).toHaveTextContent('No markers to edit')
+    // Real GitLab's buttons: this is the sheet people take back to work.
+    expect(when).toHaveTextContent('Resolve conflicts')
+    expect(when).toHaveTextContent('Edit inline to keep both')
+    expect(when).toHaveTextContent('Commit to source branch')
     expect(screen.getByRole('link', { name: 'Rebasing' })).toBeInTheDocument()
     expect(screen.queryByText('You’ll also hear about…')).not.toBeInTheDocument()
   })

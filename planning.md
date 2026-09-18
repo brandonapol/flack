@@ -353,18 +353,18 @@ Unchanged (#25): GitHub Pages, `vite base: '/flack/'`, deploy on push to
       the Commit Lab, concept-first.** Actual hands-on rebase is limited to
       GitNub's "Update branch" button; conflicts are shown and chosen
       between (mine/theirs/both), never hand-edited with markers.
-- [ ] Tools: VS Code terminal / GitHub Desktop / GitHub web editor? (default:
-      VS Code) — affects 💡 tips.
-- [ ] Code host: GitHub / GitLab / Bitbucket? (default: GitHub, "GitNub" stays
-      the in-fiction stand-in either way).
-- [ ] Completion tracking? (default: none).
-- [ ] Fictional company name "Inkwell" OK? (default: yes).
-- [ ] Should `pull.rebase` / merge-vs-rebase-on-`git pull` still be taught at
-      all now that the everyday sync path is "Update branch" on GitNub rather
-      than a local `git pull` on a diverged branch? Leaning towards: keep
-      Chapter 5's fast-forward `git pull` (still real and common), drop the
-      old diverged-`git pull`-on-`main` teaching moment since branch owners
-      now resolve that via the PR page instead.
+- [x] **Tools: Git Bash** — decided 2026-09-18 (#38). The terminal looks like
+      Git Bash (#78), and tips lead with Ctrl shortcuts.
+- [x] **Code host: GitLab** — decided 2026-09-18 (#38). "GitNub" keeps its name
+      but speaks GitLab (#77): merge requests (`!4`), **Create merge request**,
+      **Merge** with **Squash commits** on, **Rebase** for an MR that's behind
+      (GitHub's "Update branch" above), **Resolve conflicts** →
+      **Commit to source branch**, and GitLab docs links. Squash commits read
+      `Title` + `See merge request inkwell/docs-site!4`.
+- [x] Completion tracking: none — decided (#38).
+- [x] Fictional company name "Inkwell": kept — decided (#38).
+- [x] Diverged `git pull`: Chapter 5 teaches the fast-forward catch-up; the
+      engine supports a diverged pull, but no chapter requires it.
 
 ## How this maps to the issues
 

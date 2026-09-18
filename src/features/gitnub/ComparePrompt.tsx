@@ -6,8 +6,8 @@ import { repoPath } from './data'
 import styles from './GitNub.module.css'
 
 /**
- * GitNub's nudge after you push a branch: the newest branch without a pull request gets one of
- * these. It's the bridge between the terminal and the review workflow.
+ * GitNub's nudge after you push a branch, as GitLab shows it: the newest branch without a merge
+ * request gets one of these. It's the bridge between the terminal and the review workflow.
  */
 export function ComparePrompt({ repo }: { repo: RemoteRepo }) {
   const branch = Object.keys(repo.branches)
@@ -21,10 +21,10 @@ export function ComparePrompt({ repo }: { repo: RemoteRepo }) {
   return (
     <div className={styles.comparePrompt}>
       <span>
-        <strong>{branch}</strong> had recent pushes
+        You pushed to <strong>{branch}</strong> just now
       </span>
       <Link className={styles.compareButton} to={repoPath(repo.slug, 'compare', branch)}>
-        Compare &amp; pull request
+        Create merge request
       </Link>
     </div>
   )

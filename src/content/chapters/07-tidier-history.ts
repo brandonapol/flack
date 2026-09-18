@@ -30,7 +30,7 @@ export const tidierHistoryChapter: Chapter = {
           id: 'robin-why-squash',
           channel: 'dm-robin',
           from: 'robin',
-          text: 'Here’s why we squash. On a team that doesn’t, `main` reads like this: `wip` · `fix typo` · `actually fix typo` · `final`. Ours reads like `Add two team tips (#8)` · `Fix a typo in the style guide (#7)` — one line per finished change. Much easier to follow when something goes wrong! Let’s tidy a branch by hand.',
+          text: 'Here’s why we squash. On a team that doesn’t, `main` reads like this: `wip` · `fix typo` · `actually fix typo` · `final`. Ours reads like `Add two team tips` · `Fix a typo in the style guide` — one line per finished change. Much easier to follow when something goes wrong! Let’s tidy a branch by hand.',
         },
       ],
     },
@@ -44,22 +44,21 @@ export const tidierHistoryChapter: Chapter = {
       ],
       goal: finished('tidy-squash'),
       afterNote:
-        'Same change, one commit. That’s what **Squash and merge** does on GitNub, every time.',
+        'Same change, one commit. That’s what **Squash commits** does on GitNub, every time you merge.',
       docs: [DOCS.squashMerge],
       onEnter: [{ type: 'openCommitLab', scenario: 'tidy-squash', delayMs: 1200 }],
     },
     {
       id: 'rebase',
       title: 'Make history one straight line',
-      body: '`main` has moved on again. Put your commit on top of Alex’s so history is one straight line.\n\n💡 **The golden rule:** rebasing rewrites commits, so only do it to work that hasn’t been merged yet. The **Update branch** button on your own pull request is always safe.',
+      body: '`main` has moved on again. Put your commit on top of Alex’s so history is one straight line.\n\n💡 **The golden rule:** rebasing rewrites commits, so only do it to work that hasn’t been merged yet. The **Rebase** button on your own merge request is always safe.',
       hints: [
         'Drop your commit onto Alex’s, the newest on `main`.',
         'Merge also works, but makes a fork and a join. **Rebase onto here** gives one straight line.',
       ],
       goal: finished('tidy-rebase'),
       figure: MERGE_VS_REBASE,
-      afterNote:
-        'You already did this in Chapter 6 — that’s all the **Update branch** button was doing.',
+      afterNote: 'You already did this in Chapter 6 — that’s all the **Rebase** button was doing.',
       docs: [DOCS.rebasing],
       onEnter: [{ type: 'openCommitLab', scenario: 'tidy-rebase', delayMs: 1500 }],
     },
@@ -68,6 +67,6 @@ export const tidierHistoryChapter: Chapter = {
   summary: [
     '**Squash** turns several small commits into one clean one before it joins `main`.',
     '**Rebase** replays your commits on top of the latest work: same changes, new commits.',
-    'Only rebase work that hasn’t been merged yet. **Update branch** on your own PR is always safe.',
+    'Only rebase work that hasn’t been merged yet. **Rebase** on your own merge request is always safe.',
   ],
 }

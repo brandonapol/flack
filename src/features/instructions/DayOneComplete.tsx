@@ -6,7 +6,7 @@ import { useGame } from '../../store'
 import styles from './Instructions.module.css'
 
 const SHARE_MESSAGE =
-  'I finished Flack’s “Day one” Git tutorial! 🎉 Branch, commit, push, pull request, squash-merge.'
+  'I finished Flack’s “Day one” Git tutorial! 🎉 Branch, commit, push, merge request, squash-merge.'
 
 /** The end of Day one: what they learned, the cheat sheet, and a way to tell someone. */
 export function DayOneComplete() {

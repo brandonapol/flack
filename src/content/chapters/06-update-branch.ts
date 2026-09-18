@@ -3,7 +3,7 @@ import { clone } from '../../engine/git/repo'
 import type { GameState } from '../../engine/game'
 import type { Chapter } from '../../engine/story/types'
 import { DOCS } from '../docsLinks'
-import { DOCS_SITE, STYLE_GUIDE_TYPO } from '../world'
+import { DOCS_SITE, STYLE_GUIDE_TYPO, mergedAs } from '../world'
 import { docsSite, local, ran } from './helpers'
 
 const STYLE_GUIDE = 'docs/style-guide.md'
@@ -22,10 +22,10 @@ function fixed(state: GameState): boolean {
 
 export const updateBranchChapter: Chapter = {
   id: '06-update-branch',
-  title: 'Two PRs, one file',
+  title: 'Two MRs, one file',
   milestone: 'keeping-in-sync',
   intro:
-    'You know the loop now. This time somebody else’s pull request lands while yours is waiting for review — which happens all the time, and takes one button to sort out.',
+    'You know the loop now. This time somebody else’s merge request lands while yours is waiting for review — which happens all the time, and takes one button to sort out.',
   setup: (state) => {
     const repo = state.git.local ?? clone(state.git.remotes[DOCS_SITE])
     const name = state.git.config.userName ?? state.player.name ?? 'You'
@@ -60,7 +60,7 @@ export const updateBranchChapter: Chapter = {
           id: 'jordan-typo',
           channel: 'docs-team',
           from: 'jordan',
-          text: `Could you fix a typo in \`${STYLE_GUIDE}\`? Somebody wrote “${STYLE_GUIDE_TYPO}” 🙃 Same as before: branch, commit, push, pull request.`,
+          text: `Could you fix a typo in \`${STYLE_GUIDE}\`? Somebody wrote “${STYLE_GUIDE_TYPO}” 🙃 Same as before: branch, commit, push, merge request.`,
         },
       ],
     },
@@ -105,8 +105,8 @@ export const updateBranchChapter: Chapter = {
     },
     {
       id: 'open-pr',
-      title: 'Open a pull request',
-      body: 'On GitNub: **Compare & pull request**, then **Create pull request**.',
+      title: 'Create a merge request',
+      body: 'On GitNub: **Create merge request** in the banner, then **Create merge request** on the form.',
       hints: ['The banner on the docs-site page has the button.'],
       goal: (_state, event) => event.type === 'pullRequestOpened',
       afterNote: 'Jordan’s in a meeting, so the review will take a little while.',
@@ -116,12 +116,12 @@ export const updateBranchChapter: Chapter = {
           type: 'remoteCommit',
           slug: DOCS_SITE,
           author: 'alex',
-          message: 'Add two team tips (#8)',
+          message: mergedAs('Add two team tips', 8),
           edits: [
             {
               kind: 'appendLine',
               path: STYLE_GUIDE,
-              text: '- Ask for a review early: small pull requests get reviewed faster.',
+              text: '- Ask for a review early: small merge requests get reviewed faster.',
             },
           ],
           delayMs: 4000,
@@ -131,28 +131,28 @@ export const updateBranchChapter: Chapter = {
           id: 'alex-tips',
           channel: 'docs-team',
           from: 'alex',
-          text: 'Just merged my team tips PR into the style guide 🎉',
+          text: 'Just merged my team tips MR into the style guide 🎉',
           delayMs: 4500,
         },
       ],
     },
     {
       id: 'out-of-date',
-      title: 'Notice your PR is out of date',
-      body: 'While you wait, keep an eye on your pull request on GitNub. Alex just merged something into the same file…',
-      hints: ['Give it a few seconds, then look at your pull request page.'],
+      title: 'Notice your MR needs a rebase',
+      body: 'While you wait, keep an eye on your merge request on GitNub. Alex just merged something into the same file…',
+      hints: ['Give it a few seconds, then look at your merge request page.'],
       // Alex's merge may land before or after this step starts.
       goal: (state, event) =>
         (event.type === 'remoteUpdated' || event.type === 'stepEntered') &&
         myPullRequest(state)?.status === 'needs-update',
       afterNote:
-        'Out of date isn’t an error. It just means someone else was faster: `main` moved after you opened your pull request, so a PR can be fine one minute and out of date the next.',
+        '“Merge blocked” sounds alarming, but it isn’t an error. It just means someone else was faster: `main` moved after you created your merge request, so an MR can be ready one minute and need a rebase the next.',
       onComplete: [
         {
           type: 'flackMessage',
           channel: 'dm-robin',
           from: 'robin',
-          text: 'Heads up: your pull request now says it’s out of date. Nothing’s wrong — Alex’s change landed first, in a different part of the same file. **Update branch** puts your commit on top of theirs. Want to see what that looks like first? Drag it around:',
+          text: 'Heads up: your merge request now says it needs a rebase. Nothing’s wrong — Alex’s change landed first, in a different part of the same file. **Rebase** puts your commit on top of theirs. Want to see what that looks like first? Drag it around:',
           lab: 'out-of-date',
           delayMs: 800,
         },
@@ -160,14 +160,14 @@ export const updateBranchChapter: Chapter = {
     },
     {
       id: 'update',
-      title: 'Click Update branch',
-      body: 'On your pull request, click **Update branch**.',
+      title: 'Click Rebase',
+      body: 'On your merge request, click **Rebase**.',
       hints: [
-        'GitNub tab → **Pull requests** → your pull request. The yellow banner has the button.',
+        'GitNub tab → **Merge requests** → your merge request. The yellow banner has the button.',
       ],
       goal: (_state, event) => event.type === 'branchUpdated',
       afterNote:
-        '💡 **Update branch** did a **rebase** for you — the same thing you can drag in the Commit Lab. Your commit now sits on top of Alex’s, and nothing of either was lost.',
+        '💡 **Rebase** did exactly what it says — the same thing you can drag in the Commit Lab. Your commit now sits on top of Alex’s, and nothing of either was lost.',
       docs: [DOCS.rebasing],
       onComplete: [
         {
@@ -190,11 +190,9 @@ export const updateBranchChapter: Chapter = {
     },
     {
       id: 'merge',
-      title: 'Squash and merge it',
-      body: 'Once Jordan approves, **Squash and merge** your pull request.',
-      hints: [
-        'The button is at the bottom of the pull request. Then **Confirm squash and merge**.',
-      ],
+      title: 'Merge it',
+      body: 'Once Jordan approves, **Merge** your merge request.',
+      hints: ['The **Merge** button is at the bottom of the merge request.'],
       goal: (_state, event) => event.type === 'pullRequestMerged',
       docs: [DOCS.squashMerge],
     },
@@ -216,8 +214,8 @@ export const updateBranchChapter: Chapter = {
   ],
   mentorQuestions: ['out-of-date-branch', 'what-is-a-rebase', 'i-broke-it'],
   summary: [
-    'A pull request goes **out of date** when `main` moves after you opened it. That’s normal.',
-    '**Update branch** rebases your commits on top of the new `main` — same changes, new commits.',
+    'A merge request **needs a rebase** when `main` moves after you created it. That’s normal.',
+    '**Rebase** replays your commits on top of the new `main` — same changes, new commits.',
     'GitNub won’t merge an out-of-date branch, so nothing someone else merged gets lost.',
   ],
 }

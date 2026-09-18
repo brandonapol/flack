@@ -21,12 +21,10 @@ export function PullRequestsPage() {
     <div>
       <RepoHeader repo={repo} active="pulls" />
       <h2 className={styles.sectionTitle}>
-        {open.length} open · {closed.length} merged
+        Merge requests · {open.length} open · {closed.length} merged
       </h2>
       {repo.pullRequests.length === 0 ? (
-        <p className={styles.muted}>
-          No pull requests yet. Push a branch and one will show up here.
-        </p>
+        <p className={styles.muted}>No merge requests yet. Push a branch and you can create one.</p>
       ) : (
         <ul className={styles.commitList}>
           {[...open, ...closed].map((pr) => (
@@ -34,10 +32,10 @@ export function PullRequestsPage() {
               <div className={styles.commitMain}>
                 <p className={styles.commitSubject}>
                   <Link to={repoPath(slug, 'pull', String(pr.number))}>{pr.title}</Link>{' '}
-                  <span className={styles.prNumber}>#{pr.number}</span>
+                  <span className={styles.prNumber}>!{pr.number}</span>
                 </p>
                 <p className={styles.muted}>
-                  {pr.status === 'merged' ? 'Merged' : 'Opened'} {relativeTime(pr.openedAt, now)} ·{' '}
+                  {pr.status === 'merged' ? 'Merged' : 'Created'} {relativeTime(pr.openedAt, now)} ·{' '}
                   <code className={styles.branchChip}>{pr.branch}</code>
                 </p>
               </div>
