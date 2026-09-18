@@ -104,8 +104,9 @@ describe('Day one complete', () => {
 describe('the end of Keeping in sync', () => {
   it('graduates, with what you learned, the cheat sheet and where to go next', () => {
     const config = createGameConfig()
-    const last = config.chapters.at(-1)!
-    expect(last.milestone).toBe('keeping-in-sync')
+    const last = config.chapters
+      .filter((chapter) => chapter.milestone === 'keeping-in-sync')
+      .at(-1)!
     setupFinished(config, last)
     const card = screen.getByRole('region', { name: 'You’ve graduated' })
     expect(card).toHaveTextContent('You’ve graduated 🎓')
@@ -113,5 +114,30 @@ describe('the end of Keeping in sync', () => {
     expect(card).not.toHaveTextContent('git clone')
     expect(within(card).getByRole('link', { name: 'Open the cheat sheet' })).toBeInTheDocument()
     expect(within(card).getByRole('link', { name: 'Rebasing ↗' })).toBeInTheDocument()
+  })
+
+  it('offers the bonus chapter, which starts when chosen', () => {
+    const config = createGameConfig()
+    const last = config.chapters
+      .filter((chapter) => chapter.milestone === 'keeping-in-sync')
+      .at(-1)!
+    const store = setupFinished(config, last)
+    act(() => screen.getByRole('button', { name: 'Try the bonus chapter' }).click())
+    expect(store.getState().game.story.chapterId).toBe('09-oops')
+    expect(screen.getByText('Bonus chapter')).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'Oops: undoing things', level: 1 })
+    ).toBeInTheDocument()
+  })
+
+  it('ends the bonus chapter with its own card, not Keep going', () => {
+    const config = createGameConfig()
+    setupFinished(
+      config,
+      config.chapters.find((chapter) => chapter.id === '09-oops')!
+    )
+    const card = screen.getByRole('region', { name: 'Bonus complete' })
+    expect(card).toHaveTextContent('git restore --staged <file>')
+    expect(screen.queryByRole('button', { name: 'Keep going' })).not.toBeInTheDocument()
   })
 })

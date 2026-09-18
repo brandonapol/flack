@@ -150,12 +150,59 @@ describe('git commit', () => {
     expect(s.ok).toBe(false)
   })
 
-  it('handles a missing -m value and --amend', () => {
+  it('handles a missing -m value', () => {
     expect(inRepo().run('git commit -m').lastText).toBe("error: switch `m' requires a value")
-    expect(inRepo().run('git commit --amend').lastText).toContain('isn’t part of this tutorial yet')
     expect(appendAda(inRepo()).run('git add .', 'git commit Add Ada').lastText).toContain(
       'Did you forget the -m?'
     )
+  })
+})
+
+describe('git commit --amend', () => {
+  it('rewrites the last commit’s message, keeping its parent and its changes', () => {
+    const s = appendAda(inRepo()).run('git switch -c ada', 'git commit -am "Add Ad"')
+    const before = s.state.git.local!
+    const typo = before.commits[before.branches.ada]
+    s.run('git commit --amend -m "Add Ada"')
+    const after = s.state.git.local!
+    const fixed = after.commits[after.branches.ada]
+    expect(fixed.id).not.toBe(typo.id)
+    expect(fixed.message).toBe('Add Ada')
+    expect(fixed.parents).toEqual(typo.parents)
+    expect(fixed.tree).toEqual(typo.tree)
+    expect(s.lastText).toMatch(/^\[ada [0-9a-f]{7}\] Add Ada\n 1 file changed, 1 insertion\(\+\)$/)
+    // Replaced, not added to: the old commit is no longer in the branch's history.
+    const history = s.run('git log --oneline').lastText
+    expect(history).toMatch(/ Add Ada$/m)
+    expect(history).not.toMatch(/ Add Ad$/m)
+  })
+
+  it('adds a forgotten change to the last commit with --no-edit', () => {
+    const s = appendAda(inRepo()).run('git switch -c ada', 'git commit -am "Add Ada"')
+    withEdit(s, 'docs/welcome.md', 'Hello!\n').run(
+      'git add docs/welcome.md',
+      'git commit --amend --no-edit'
+    )
+    const local = s.state.git.local!
+    const tip = local.commits[local.branches.ada]
+    expect(tip.message).toBe('Add Ada')
+    expect(tip.tree['docs/welcome.md']).toBe('Hello!\n')
+    expect(s.run('git status -s').lastText).toBe('')
+  })
+
+  it('asks for -m or --no-edit instead of opening an editor', () => {
+    const s = appendAda(inRepo()).run('git commit -am "Add Ada"', 'git commit --amend')
+    expect(s.ok).toBe(false)
+    expect(s.lastText).toContain('git commit --amend -m "A better message"')
+    expect(s.lastText).toContain('git commit --amend --no-edit')
+  })
+
+  it('warns when the commit being amended is already on GitNub', () => {
+    const local = appendAda(inRepo()).run('git commit -am "Add Ada"', 'git commit --amend -m "x"')
+    expect(local.lastText).not.toContain('already on GitNub')
+    const shared = inRepo().run('git commit --amend -m "Rename the README"')
+    expect(shared.ok).not.toBe(false)
+    expect(shared.lastText).toContain('That commit was already on GitNub')
   })
 })
 

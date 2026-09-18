@@ -9,10 +9,20 @@ import {
   formatStatusShort,
 } from '../../git/output'
 import { resolveRef } from '../../git/refs'
-import { commit, headTree, log, stage, unstage, discard } from '../../git/repo'
+import {
+  amend,
+  commit,
+  headCommit,
+  headTree,
+  isAncestor,
+  log,
+  stage,
+  unstage,
+  discard,
+} from '../../git/repo'
 import { getStatus } from '../../git/status'
 import { pathspecMatches } from '../../git/tree'
-import type { FileTree } from '../../git/types'
+import type { FileTree, LocalRepo } from '../../git/types'
 import { line, type TerminalLine } from '../../lines'
 import type { CoreState } from '../../state'
 import { registerGitCommand, type Command, type CommandResult, type Registry } from '../registry'
@@ -171,7 +181,7 @@ export function registerGitLocalCommands<S extends CoreState>(registry: Registry
     name: 'commit',
     run: inRepo((state, repo, args) => {
       const parsed = parseArgs(args, {
-        flags: ['-a', '--all', '--amend', '-q', '--quiet', '-v', '--verbose'],
+        flags: ['-a', '--all', '--amend', '--no-edit', '-q', '--quiet', '-v', '--verbose'],
         options: ['-m', '--message'],
       })
       if (parsed.missingValue) {
@@ -182,19 +192,23 @@ export function registerGitLocalCommands<S extends CoreState>(registry: Registry
           )
         )
       }
-      if (parsed.flags.has('--amend')) {
-        return fail(
-          line(
-            '💡 `git commit --amend` rewrites your last commit. It isn’t part of this tutorial yet.',
-            'muted'
-          )
-        )
-      }
       if (parsed.unknown.length > 0) return unknownOption(parsed.unknown[0])
       const messages = [
         ...(parsed.options.get('-m') ?? []),
         ...(parsed.options.get('--message') ?? []),
       ]
+      const amending = parsed.flags.has('--amend')
+      if (amending && messages.length === 0 && !parsed.flags.has('--no-edit')) {
+        return fail(
+          line(
+            '💡 Real Git would open a text editor here so you can change the commit message.',
+            'muted'
+          ),
+          line('   In Flack, give the new message on the command line:', 'muted'),
+          line('   git commit --amend -m "A better message"', 'muted'),
+          line('   or keep the old one with: git commit --amend --no-edit', 'muted')
+        )
+      }
       if (parsed.positional.length > 0 && messages.length === 0) {
         return fail(
           line(
@@ -204,7 +218,7 @@ export function registerGitLocalCommands<S extends CoreState>(registry: Registry
           line('💡 Did you forget the -m? Try: git commit -m "Your message"', 'muted')
         )
       }
-      if (messages.length === 0) {
+      if (messages.length === 0 && !amending) {
         return fail(
           line(
             '💡 Real Git would open a text editor here so you can write a commit message.',
@@ -226,6 +240,8 @@ export function registerGitLocalCommands<S extends CoreState>(registry: Registry
         )
         if (result.ok) local = result.local
       }
+
+      if (amending) return amendCommit(state, local, messages, parsed.flags)
 
       const parent = headTree(local)
       const result = commit(local, {
@@ -319,4 +335,49 @@ export function registerGitLocalCommands<S extends CoreState>(registry: Registry
 /** Untracked files never show up in `git diff`. */
 function filterTracked(working: FileTree, index: FileTree): FileTree {
   return Object.fromEntries(Object.entries(working).filter(([path]) => path in index))
+}
+
+/** `git commit --amend`: swap the last commit for a new one, with a word of warning if it's shared. */
+function amendCommit<S extends CoreState>(
+  state: S,
+  local: LocalRepo,
+  messages: string[],
+  flags: Set<string>
+): CommandResult<S> {
+  const replaced = headCommit(local)
+  // Already on GitNub (as far as this computer knows)? Then amending makes the two disagree.
+  const pushed = Object.values(local.remoteBranches).some((tip) =>
+    isAncestor(local.commits, replaced.id, tip)
+  )
+  const result = amend(local, {
+    message: messages.length > 0 ? messages.join('\n\n') : undefined,
+    config: state.git.config,
+    timestamp: state.clock,
+  })
+  if (!result.ok) {
+    if (result.error === 'identity-unknown') return fail(...formatIdentityUnknown())
+    return fail(line('Aborting commit due to empty commit message.', 'error'))
+  }
+  const parent = replaced.parents[0] ? local.commits[replaced.parents[0]].tree : {}
+  const quiet = flags.has('-q') || flags.has('--quiet')
+  return {
+    state: withLocal(state, result.local),
+    output: [
+      ...(quiet
+        ? []
+        : formatCommitSummary(local.head, result.commit, diffStat(parent, result.commit.tree))),
+      ...(pushed
+        ? [
+            line(
+              '💡 That commit was already on GitNub. Your branch and GitNub’s now disagree, so a plain `git push` will be rejected.',
+              'muted'
+            ),
+            line(
+              '   Amend only what you haven’t pushed. To fix something that’s already shared, make a new commit instead.',
+              'muted'
+            ),
+          ]
+        : []),
+    ],
+  }
 }

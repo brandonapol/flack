@@ -681,3 +681,53 @@ describe('Chapter 8: Two people, one spot', () => {
     expect(findPullRequest(state.git.remotes[DOCS_SITE], number)!.status).toBe('has-conflicts')
   })
 })
+
+describe('Bonus: Oops, undoing things', () => {
+  const WELCOME = 'docs/welcome.md'
+  const welcome = (state: GameState) => state.git.local!.working[WELCOME]
+
+  it('restores an edit, unstages a stray file and amends a lazy message', () => {
+    const start = playChapter(config, '09-oops', []).state
+    const original = welcome(start)
+    const { trace, state } = playChapter(config, '09-oops', [
+      cmd('git switch -c ada-oops'),
+      { type: 'saveFile', path: WELCOME, content: 'asdfghjkl\n' },
+      cmd(`git restore ${WELCOME}`),
+      { type: 'saveFile', path: WELCOME, content: `${original}Welcome, next new starter!\n` },
+      cmd('git add .'),
+      cmd('git restore --staged notes.txt'),
+      cmd('git commit -m "wip"'),
+      cmd('git commit --amend -m "Welcome the next new starter"'),
+    ])
+    expect(trace).toEqual([
+      'branch',
+      'mess',
+      'restore',
+      'real-change',
+      'add-all',
+      'unstage',
+      'commit',
+      'amend',
+    ])
+    const local = state.git.local!
+    const tip = local.commits[local.branches['ada-oops']]
+    expect(tip.message).toBe('Welcome the next new starter')
+    expect(tip.parents).toEqual([local.branches.main])
+    expect(tip.tree['notes.txt']).toBeUndefined()
+    expect(local.working['notes.txt']).toContain('coffee')
+    expect(state.story.phase).toBe('complete')
+  })
+
+  it('Robin nudges a careful learner who stages only the right file', () => {
+    const start = playChapter(config, '09-oops', []).state
+    const { state } = playChapter(config, '09-oops', [
+      cmd('git switch -c ada-oops'),
+      { type: 'saveFile', path: WELCOME, content: 'oops\n' },
+      cmd(`git restore ${WELCOME}`),
+      { type: 'saveFile', path: WELCOME, content: `${welcome(start)}Hello!\n` },
+      cmd(`git add ${WELCOME}`),
+    ])
+    expect(state.story.completedSteps).not.toContain('add-all')
+    expect(state.flack.messages.at(-1)!.text).toContain('run `git add .` anyway')
+  })
+})
