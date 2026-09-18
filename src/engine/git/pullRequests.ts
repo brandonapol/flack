@@ -63,6 +63,20 @@ export function pullRequestCommits(remote: RemoteRepo, pr: PullRequest): Commit[
     .reverse()
 }
 
+/** Commits `branch` has that `base` doesn't: what a merge request from it would carry. */
+export function commitsAhead(
+  remote: RemoteRepo,
+  branch: string,
+  base = remote.defaultBranch
+): number {
+  const branchTip = remote.branches[branch]
+  if (!branchTip) return 0
+  const onBase = remote.branches[base]
+    ? reachable(remote.commits, remote.branches[base])
+    : new Set()
+  return [...reachable(remote.commits, branchTip)].filter((id) => !onBase.has(id)).length
+}
+
 /** Where the branch and the base last agreed. */
 export function mergeBase(remote: RemoteRepo, pr: PullRequest): CommitId | undefined {
   const branchTip = remote.branches[pr.branch]

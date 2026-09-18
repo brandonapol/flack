@@ -1,6 +1,6 @@
 import { Link } from 'react-router'
 
-import { openPullRequestFor } from '../../engine/git/pullRequests'
+import { commitsAhead, openPullRequestFor } from '../../engine/git/pullRequests'
 import type { RemoteRepo } from '../../engine/git/types'
 import { repoPath } from './data'
 import styles from './GitNub.module.css'
@@ -14,7 +14,10 @@ export function ComparePrompt({ repo }: { repo: RemoteRepo }) {
     .filter((name) => name !== repo.defaultBranch)
     .find(
       (name) =>
-        !openPullRequestFor(repo, name) && !repo.pullRequests.some((pr) => pr.branch === name)
+        !openPullRequestFor(repo, name) &&
+        !repo.pullRequests.some((pr) => pr.branch === name) &&
+        // A branch with nothing new on it has nothing to request.
+        commitsAhead(repo, name, repo.defaultBranch) > 0
     )
 
   if (!branch) return null

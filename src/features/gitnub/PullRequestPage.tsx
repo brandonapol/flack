@@ -210,12 +210,14 @@ export function PullRequestPage() {
               </>
             ) : (
               <>
-                {conflicted.length > 0 || needsUpdate ? (
+                {conflicted.length > 0 || needsUpdate || commits.length === 0 ? (
                   <>
                     <p className={styles.mergeSummary}>
-                      {needsUpdate
-                        ? 'Merge blocked: the source branch must be rebased onto the target branch.'
-                        : 'Merge blocked: merge conflicts must be resolved.'}
+                      {commits.length === 0
+                        ? 'Nothing to merge: the source branch has no commits the target branch doesn’t already have.'
+                        : needsUpdate
+                          ? 'Merge blocked: the source branch must be rebased onto the target branch.'
+                          : 'Merge blocked: merge conflicts must be resolved.'}
                     </p>
                     <button type="button" className={styles.codeButton} disabled>
                       Merge

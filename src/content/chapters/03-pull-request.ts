@@ -137,8 +137,8 @@ export const pullRequestChapter: Chapter = {
         {
           type: 'reviewPullRequest',
           slug: DOCS_SITE,
-          // Merge requests !1–!3 are already in docs-site's history, so this is the learner's.
-          number: 4,
+          // The learner's, whatever its number: an earlier experiment may have taken !4.
+          number: 'latest',
           author: 'jordan',
           body: 'Looks great — welcome aboard! Merge whenever you’re ready. 🎉',
           approve: true,
