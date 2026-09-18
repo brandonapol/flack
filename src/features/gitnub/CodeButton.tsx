@@ -10,6 +10,7 @@ export function CodeButton({ slug }: { slug: string }) {
   const [copied, setCopied] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
   const popoverId = useId()
   const url = remoteUrl(slug)
 
@@ -38,6 +39,7 @@ export function CodeButton({ slug }: { slug: string }) {
   return (
     <div className={styles.codeWrapper} ref={wrapperRef}>
       <button
+        ref={buttonRef}
         type="button"
         className={styles.codeButton}
         aria-expanded={open}
@@ -56,7 +58,10 @@ export function CodeButton({ slug }: { slug: string }) {
           role="dialog"
           aria-label="Clone this repository"
           onKeyDown={(event) => {
-            if (event.key === 'Escape') setOpen(false)
+            if (event.key !== 'Escape') return
+            setOpen(false)
+            // Focus was inside the popover; put it back where the learner opened it from.
+            buttonRef.current?.focus()
           }}
         >
           <p className={styles.popoverTitle}>Clone</p>

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 
 import { useGame } from '../../store'
+import { useRestoreFocus } from '../shared/useRestoreFocus'
 import styles from './UnsavedEditsDialog.module.css'
 
 /** Shown when a command was stopped because it would have replaced files with unsaved edits. */
@@ -10,6 +11,7 @@ export function UnsavedEditsDialog() {
   const dispatch = useGame((s) => s.dispatch)
   const dialogRef = useRef<HTMLDivElement>(null)
 
+  useRestoreFocus(Boolean(blocked?.length))
   useEffect(() => {
     if (blocked) dialogRef.current?.querySelector('button')?.focus()
   }, [blocked])

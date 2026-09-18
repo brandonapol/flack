@@ -19,7 +19,7 @@ export function Avatar({ name, character, size = 32, square }: AvatarProps) {
         width: size,
         height: size,
         fontSize: Math.round(size * 0.4),
-        background: character?.color ?? '#868e96',
+        background: character?.color ?? 'var(--text-muted)',
         borderRadius: square ? 6 : '50%',
       }}
     >

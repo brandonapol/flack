@@ -88,6 +88,15 @@ describe('GitNub repo page', () => {
     expect(within(popover).getByRole('button', { name: 'Copied!' })).toBeInTheDocument()
   })
 
+  it('Escape closes the clone dialog and puts focus back on the Code button', async () => {
+    const { user } = setup('/gitnub/inkwell/docs-site')
+    await user.click(screen.getByRole('button', { name: /Code/ }))
+    expect(screen.getByRole('button', { name: 'Copy' })).toHaveFocus()
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog', { name: 'Clone this repository' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Code/ })).toHaveFocus()
+  })
+
   it('selects the address when the clipboard is unavailable', async () => {
     const { dispatch, user } = setup('/gitnub/inkwell/docs-site')
     Object.defineProperty(navigator, 'clipboard', {
