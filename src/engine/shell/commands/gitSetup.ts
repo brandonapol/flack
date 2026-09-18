@@ -341,7 +341,7 @@ export function registerGitSetupCommands<S extends CoreState>(registry: Registry
           line(`Receiving objects: 100% (${objects}/${objects}), done.`, 'muted'),
           line(`Resolving deltas: 100% (${deltas}/${deltas}), done.`, 'muted'),
         ],
-        effects: [{ type: 'unlockTab', tab: 'editor' }],
+        // Which tabs are open is the story's business: Chapter 1 unlocks the Editor.
       }
     },
   })

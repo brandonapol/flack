@@ -126,6 +126,34 @@ describe('Chapter 0: Welcome', () => {
 })
 
 describe('Chapter 1: Get the repo', () => {
+  it('cloning early, before GitNub is even unlocked, unlocks nothing and doesn’t get stuck', () => {
+    // Chapter 0, still on "say hello": a curious learner clones straight away.
+    const early = play(
+      config,
+      flushEffects(config, ...startChapterAt(blankState(config), '00-welcome')),
+      [cmd(`git clone ${DOCS_SITE_URL}`)]
+    )
+    expect(early.git.local).toBeDefined()
+    expect(early.ui.unlockedTabs).toEqual(['flack'])
+
+    const afterZero = play(config, early, CHAPTER_0)
+    const chapter1 = flushEffects(config, ...startChapterAt(afterZero, '01-clone'))
+    const { trace, state } = playChapter(
+      config,
+      '01-clone',
+      [
+        { type: 'viewRepo', slug: DOCS_SITE },
+        { type: 'copyCloneUrl', slug: DOCS_SITE },
+        // No clone needed: the step completes on arrival.
+        cmd('ls'),
+        cmd('cd docs-site'),
+      ],
+      { from: chapter1 }
+    )
+    expect(trace.slice(0, 5)).toEqual(['open-repo', 'copy-url', 'clone', 'ls', 'cd'])
+    expect(state.ui.unlockedTabs).toContain('editor')
+  })
+
   it('clones the repo and moves into it', () => {
     const { trace, state } = playChapter(config, '01-clone', CHAPTER_1)
     expect(trace).toEqual(['open-repo', 'copy-url', 'clone', 'ls', 'cd', 'look-around'])

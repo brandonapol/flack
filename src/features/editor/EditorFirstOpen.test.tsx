@@ -34,4 +34,23 @@ describe('opening the Editor for the first time', () => {
     expect(store.getState().game.editor.openPath).toBe('team.md')
     expect(store.getState().game.story.completedSteps).toContain('open-team-md')
   })
+
+  it('files are read-only unless the current step is about them', async () => {
+    const store = createGameStore({
+      config: createGameConfig(),
+      storage: noStorage,
+      search: '?chapter=03',
+    })
+    render(
+      <GameStoreProvider store={store}>
+        <MemoryRouter initialEntries={['/editor/README.md']}>
+          <Routes>
+            <Route path="/editor/*" element={<Editor />} />
+          </Routes>
+        </MemoryRouter>
+      </GameStoreProvider>
+    )
+    expect(await screen.findByRole('note')).toHaveTextContent('This file is read-only right now')
+    expect(screen.getByRole('button', { name: /Save/ })).toBeDisabled()
+  })
 })
