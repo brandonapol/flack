@@ -149,6 +149,15 @@ describe('open and code', () => {
 })
 
 describe('fallbacks', () => {
+  it('npm, pip and friends get an honest answer, not a nonsense suggestion', () => {
+    for (const tool of ['npm install', 'pip install requests', 'python3 build.py']) {
+      const s = session().run(tool)
+      expect(s.lastText).toContain('command not found')
+      expect(s.lastText).toContain('nothing to install')
+      expect(s.lastText).not.toContain('Did you mean')
+    }
+  })
+
   it('terminal editors point at the Editor tab', () => {
     const s = inRepo().run('vim team.md')
     expect(s.lastText).toContain('you edit files in the Editor tab instead of `vim`')

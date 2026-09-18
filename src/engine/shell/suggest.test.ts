@@ -29,6 +29,14 @@ describe('suggest', () => {
     expect(suggest('gti', ['git', 'ls', 'cd', 'help'])).toBe('git')
   })
 
+  it('doesn’t snap short unknown words to unrelated commands (#93)', () => {
+    const commands = ['git', 'ls', 'cd', 'cat', 'vim', 'help', 'echo', 'open']
+    expect(suggest('npm', commands)).toBeUndefined()
+    expect(suggest('pip', commands)).toBeUndefined()
+    expect(suggest('gut', commands)).toBe('git')
+    expect(suggest('ecoh', commands)).toBe('echo')
+  })
+
   it('gives up when nothing is close', () => {
     expect(suggest('rebase-interactive', GIT)).toBeUndefined()
   })

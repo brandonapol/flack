@@ -140,4 +140,17 @@ describe('the end of Keeping in sync', () => {
     expect(card).toHaveTextContent('git restore --staged <file>')
     expect(screen.queryByRole('button', { name: 'Keep going' })).not.toBeInTheDocument()
   })
+
+  it('the chapter picker labels the bonus chapter instead of numbering it past “of 9” (#85)', () => {
+    const config = createGameConfig()
+    setupFinished(
+      config,
+      config.chapters.find((chapter) => chapter.id === '09-oops')!
+    )
+    act(() => screen.getByRole('button', { name: 'Chapters' }).click())
+    const items = within(screen.getByRole('list', { name: 'Chapters' })).getAllByRole('button')
+    expect(items.at(-2)).toHaveTextContent(/^9\. /)
+    expect(items.at(-1)).toHaveTextContent('Bonus: Oops: undoing things')
+    expect(screen.getAllByRole('button').some((b) => /^10\./.test(b.textContent ?? ''))).toBe(false)
+  })
 })
