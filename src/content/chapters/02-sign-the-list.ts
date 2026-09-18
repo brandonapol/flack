@@ -56,7 +56,7 @@ export const signTheListChapter: Chapter = {
     {
       id: 'add-name',
       title: 'Add your name and save',
-      body: 'Add one line at the bottom: `- Your Name`. Then press **Save** (or ⌘S / Ctrl+S). Saving changes the file on your computer — nobody else can see it yet.',
+      body: 'Add one line at the bottom: `- Your Name`. Then press **Save** (or Ctrl+S; ⌘S on a Mac). Saving changes the file on your computer — nobody else can see it yet.',
       hints: [
         'Click at the end of the last line, press Enter, and type `- ` followed by your name.',
         'Keep the other names: just add one line at the bottom, starting with `- `.',

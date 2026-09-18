@@ -40,7 +40,7 @@ export const cloneChapter: Chapter = {
       title: 'Clone it with git clone',
       body: `In the terminal, type \`git clone \` and paste the address, then press Enter. **Cloning** copies the whole repository — files and history — onto your computer.`,
       hints: [
-        'Click the terminal, type `git clone `, then paste with ⌘V or Ctrl+V.',
+        'Click the terminal, type `git clone `, then paste with Ctrl+V (in Git Bash, Shift+Insert or a right-click works too).',
         `Type: git clone ${DOCS_SITE_URL}`,
       ],
       solution: `git clone ${DOCS_SITE_URL}`,

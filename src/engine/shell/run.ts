@@ -1,7 +1,7 @@
 import type { GameEvent } from '../events'
-import { line, spans, type TerminalLine } from '../lines'
+import { line, type TerminalLine } from '../lines'
 import type { CoreState } from '../state'
-import { promptFor } from './prompt'
+import { echoLines } from './prompt'
 import type { CommandContext, CommandEffect, CommandResult, Registry } from './registry'
 import { suggest } from './suggest'
 import { stripPrompt, tokenize } from './tokenize'
@@ -21,7 +21,7 @@ function defaultUnknownCommand<S extends CoreState>(
   return {
     ok: false,
     output: [
-      line(`flack: command not found: ${ctx.argv[0]}`, 'error'),
+      line(`bash: ${ctx.argv[0]}: command not found`, 'error'),
       line(
         suggestion ? `Did you mean \`${suggestion}\`?` : 'Try `help`, or ask Robin in Flack.',
         'muted'
@@ -66,12 +66,12 @@ export function runLine<S extends CoreState>(
   input: string
 ): RunLineResult<S> {
   const text = stripPrompt(input)
-  const echo = spans({ text: promptFor(state), tone: 'prompt' }, { text: ` ${text}` })
+  const echo = echoLines(state, text)
 
   if (text === '') {
     return {
-      state: withOutput(state, [echo]),
-      output: [echo],
+      state: withOutput(state, echo),
+      output: echo,
       events: [],
       effects: [],
     }
@@ -85,7 +85,7 @@ export function runLine<S extends CoreState>(
     result = {
       ok: false,
       output: [
-        line(`flack: unmatched ${tokens.quote}`, 'error'),
+        line(`bash: unexpected EOF while looking for matching \`${tokens.quote}'`, 'error'),
         line(
           `A quote mark (${tokens.quote}) was opened but never closed. Add the closing one and try again.`,
           'muted'
@@ -94,13 +94,12 @@ export function runLine<S extends CoreState>(
     }
   } else {
     argv = tokens.argv
-    const before: S = withOutput({ ...state, shell: { ...state.shell, history } }, [echo])
+    const before: S = withOutput({ ...state, shell: { ...state.shell, history } }, echo)
     result = dispatch({ state: before, argv, registry })
     result = { ...result, state: result.state ?? before }
   }
 
-  const base: S =
-    result.state ?? withOutput({ ...state, shell: { ...state.shell, history } }, [echo])
+  const base: S = result.state ?? withOutput({ ...state, shell: { ...state.shell, history } }, echo)
   const output = result.output ?? []
   const commandEvent: GameEvent[] =
     argv.length > 0 ? [{ type: 'command', name: argv[0], argv, ok: result.ok ?? true }] : []
@@ -109,7 +108,7 @@ export function runLine<S extends CoreState>(
   const cleared = base.shell.output.length === 0
   return {
     state: withOutput(base, output),
-    output: cleared ? output : [echo, ...output],
+    output: cleared ? output : [...echo, ...output],
     events: [...commandEvent, ...(result.events ?? [])],
     effects: result.effects ?? [],
   }

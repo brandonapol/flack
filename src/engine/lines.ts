@@ -17,6 +17,10 @@ export type Tone =
   | 'remote'
   | 'bold'
   | 'prompt'
+  | 'prompt-user'
+  | 'prompt-system'
+  | 'prompt-path'
+  | 'prompt-branch'
 
 export interface Span {
   text: string

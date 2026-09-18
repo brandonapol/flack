@@ -155,7 +155,7 @@ export function registerShellCommands<S extends CoreState>(
       targets.forEach((target, index) => {
         const node = lookup(state, resolvePath(cwd, target))
         if (!node) {
-          output.push(line(`ls: ${target}: No such file or directory`, 'error'))
+          output.push(line(`ls: cannot access '${target}': No such file or directory`, 'error'))
           ok = false
           return
         }

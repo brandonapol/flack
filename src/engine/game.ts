@@ -1,6 +1,6 @@
 import type { Tab } from './events'
-import { line, spans } from './lines'
-import { promptFor } from './shell/prompt'
+import { line } from './lines'
+import { ECHO_LINES, echoLines } from './shell/prompt'
 import {
   deleteRemoteBranch,
   findPullRequest,
@@ -80,7 +80,7 @@ export interface GameState extends CoreState {
 
 export type Action =
   | { type: 'runCommand'; line: string }
-  /** ⌘K / Ctrl+L: clear the screen without running anything. */
+  /** Ctrl+L: clear the screen without running anything. */
   | { type: 'clearTerminal' }
   /** Ctrl+C: abandon a half-typed line, echoing it with `^C` like a real shell. */
   | { type: 'cancelInput'; text: string }
@@ -203,7 +203,7 @@ export function reduce(config: GameConfig, previous: GameState, action: Action):
       const clobbered = unsavedPathsChanged(state, result.state)
       if (clobbered.length > 0) {
         // Undo the command: it would have replaced files the learner is still editing.
-        const echo = result.output[0]
+        const echo = result.output.slice(0, ECHO_LINES)
         const blocked: GameState = {
           ...state,
           shell: {
@@ -211,7 +211,7 @@ export function reduce(config: GameConfig, previous: GameState, action: Action):
             history: result.state.shell.history,
             output: [
               ...state.shell.output,
-              ...(echo ? [echo] : []),
+              ...echo,
               line(
                 `✋ You have unsaved edits in ${clobbered.join(', ')}. Save or discard them in the Editor, then run that again.`,
                 'error'
@@ -256,9 +256,9 @@ export function reduce(config: GameConfig, previous: GameState, action: Action):
       return { state: { ...state, shell: { ...state.shell, output: [] } }, effects: [] }
 
     case 'cancelInput': {
-      const echo = spans({ text: promptFor(state), tone: 'prompt' }, { text: ` ${action.text}^C` })
+      const echo = echoLines(state, action.text, '^C')
       return {
-        state: { ...state, shell: { ...state.shell, output: [...state.shell.output, echo] } },
+        state: { ...state, shell: { ...state.shell, output: [...state.shell.output, ...echo] } },
         effects: [],
       }
     }

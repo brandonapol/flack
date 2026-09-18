@@ -218,7 +218,7 @@ describe('terminal actions', () => {
 
   it('cancelInput echoes the abandoned line with ^C', () => {
     const state = play(config, started(), [{ type: 'cancelInput', text: 'git sta' }])
-    expect(state.shell.output.at(-1)?.text).toBe('~ $ git sta^C')
+    expect(state.shell.output.at(-1)?.text).toBe('$ git sta^C')
     expect(state.shell.history).toEqual([])
   })
 })

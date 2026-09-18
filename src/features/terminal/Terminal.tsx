@@ -7,7 +7,7 @@ import {
   type MouseEvent,
 } from 'react'
 
-import { promptFor } from '../../engine/shell/prompt'
+import { locationFor, promptLine, windowTitle } from '../../engine/shell/prompt'
 import { useGame } from '../../store'
 import styles from './Terminal.module.css'
 import { OutputLine } from './TerminalOutput'
@@ -18,7 +18,8 @@ const STICKY_THRESHOLD = 24
 export function Terminal() {
   const output = useGame((s) => s.game.shell.output)
   const history = useGame((s) => s.game.shell.history)
-  const prompt = useGame((s) => promptFor(s.game))
+  const location = useGame((s) => locationFor(s.game))
+  const game = useGame((s) => s.game)
   const dispatch = useGame((s) => s.dispatch)
 
   const [input, setInput] = useState('')
@@ -126,18 +127,22 @@ export function Terminal() {
   return (
     <div className={styles.terminal} onClick={focusInput}>
       <div className={styles.titlebar} aria-hidden="true">
-        <span className={styles.dots}>
-          <span />
-          <span />
-          <span />
+        <span className={styles.icon} />
+        <span className={styles.title}>{windowTitle(game)}</span>
+        <span className={styles.controls}>
+          <span>–</span>
+          <span>□</span>
+          <span>×</span>
         </span>
-        <span className={styles.title}>Terminal — zsh</span>
       </div>
       <div className={styles.scroller} ref={scrollRef} onScroll={onScroll}>
         <div role="log" aria-live="polite" aria-label="Terminal output" className={styles.output}>
           {output.map((line, i) => (
             <OutputLine key={i} line={line} />
           ))}
+        </div>
+        <div className={styles.promptLine} aria-hidden="true">
+          <OutputLine line={promptLine(game)} />
         </div>
         <form
           className={styles.inputRow}
@@ -147,11 +152,11 @@ export function Terminal() {
           }}
         >
           <label htmlFor="terminal-input" className={styles.prompt} aria-hidden="true">
-            {prompt}
+            $
           </label>
           <input
             id="terminal-input"
-            aria-label={`Terminal command, at ${prompt}`}
+            aria-label={`Terminal command, at ${location}`}
             ref={inputRef}
             className={styles.input}
             value={input}

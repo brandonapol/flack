@@ -98,7 +98,7 @@ export default function Editor() {
             onClick={save}
             disabled={!isDirty || readOnly}
           >
-            Save <kbd className={styles.kbd}>⌘S</kbd>
+            Save <kbd className={styles.kbd}>Ctrl+S</kbd>
           </button>
         </header>
         {readOnly && (

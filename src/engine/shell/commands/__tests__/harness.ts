@@ -2,6 +2,7 @@ import { docsSite, T0 } from '../../../git/__fixtures__/docsSite'
 import { createRemote } from '../../../git/repo'
 import { plainText, type TerminalLine } from '../../../lines'
 import { HOME, type CoreState } from '../../../state'
+import { ECHO_LINES } from '../../prompt'
 import { runLine } from '../../run'
 import { buildRegistry } from '../index'
 
@@ -43,7 +44,7 @@ export function newState(): CoreState {
 
 export interface Session {
   state: CoreState
-  /** Output of the last command, without the echoed prompt line. */
+  /** Output of the last command, without the echoed prompt. */
   last: TerminalLine[]
   lastText: string
   ok: boolean
@@ -64,7 +65,7 @@ export function session(state: CoreState = newState()): Session {
       for (const input of lines) {
         const result = runLine(registry, self.state, input)
         self.state = result.state
-        self.last = result.output.slice(1)
+        self.last = result.output.slice(ECHO_LINES)
         self.lastText = plainText(self.last)
         self.ok = result.events[0]?.type === 'command' ? result.events[0].ok : true
         self.effects = result.effects

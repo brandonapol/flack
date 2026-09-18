@@ -66,7 +66,7 @@ describe('ls', () => {
 
   it('reports missing paths and bad options', () => {
     const s = inRepo().run('ls nope')
-    expect(s.lastText).toBe('ls: nope: No such file or directory')
+    expect(s.lastText).toBe("ls: cannot access 'nope': No such file or directory")
     expect(s.ok).toBe(false)
     expect(s.run('ls -z').lastText).toContain('ls: invalid option -- z')
   })
@@ -86,9 +86,9 @@ describe('cd', () => {
 
   it('explains missing folders and files', () => {
     const s = session().run('cd docs-site')
-    expect(s.lastText).toBe('cd: no such file or directory: docs-site')
+    expect(s.lastText).toBe('bash: cd: docs-site: No such file or directory')
     expect(s.ok).toBe(false)
-    expect(inRepo().run('cd team.md').lastText).toBe('cd: not a directory: team.md')
+    expect(inRepo().run('cd team.md').lastText).toBe('bash: cd: team.md: Not a directory')
   })
 })
 
@@ -169,7 +169,7 @@ describe('fallbacks', () => {
 
   it('unknown commands and typos get friendly replies', () => {
     expect(session().run('foo').lastText).toBe(
-      'flack: command not found: foo\nTry `help`, or ask Robin in Flack.'
+      'bash: foo: command not found\nTry `help`, or ask Robin in Flack.'
     )
     expect(session().run('gti status').lastText).toContain('Did you mean `git`?')
     expect(session().run('sl').lastText).toContain('Did you mean')

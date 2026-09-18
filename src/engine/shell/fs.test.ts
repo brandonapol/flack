@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { HOME } from '../state'
 import { clonedState, freshState } from './__fixtures__/state'
 import { changeDirectory, displayPath, lookup, repoPath, resolvePath } from './fs'
-import { promptFor } from './prompt'
+import { echoLines, promptFor, windowTitle } from './prompt'
 
 describe('paths', () => {
   it('resolves relative, parent, home and absolute paths', () => {
@@ -72,15 +72,15 @@ describe('cd', () => {
     expect(back).toEqual({ ok: true, cwd: HOME })
   })
 
-  it('uses zsh wording for missing folders and files', () => {
+  it('uses bash wording for missing folders and files', () => {
     const state = clonedState(`${HOME}/docs-site`)
     expect(changeDirectory(state, 'nope')).toEqual({
       ok: false,
-      message: 'cd: no such file or directory: nope',
+      message: 'bash: cd: nope: No such file or directory',
     })
     expect(changeDirectory(state, 'team.md')).toEqual({
       ok: false,
-      message: 'cd: not a directory: team.md',
+      message: 'bash: cd: team.md: Not a directory',
     })
   })
 
@@ -90,34 +90,33 @@ describe('cd', () => {
 })
 
 describe('prompt', () => {
-  it('shows the folder, and the branch inside a repo', () => {
-    expect(promptFor(freshState())).toBe('~ $')
-    expect(promptFor(clonedState())).toBe('~ $')
-    expect(promptFor(clonedState(`${HOME}/docs-site`))).toBe('~/docs-site (main) $')
-    expect(promptFor(clonedState(`${HOME}/docs-site/docs`))).toBe('~/docs-site/docs (main) $')
+  const P = 'you@INKWELL-LAPTOP MINGW64'
+
+  it('shows the folder, and the branch inside a repo, like Git Bash', () => {
+    expect(promptFor(freshState())).toBe(`${P} ~`)
+    expect(promptFor(clonedState())).toBe(`${P} ~`)
+    expect(promptFor(clonedState(`${HOME}/docs-site`))).toBe(`${P} ~/docs-site (main)`)
+    expect(promptFor(clonedState(`${HOME}/docs-site/docs`))).toBe(`${P} ~/docs-site/docs (main)`)
   })
 
-  it('shows commits waiting to be pushed', () => {
-    const state = clonedState(`${HOME}/docs-site`)
-    const local = state.git.local!
-    const ahead = {
-      ...state,
-      git: {
-        ...state.git,
-        local: {
-          ...local,
-          remoteBranches: {
-            main: Object.keys(local.commits).find((id) => id !== local.branches.main)!,
-          },
-        },
-      },
-    }
-    expect(promptFor(ahead)).toBe('~/docs-site (main ↑1) $')
+  it('echoes a command as Git Bash does: blank line, prompt line, then $ and the command', () => {
+    const echo = echoLines(clonedState(`${HOME}/docs-site`), 'git status')
+    expect(echo.map((line) => line.text)).toEqual(['', `${P} ~/docs-site (main)`, '$ git status'])
+    expect(echo[1].spans!.map((span) => span.tone).filter(Boolean)).toEqual([
+      'prompt-user',
+      'prompt-system',
+      'prompt-path',
+      'prompt-branch',
+    ])
+  })
+
+  it('names the window after the folder, with Git Bash’s /c drive', () => {
+    expect(windowTitle(clonedState(`${HOME}/docs-site`))).toBe('MINGW64:/c/Users/you/docs-site')
   })
 
   it('falls back to home when the folder is gone', () => {
     expect(
       promptFor({ ...freshState(), shell: { cwd: `${HOME}/docs-site`, history: [], output: [] } })
-    ).toBe('~ $')
+    ).toBe(`${P} ~`)
   })
 })
