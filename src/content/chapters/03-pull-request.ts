@@ -1,4 +1,4 @@
-import { isAncestor } from '../../engine/git/repo'
+import { clone, isAncestor } from '../../engine/git/repo'
 import type { Chapter, GameConfig } from '../../engine/story/types'
 import type { GameState } from '../../engine/game'
 import { DOCS } from '../docsLinks'
@@ -13,6 +13,22 @@ function committedOnBranch(state: GameState): boolean {
   return tip !== repo.branches.main && !isAncestor(repo.commits, tip, repo.branches.main)
 }
 
+/** Jumping straight here (`?chapter=03`): where Chapter 2 leaves off — cloned, name saved. */
+function signedClone(state: GameState): GameState {
+  const repo = clone(state.git.remotes[DOCS_SITE])
+  const name = state.player.name ?? 'You'
+  const team = repo.working['team.md']
+  return {
+    ...state,
+    player: { ...state.player, name },
+    git: {
+      ...state.git,
+      local: { ...repo, working: { ...repo.working, 'team.md': `${team}- ${name}\n` } },
+    },
+    shell: { ...state.shell, cwd: `/Users/you/${repo.dir}` },
+  }
+}
+
 export const pullRequestChapter: Chapter = {
   id: '03-pull-request',
   title: 'Save it to GitNub',
@@ -21,7 +37,10 @@ export const pullRequestChapter: Chapter = {
     'Your name is saved on your computer. Now it needs to reach GitNub — the way everything does here: a branch, a commit, a pull request, and a squash merge.',
   setup: (state: GameState, config: GameConfig) => {
     void config
-    return { ...state, ui: { ...state.ui, unlockedTabs: ['flack', 'gitnub', 'editor'] } }
+    return {
+      ...(state.git.local ? state : signedClone(state)),
+      ui: { ...state.ui, unlockedTabs: ['flack', 'gitnub', 'editor'] },
+    }
   },
   steps: [
     {
