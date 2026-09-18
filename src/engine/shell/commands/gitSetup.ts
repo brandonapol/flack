@@ -1,4 +1,5 @@
 import { clone, remoteUrl, repoDirName } from '../../git/repo'
+import type { GitConfig } from '../../git/types'
 import { line, type TerminalLine } from '../../lines'
 import { HOME, type CoreState } from '../../state'
 import { currentDir, lookup } from '../fs'
@@ -35,6 +36,8 @@ const GIT_HELP: Array<[string, Array<[string, string]>]> = [
     [
       ['branch', 'List, create, or delete branches'],
       ['commit', 'Record changes to the repository'],
+      ['merge', 'Join two or more development histories together'],
+      ['rebase', 'Reapply commits on top of another base tip'],
       ['switch', 'Switch branches'],
     ],
   ],
@@ -117,11 +120,13 @@ export function registerGitSetupCommands<S extends CoreState>(registry: Registry
       const rest = args.filter((arg) => arg !== '--global' && arg !== '--local')
 
       if (rest[0] === '--list' || rest[0] === '-l') {
-        const { userName, userEmail } = state.git.config
+        const { userName, userEmail, pullRebase, pullFf } = state.git.config
         const output: TerminalLine[] = []
         output.push(line('credential.helper=osxkeychain'), line('init.defaultbranch=main'))
         if (userName) output.push(line(`user.name=${userName}`))
         if (userEmail) output.push(line(`user.email=${userEmail}`))
+        if (pullRebase !== undefined) output.push(line(`pull.rebase=${pullRebase}`))
+        if (pullFf) output.push(line(`pull.ff=${pullFf}`))
         const repo = repoContext(state)
         if (repo && !global) {
           output.push(
@@ -169,7 +174,7 @@ export function registerGitSetupCommands<S extends CoreState>(registry: Registry
       const field =
         key === 'user.name' ? 'userName' : key === 'user.email' ? 'userEmail' : undefined
       if (values.length === 0) {
-        const value = field ? state.git.config[field] : undefined
+        const value = field ? state.git.config[field] : pullSetting(state.git.config, key)
         return value ? { output: [line(value)] } : { ok: false }
       }
 
@@ -183,6 +188,22 @@ export function registerGitSetupCommands<S extends CoreState>(registry: Registry
             'muted'
           )
         )
+      }
+
+      if (key === 'pull.rebase' || key === 'pull.ff') {
+        const config = setPullSetting(state.git.config, key, values[0])
+        if (!config) {
+          return fail(
+            line(`fatal: bad boolean config value '${values[0]}' for '${key}'`, 'error'),
+            line(
+              key === 'pull.rebase'
+                ? '💡 Use true (rebase) or false (merge).'
+                : '💡 Flack understands `git config pull.ff only`.',
+              'muted'
+            )
+          )
+        }
+        return { state: { ...state, git: { ...state.git, config } } }
       }
 
       if (!field) {
@@ -339,4 +360,23 @@ export function registerGitSetupCommands<S extends CoreState>(registry: Registry
       return fail(line(`Flack only supports \`git remote\` and \`git remote -v\`.`, 'muted'))
     },
   })
+}
+
+function pullSetting(config: GitConfig, key: string): string | undefined {
+  if (key === 'pull.rebase') return config.pullRebase?.toString()
+  if (key === 'pull.ff') return config.pullFf
+  return undefined
+}
+
+/** `pull.rebase true|false` and `pull.ff only`. Undefined for a value Flack doesn't model. */
+function setPullSetting(config: GitConfig, key: string, value: string): GitConfig | undefined {
+  const lower = value.toLowerCase()
+  if (key === 'pull.rebase') {
+    if (['true', 'yes', 'on', '1'].includes(lower)) return { ...config, pullRebase: true }
+    if (['false', 'no', 'off', '0'].includes(lower)) return { ...config, pullRebase: false }
+    return undefined
+  }
+  if (lower === 'only') return { ...config, pullFf: 'only' }
+  if (['true', 'false'].includes(lower)) return { ...config, pullFf: undefined }
+  return undefined
 }

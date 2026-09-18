@@ -65,6 +65,10 @@ export interface LocalRepo {
 export interface GitConfig {
   userName?: string
   userEmail?: string
+  /** `pull.rebase`: how `git pull` reconciles a diverged branch (true: rebase, false: merge). */
+  pullRebase?: boolean
+  /** `pull.ff only`: refuse anything but a fast-forward. */
+  pullFf?: 'only'
 }
 
 export type ChangeKind = 'modified' | 'new' | 'deleted'
