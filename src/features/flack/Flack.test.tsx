@@ -173,6 +173,26 @@ describe('Ask Robin', () => {
     ).toEqual(['player', 'robin'])
   })
 
+  it('offers the Commit Lab under an answer that has one', () => {
+    const { store } = setup('/flack/docs-team')
+    act(() =>
+      store.getState().dispatch({
+        type: 'applyEffect',
+        effect: {
+          type: 'flackMessage',
+          channel: 'docs-team',
+          from: 'robin',
+          text: 'Rebase replays your commits.',
+          lab: 'sandbox',
+        },
+      })
+    )
+    const dispatch = vi.fn()
+    act(() => store.setState({ dispatch }))
+    click(screen.getByRole('button', { name: 'Try it in the Commit Lab' }))
+    expect(dispatch).toHaveBeenCalledWith({ type: 'openCommitLab', scenario: 'sandbox' })
+  })
+
   it('is only in the mentor DM', () => {
     setup('/flack/docs-team')
     expect(

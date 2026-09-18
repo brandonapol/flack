@@ -5,6 +5,7 @@ import { log } from '../engine/git/repo'
 import { characters } from './characters'
 import { ALLOWED_DOCS_HOSTS, DOCS } from './docsLinks'
 import { findGlossaryEntry, GLOSSARY } from './glossary'
+import { LAB_SCENARIOS } from './labScenarios'
 import { GENERAL_QUESTIONS, MENTOR_FAQ } from './mentorFaq'
 import {
   createRemotes,
@@ -165,5 +166,26 @@ describe('Ask Robin', () => {
     expect(Object.values(MENTOR_FAQ).some((entry) => /merge --abort/.test(entry.answer))).toBe(
       false
     )
+  })
+})
+
+describe('Commit Lab scenarios', () => {
+  it('every lab link from Robin names a scenario that exists', () => {
+    const linked = Object.values(MENTOR_FAQ).flatMap((entry) => (entry.lab ? [entry.lab] : []))
+    expect(linked.length).toBeGreaterThan(0)
+    for (const id of linked) expect(LAB_SCENARIOS[id], id).toBeDefined()
+  })
+
+  it('each scenario has main at the bottom and every branch tip in its graph', () => {
+    for (const scenario of Object.values(LAB_SCENARIOS)) {
+      expect(scenario.start.lanes[0], scenario.id).toBe('main')
+      const ids = new Set(scenario.start.nodes.map((node) => node.id))
+      for (const tip of Object.values(scenario.start.branches)) expect(ids.has(tip), tip).toBe(true)
+      for (const node of scenario.start.nodes) {
+        expect(scenario.start.lanes, node.id).toContain(node.lane)
+        for (const parent of node.parents)
+          expect(ids.has(parent), `${node.id} → ${parent}`).toBe(true)
+      }
+    }
   })
 })

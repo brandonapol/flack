@@ -45,6 +45,7 @@ export const MENTOR_FAQ: Record<string, MentorEntry> = {
   'what-is-squash-merge': {
     question: 'What does “Squash and merge” mean?',
     answer: `It takes every commit on your branch and lands them on \`main\` as **one** tidy commit. That’s why our history reads like a list of finished changes rather than "wip", "typo", "actually fix it".\n\nMore: ${link('squashMerge')}`,
+    lab: 'sandbox',
   },
   'what-is-origin-main': {
     question: 'What’s origin/main?',
@@ -62,14 +63,17 @@ export const MENTOR_FAQ: Record<string, MentorEntry> = {
   'what-is-a-rebase': {
     question: 'What’s a rebase, really?',
     answer: `It replays your commits on top of newer work, so history stays a straight line: same changes, new commits. That’s what **Update branch** does for you.\n\nMore: ${link('rebasing')}`,
+    lab: 'sandbox',
   },
   'what-is-cherry-pick': {
     question: 'What’s cherry-picking?',
     answer: `Copying one specific commit onto another branch, without bringing the rest of its branch along. It’s occasionally handy: "just that one fix, please".\n\nMore: ${link('gitCherryPick')}`,
+    lab: 'sandbox',
   },
   'pr-has-conflicts': {
     question: 'My PR says it has conflicts. Help!',
     answer: `Totally normal, and nothing is broken. It means you and someone else changed the same lines, so Git wants a human to choose. On the PR page you pick **Keep mine**, **Keep theirs** or **Keep both** — usually both.\n\nMore: ${link('mergeConflicts')}`,
+    lab: 'sandbox',
   },
   'what-are-markers': {
     question: 'What do the `<<<<<<<` symbols mean?',

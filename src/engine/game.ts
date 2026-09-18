@@ -30,6 +30,8 @@ export interface FlackMessage {
   quickReplies?: QuickReply[]
   /** The quick reply the learner picked, once they have. */
   repliedWith?: string
+  /** A Commit Lab scenario offered under the message. */
+  lab?: string
 }
 
 export interface StoryState {
@@ -69,6 +71,8 @@ export interface GameState extends CoreState {
     toast?: string
     /** Files whose unsaved edits stopped the last command. The UI asks to save or discard. */
     unsavedBlock?: string[]
+    /** The Commit Lab, open over the middle panel. */
+    commitLab?: { scenario: string }
   }
   story: StoryState
 }
@@ -102,6 +106,10 @@ export type Action =
       choices?: Record<string, ConflictChoice | ConflictChoice[]>
     }
   | { type: 'deleteRemoteBranch'; slug: string; branch: string }
+  | { type: 'openCommitLab'; scenario: string }
+  | { type: 'closeCommitLab' }
+  /** Guided: the graph reached the target shape. Free: "I get it". */
+  | { type: 'completeCommitLab' }
   | { type: 'applyEffect'; effect: Effect }
   | { type: 'showHint' }
   | { type: 'revealSolution' }
@@ -357,6 +365,33 @@ export function reduce(config: GameConfig, previous: GameState, action: Action):
       ])
     }
 
+    case 'openCommitLab': {
+      const opened = applyEffect(config, state, {
+        type: 'openCommitLab',
+        scenario: action.scenario,
+      })
+      return advanceStory(config, opened.state, opened.events)
+    }
+
+    case 'closeCommitLab': {
+      const { commitLab: _closed, ...ui } = state.ui // eslint-disable-line @typescript-eslint/no-unused-vars
+      return { state: { ...state, ui }, effects: [] }
+    }
+
+    case 'completeCommitLab': {
+      const open = state.ui.commitLab
+      const scenario = open && config.labScenarios?.[open.scenario]
+      if (!open || !scenario) return { state: previous, effects: [] }
+      return advanceStory(config, state, [
+        {
+          type: 'commitLabCompleted',
+          scenario: open.scenario,
+          mode: scenario.target ? 'guided' : 'free',
+          chapterId: state.story.chapterId,
+        },
+      ])
+    }
+
     case 'deleteRemoteBranch': {
       const remote = state.git.remotes[action.slug]
       if (!remote || !remote.branches[action.branch]) return { state: previous, effects: [] }
@@ -418,6 +453,7 @@ export function reduce(config: GameConfig, previous: GameState, action: Action):
         channel: mentor.channel,
         from: mentor.characterId,
         text: entry.answer,
+        lab: entry.lab,
       })
       return advanceStory(config, answered.state, [
         ...asked.events,

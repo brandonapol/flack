@@ -1,3 +1,4 @@
+import { CommitLab } from '../commit-lab'
 import { UnsavedEditsDialog } from '../editor'
 import { FlackNotifications } from '../flack'
 import { Instructions } from '../instructions'
@@ -18,6 +19,7 @@ export function Layout() {
         </aside>
         <main className={styles.desktop} aria-label="Desktop">
           <DesktopTabs />
+          <CommitLab />
         </main>
         <section className={styles.terminal} aria-label="Terminal">
           <Terminal />

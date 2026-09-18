@@ -1,0 +1,277 @@
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 20px;
+  overflow-y: auto;
+  background: var(--paper);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.kicker {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 2px 0 0;
+  font-size: 1.25rem;
+}
+
+.title:focus {
+  outline: none;
+}
+
+.intro {
+  font-size: 0.875rem;
+}
+
+.intro p {
+  margin: 0 0 6px;
+}
+
+.how {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.canvas {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.graph {
+  display: block;
+  touch-action: none;
+  user-select: none;
+}
+
+.laneLine {
+  stroke: var(--border);
+  stroke-dasharray: 3 5;
+}
+
+.laneLabel {
+  fill: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.edge {
+  stroke: var(--border-strong);
+  stroke-width: 2;
+}
+
+.node {
+  cursor: grab;
+  transition: transform 400ms ease;
+  animation: appear 300ms ease;
+}
+
+.node circle {
+  fill: var(--accent);
+  stroke: var(--surface);
+  stroke-width: 3;
+}
+
+.node.main circle {
+  fill: var(--text-muted);
+}
+
+/* Rebased and cherry-picked commits are new copies: a lighter shade of the same colour. */
+.node.copy circle {
+  fill: #748ffc;
+}
+
+.node.selected circle,
+.node:focus-visible circle {
+  stroke: var(--focus);
+  stroke-width: 4;
+}
+
+.node:focus {
+  outline: none;
+}
+
+.node.target circle {
+  stroke: var(--success);
+  stroke-width: 4;
+}
+
+.node.dragging {
+  cursor: grabbing;
+  transition: none;
+  opacity: 0.85;
+}
+
+.initials {
+  fill: var(--accent-text);
+  font-size: 10px;
+  font-weight: 700;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.label {
+  fill: var(--text);
+  font-size: 11px;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .node {
+    transition: none;
+    animation: none;
+  }
+}
+
+.menu,
+.conflict,
+.caption,
+.done {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  font-size: 0.875rem;
+}
+
+.menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.menuTitle {
+  width: 100%;
+  margin: 0;
+  font-weight: 600;
+}
+
+.conflict {
+  border-color: #f0a35e;
+  background: #fff8f0;
+}
+
+.conflictTitle {
+  margin: 0 0 4px;
+  font-weight: 700;
+}
+
+.sides {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 10px 0;
+}
+
+.sides dt {
+  font-weight: 600;
+}
+
+.sides dd {
+  margin: 0;
+}
+
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.markers {
+  margin: 10px 0 0;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.caption p,
+.done p {
+  margin: 0;
+}
+
+.snippet {
+  margin: 6px 0 0;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: var(--chrome);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  white-space: pre-wrap;
+}
+
+.done {
+  border-color: var(--success);
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+.footer {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.action,
+.secondary,
+.close {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.action {
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.secondary,
+.close {
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.action:disabled,
+.secondary:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

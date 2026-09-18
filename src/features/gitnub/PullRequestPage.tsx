@@ -168,6 +168,13 @@ export function PullRequestPage() {
                   </li>
                 ))}
               </ul>
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={() => dispatch({ type: 'openCommitLab', scenario: 'sandbox' })}
+              >
+                See what’s going on in the Commit Lab →
+              </button>
             </div>
           )}
           {updated && !needsUpdate && !merged && (
