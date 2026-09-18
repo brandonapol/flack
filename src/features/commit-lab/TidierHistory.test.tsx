@@ -52,7 +52,10 @@ describe('Chapter 7 in the Commit Lab', () => {
       </GameStoreProvider>
     )
     act(() => store.getState().dispatch({ type: 'openChannel', channel: 'dm-robin' }))
-    act(() => void vi.advanceTimersByTime(1200))
+    // The lab waits until the learner has read Robin's message and chooses to open it (#89).
+    act(() => void vi.advanceTimersByTime(5000))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    act(() => store.getState().dispatch({ type: 'openCommitLab', scenario: 'tidy-squash' }))
 
     // Challenge A: squash.
     expect(screen.getByRole('dialog', { name: 'Four commits, one change' })).toBeInTheDocument()

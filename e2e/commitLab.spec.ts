@@ -47,6 +47,9 @@ test('Chapter 7: squash, a merge detour, undo, then rebase', async ({ page }) =>
     .getByRole('button', { name: /Robin Okafor/ })
     .click()
 
+  // Robin's message stays readable; the lab opens from its button (#89).
+  await expect(page.getByText('Here’s why we squash')).toBeVisible()
+  await page.getByRole('button', { name: 'Try it in the Commit Lab' }).click()
   const squash = page.getByRole('dialog', { name: 'Four commits, one change' })
   await squash
     .getByRole('button', { name: /^wip,/ })

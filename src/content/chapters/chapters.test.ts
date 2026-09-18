@@ -561,7 +561,9 @@ describe('Chapter 7: A tidier history', () => {
     const initial = flushEffects(config, ...startChapterAt(blankState(config), '07-tidier-history'))
     let state = play(config, initial, [{ type: 'openChannel', channel: 'dm-robin' }])
     expect(state.story.completedSteps).toEqual(['read-robin'])
-    expect(state.ui.commitLab).toEqual({ scenario: 'tidy-squash' })
+    // The DM stays on screen: the lab opens from the button on Robin's message (#89).
+    expect(state.ui.commitLab).toBeUndefined()
+    expect(state.flack.messages.find((m) => m.id === 'robin-why-squash')?.lab).toBe('tidy-squash')
 
     // Closing it, or finishing a different scenario, doesn't count.
     state = play(config, state, [
