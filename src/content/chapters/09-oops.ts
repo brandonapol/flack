@@ -75,7 +75,7 @@ export const oopsChapter: Chapter = {
       body: `Open \`${WELCOME}\`, type any nonsense you like into it, and save.`,
       hints: [
         `Run \`open ${WELCOME}\`, or pick it in the Editor.`,
-        'Type anything at all, then save with ⌘S / Ctrl+S.',
+        'Type anything at all, then save with Ctrl+S (⌘S on a Mac).',
       ],
       editableFiles: [WELCOME],
       goal: (state, event) =>
@@ -101,7 +101,7 @@ export const oopsChapter: Chapter = {
       body: `Open \`${WELCOME}\` again and add a line at the end welcoming the next new starter. Save.`,
       hints: [
         `Run \`open ${WELCOME}\`, go to the end, and type a new line.`,
-        'Save with ⌘S / Ctrl+S.',
+        'Save with Ctrl+S (⌘S on a Mac).',
       ],
       editableFiles: [WELCOME],
       goal: (state, event) =>

@@ -28,14 +28,14 @@ describe('Terminal', () => {
   it('echoes the command and shows its output', async () => {
     const { input, log, user } = setup()
     await user.type(input, 'echo hello world{Enter}')
-    expect(log).toHaveTextContent('~ $ echo hello world')
+    expect(log).toHaveTextContent('you@INKWELL-LAPTOP MINGW64 ~$ echo hello world')
     expect(log.textContent).toContain('hello world')
     expect(input).toHaveValue('')
   })
 
   it('labels the input with the prompt', () => {
     const { input } = setup()
-    expect(input).toHaveAccessibleName('Terminal command, at ~ $')
+    expect(input).toHaveAccessibleName('Terminal command, at ~')
   })
 
   it('↑ and ↓ walk through history and restore the line being typed', async () => {
@@ -68,7 +68,7 @@ describe('Terminal', () => {
     await user.type(input, 'git sta')
     await user.keyboard('{Control>}c{/Control}')
     expect(input).toHaveValue('')
-    expect(log).toHaveTextContent('~ $ git sta^C')
+    expect(log).toHaveTextContent('$ git sta^C')
     expect(store.getState().game.shell.history).toEqual([])
   })
 
@@ -79,7 +79,7 @@ describe('Terminal', () => {
         clipboardData: { getData: () => 'echo first\necho second\n' },
       })
     })
-    expect(log).toHaveTextContent('~ $ echo first')
+    expect(log).toHaveTextContent('$ echo first')
     expect(log).not.toHaveTextContent('second')
     expect(screen.getByRole('status')).toHaveTextContent('Only the first one was run')
   })

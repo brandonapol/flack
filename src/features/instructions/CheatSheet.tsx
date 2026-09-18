@@ -203,8 +203,9 @@ export function CheatSheet() {
         )}
 
         <p className={styles.footer}>
-          Stuck? Nothing you do with Git throws work away. Ask a teammate, and read the docs at
-          git-scm.com.
+          Run these in <strong>Git Bash</strong>: right-click your docs folder and choose{' '}
+          <em>Open Git Bash here</em>. Paste with Shift+Insert or a right-click. Stuck? Nothing you
+          do with Git throws work away. Ask a teammate, and read the docs at git-scm.com.
         </p>
       </article>
     </div>

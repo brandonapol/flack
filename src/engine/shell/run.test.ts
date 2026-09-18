@@ -37,8 +37,10 @@ const run = (input: string, state: CoreState = freshState()) =>
 describe('runLine', () => {
   it('echoes the prompt and command, runs it, and records history', () => {
     const result = run('echo hello   world')
-    expect(plainText(result.output)).toBe('~ $ echo hello   world\nhello world')
-    expect(result.output[0].spans?.[0]).toEqual({ text: '~ $', tone: 'prompt' })
+    expect(plainText(result.output)).toBe(
+      '\nyou@INKWELL-LAPTOP MINGW64 ~\n$ echo hello   world\nhello world'
+    )
+    expect(result.output[2].spans?.[0]).toEqual({ text: '$', tone: 'prompt' })
     expect(result.state.shell.history).toEqual(['echo hello   world'])
     expect(result.state.shell.output).toEqual(result.output)
     expect(result.events).toEqual([
@@ -49,7 +51,7 @@ describe('runLine', () => {
   it('passes quoted arguments through to git subcommands', () => {
     const result = run(`$ git commit -m "Add Robin's name"`)
     expect(plainText(result.output)).toBe(
-      `~ $ git commit -m "Add Robin's name"\ncommitted: Add Robin's name`
+      `\nyou@INKWELL-LAPTOP MINGW64 ~\n$ git commit -m "Add Robin's name"\ncommitted: Add Robin's name`
     )
     expect(result.events[0]).toMatchObject({
       name: 'git',
@@ -63,7 +65,7 @@ describe('runLine', () => {
 
   it('a blank line just echoes the prompt', () => {
     const result = run('   ')
-    expect(plainText(result.output)).toBe('~ $ ')
+    expect(plainText(result.output)).toBe('\nyou@INKWELL-LAPTOP MINGW64 ~\n$ ')
     expect(result.state.shell.history).toEqual([])
     expect(result.events).toEqual([])
   })
@@ -77,7 +79,7 @@ describe('runLine', () => {
 
   it('unknown commands get a friendly reply and a suggestion when close', () => {
     expect(plainText(run('foo').output)).toBe(
-      '~ $ foo\nflack: command not found: foo\nTry `help`, or ask Robin in Flack.'
+      '\nyou@INKWELL-LAPTOP MINGW64 ~\n$ foo\nbash: foo: command not found\nTry `help`, or ask Robin in Flack.'
     )
     expect(plainText(run('ecoh hi').output)).toContain('Did you mean `echo`?')
     expect(run('foo').events[0]).toMatchObject({ ok: false })
@@ -85,7 +87,7 @@ describe('runLine', () => {
 
   it('git typos get Git’s own suggestion', () => {
     expect(plainText(run('git comit -m x').output)).toBe(
-      `~ $ git comit -m x
+      `\nyou@INKWELL-LAPTOP MINGW64 ~\n$ git comit -m x
 git: 'comit' is not a git command. See 'git --help'.
 
 The most similar command is
@@ -93,13 +95,15 @@ The most similar command is
     )
     expect(plainText(run('git stauts').output)).toContain('\tstatus')
     expect(plainText(run('git frobnicate').output)).toBe(
-      "~ $ git frobnicate\ngit: 'frobnicate' is not a git command. See 'git --help'."
+      "\nyou@INKWELL-LAPTOP MINGW64 ~\n$ git frobnicate\ngit: 'frobnicate' is not a git command. See 'git --help'."
     )
   })
 
   it('an unterminated quote is explained, not run', () => {
     const result = run('git commit -m "oops')
-    expect(plainText(result.output)).toContain('flack: unmatched "')
+    expect(plainText(result.output)).toContain(
+      'bash: unexpected EOF while looking for matching `"\''
+    )
     expect(result.events).toEqual([])
     expect(result.state.shell.history).toEqual(['git commit -m "oops'])
   })
@@ -108,6 +112,8 @@ The most similar command is
     const registry = createRegistry({
       onUnknownCommand: ({ argv }) => ({ ok: false, output: [line(`no ${argv[0]} here`)] }),
     })
-    expect(plainText(runLine(registry, freshState(), 'vim').output)).toBe('~ $ vim\nno vim here')
+    expect(plainText(runLine(registry, freshState(), 'vim').output)).toBe(
+      '\nyou@INKWELL-LAPTOP MINGW64 ~\n$ vim\nno vim here'
+    )
   })
 })

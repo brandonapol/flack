@@ -129,11 +129,11 @@ export function currentDir(state: CoreState): string {
 
 export type ChangeDirResult = { ok: true; cwd: string } | { ok: false; message: string }
 
-/** `cd` semantics, with zsh's error wording. */
+/** `cd` semantics, with bash's error wording (Git Bash). */
 export function changeDirectory(state: CoreState, input?: string): ChangeDirResult {
   const target = resolvePath(currentDir(state), input)
   const node = lookup(state, target)
-  if (!node) return { ok: false, message: `cd: no such file or directory: ${input}` }
-  if (node.type === 'file') return { ok: false, message: `cd: not a directory: ${input}` }
+  if (!node) return { ok: false, message: `bash: cd: ${input}: No such file or directory` }
+  if (node.type === 'file') return { ok: false, message: `bash: cd: ${input}: Not a directory` }
   return { ok: true, cwd: target }
 }

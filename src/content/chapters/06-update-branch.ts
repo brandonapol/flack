@@ -70,7 +70,7 @@ export const updateBranchChapter: Chapter = {
       body: `Open \`${STYLE_GUIDE}\`, change “${STYLE_GUIDE_TYPO}” to “receive”, and save.`,
       hints: [
         `Run \`open ${STYLE_GUIDE}\`, or pick it in the Editor.`,
-        'It’s in the **Formatting** list. Save with ⌘S / Ctrl+S.',
+        'It’s in the **Formatting** list. Save with Ctrl+S (⌘S on a Mac).',
       ],
       editableFiles: [STYLE_GUIDE],
       goal: (state, event) =>

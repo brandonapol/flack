@@ -24,7 +24,7 @@ describe('git switch', () => {
     const s = inRepo().run('git switch -c ada-team-list')
     expect(s.lastText).toBe("Switched to a new branch 'ada-team-list'")
     expect(s.state.git.local!.head).toBe('ada-team-list')
-    expect(promptFor(s.state)).toBe('~/docs-site (ada-team-list) $')
+    expect(promptFor(s.state)).toBe('you@INKWELL-LAPTOP MINGW64 ~/docs-site (ada-team-list)')
     expect(s.run('git branch').lastText).toBe('* ada-team-list\n  main')
   })
 
@@ -153,7 +153,7 @@ describe('pushing a branch', () => {
       "Your branch is up to date with 'origin/ada-team-list'."
     )
     expect(s.run('git push').lastText).toBe('Everything up-to-date')
-    expect(promptFor(s.state)).toBe('~/docs-site (ada-team-list) $')
+    expect(promptFor(s.state)).toBe('you@INKWELL-LAPTOP MINGW64 ~/docs-site (ada-team-list)')
   })
 
   it('--set-upstream and HEAD work too', () => {
