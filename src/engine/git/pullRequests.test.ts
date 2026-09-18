@@ -8,14 +8,16 @@ import {
   findPullRequest,
   openPullRequest,
   pullRequestCommits,
+  pullRequestConflicts,
   refreshPullRequests,
+  resolvePullRequestConflicts,
   reviewPullRequest,
   squashMerge,
   squashMessage,
   updateBranch,
 } from './pullRequests'
-import { appendLine, push, remoteCommit } from './sync'
-import type { LocalRepo, RemoteRepo } from './types'
+import { appendLine, push, remoteCommit, replaceText } from './sync'
+import type { FileTree, LocalRepo, RemoteRepo } from './types'
 
 /** Ada branches, makes two commits, and pushes the branch. */
 function adaBranch(): { remote: RemoteRepo; local: LocalRepo } {
@@ -153,6 +155,7 @@ describe('out of date branches', () => {
     const pr = findPullRequest(stale, 1)!
 
     const result = updateBranch(stale, pr, local, { timestamp: T0 + 1200 })
+    if (!result.ok) throw new Error('conflict')
     expect(result.updatedLocal).toBe(true)
     expect(findPullRequest(result.remote, 1)?.status).toBe('open')
     expect(result.to).not.toBe(result.from)
@@ -185,7 +188,97 @@ describe('out of date branches', () => {
     const pr = findPullRequest(stale, 1)!
     const dirty = { ...local, working: { ...local.working, 'team.md': 'mine\n' } }
     const result = updateBranch(stale, pr, dirty)
+    if (!result.ok) throw new Error('conflict')
     expect(result.updatedLocal).toBe(false)
     expect(result.local!.branches['ada-team-list']).toBe(local.branches['ada-team-list'])
+  })
+})
+
+describe('conflicts', () => {
+  /** Ada's PR is open; then `change` lands on main. */
+  function baseMoves(change: (tree: FileTree) => FileTree) {
+    const { remote } = adaBranch()
+    const opened = openAdaPr(remote).remote
+    const moved = remoteCommit(opened, {
+      author: sam,
+      message: 'Sam’s change (#5)',
+      change,
+      timestamp: T0 + 1000,
+    }).remote
+    const next = refreshPullRequests(moved)
+    return { remote: next, pr: findPullRequest(next, 1)! }
+  }
+  const author = { name: 'Ada', email: 'ada@inkwell.example' }
+
+  it('a change to other lines only makes the PR out of date', () => {
+    const { remote, pr } = baseMoves(replaceText('README.md', 'Inkwell', 'The Inkwell'))
+    expect(pr.status).toBe('needs-update')
+    expect(pullRequestConflicts(remote, pr)).toEqual([])
+  })
+
+  it('the same lines changed on main makes it conflict, with both sides in the hunk', () => {
+    const { remote, pr } = baseMoves(appendLine('team.md', '- Sam Rivera'))
+    expect(pr.status).toBe('has-conflicts')
+    const [file] = pullRequestConflicts(remote, pr)
+    expect(file.path).toBe('team.md')
+    expect(file.hunks).toEqual([
+      { ours: ['- Ada Lovelace', '- (she/they) docs'], theirs: ['- Sam Rivera'], context: [] },
+    ])
+  })
+
+  it('squash-merging an out-of-date PR keeps what landed on main meanwhile', () => {
+    const { remote, pr } = baseMoves(replaceText('README.md', 'Inkwell', 'The Inkwell'))
+    const { commit } = squashMerge(remote, pr, { author, timestamp: T0 + 1300 })
+    expect(commit.tree['README.md']).toContain('The Inkwell')
+    expect(commit.tree['team.md']).toContain('- Ada Lovelace')
+  })
+
+  it('squash merge and Update branch refuse a conflicted PR', () => {
+    const { remote, pr } = baseMoves(appendLine('team.md', '- Sam Rivera'))
+    expect(() => squashMerge(remote, pr, { author, timestamp: T0 + 1300 })).toThrow('conflicts')
+    const result = updateBranch(remote, pr)
+    expect(result.ok).toBe(false)
+    if (result.ok) throw new Error()
+    expect(result.conflicts.map((file) => file.path)).toEqual(['team.md'])
+  })
+
+  it('Update branch keeps main’s edits to the same file on other lines', () => {
+    const { remote, pr } = baseMoves(replaceText('team.md', '# Docs team', '# The docs team'))
+    const result = updateBranch(remote, pr, undefined, { timestamp: T0 + 1200 })
+    if (!result.ok) throw new Error('conflict')
+    const tree = result.remote.commits[result.to].tree
+    expect(tree['team.md']).toContain('# The docs team')
+    expect(tree['team.md']).toContain('- (she/they) docs')
+  })
+
+  it('resolving with “both” merges main into the branch, then it squash-merges', () => {
+    const { remote, pr } = baseMoves(appendLine('team.md', '- Sam Rivera'))
+    const resolved = resolvePullRequestConflicts(remote, pr, { author, timestamp: T0 + 1300 })
+    expect(resolved.commit.message).toBe("Merge branch 'main' into ada-team-list")
+    expect(resolved.commit.parents).toEqual([
+      remote.branches['ada-team-list'],
+      remote.branches.main,
+    ])
+    expect(resolved.commit.tree['team.md']).toMatch(
+      /- Robin Okafor\n- Ada Lovelace\n- \(she\/they\) docs\n- Sam Rivera\n$/
+    )
+    const after = findPullRequest(resolved.remote, 1)!
+    expect(after.status).toBe('open')
+
+    const { commit } = squashMerge(resolved.remote, after, { author, timestamp: T0 + 1400 })
+    expect(commit.tree['team.md']).toBe(resolved.commit.tree['team.md'])
+  })
+
+  it('resolving can keep one side', () => {
+    const { remote, pr } = baseMoves(appendLine('team.md', '- Sam Rivera'))
+    const resolved = resolvePullRequestConflicts(remote, pr, {
+      choices: { 'team.md': 'theirs' },
+      author,
+      timestamp: T0 + 1300,
+    })
+    expect(resolved.commit.tree['team.md']).toMatch(/- Robin Okafor\n- Sam Rivera\n$/)
+    expect(resolved.commit.tree['README.md']).toBe(
+      remote.commits[remote.branches.main].tree['README.md']
+    )
   })
 })

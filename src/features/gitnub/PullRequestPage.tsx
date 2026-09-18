@@ -7,6 +7,7 @@ import {
   findPullRequest,
   mergeBase,
   pullRequestCommits,
+  pullRequestConflicts,
   squashMessage,
 } from '../../engine/git/pullRequests'
 import { useGame } from '../../store'
@@ -47,6 +48,7 @@ export function PullRequestPage() {
   const author = playerName?.trim() || 'You'
   const merged = pr.status === 'merged'
   const needsUpdate = pr.status === 'needs-update'
+  const conflicted = pr.status === 'has-conflicts' ? pullRequestConflicts(repo, pr) : []
 
   const statusLabel = merged ? 'Merged' : pr.status === 'closed' ? 'Closed' : 'Open'
 
@@ -150,6 +152,24 @@ export function PullRequestPage() {
             </div>
           )}
 
+          {conflicted.length > 0 && (
+            <div className={styles.prNotice} role="note">
+              <p className={styles.prNoticeTitle}>
+                This branch has conflicts that must be resolved
+              </p>
+              <p className={styles.muted}>
+                Your branch and <code>{pr.base}</code> both changed the same lines. Nothing is
+                broken and nothing is lost — someone just has to choose what to keep.
+              </p>
+              <ul className={styles.conflictFiles} aria-label="Conflicting files">
+                {conflicted.map((file) => (
+                  <li key={file.path}>
+                    <code>{file.path}</code>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           {updated && !needsUpdate && !merged && (
             <div className={styles.prNotice} role="status">
               <p className={styles.prNoticeTitle}>Branch updated</p>
@@ -189,44 +209,57 @@ export function PullRequestPage() {
               </>
             ) : (
               <>
-                <p className={styles.mergeSummary}>
-                  {pr.reviewState === 'approved'
-                    ? '✔ Changes approved. This branch has no conflicts with the base branch.'
-                    : 'Waiting for a review. You can still merge when you’re ready.'}
-                </p>
-                {confirming ? (
-                  <div className={styles.mergeConfirm}>
-                    <p className={styles.muted}>
-                      Your {commits.length} {commits.length === 1 ? 'commit' : 'commits'} will
-                      become 1 commit on <code>{pr.base}</code>:
+                {conflicted.length > 0 ? (
+                  <>
+                    <p className={styles.mergeSummary}>
+                      Merging is blocked until the conflicts are resolved.
                     </p>
-                    <pre className={styles.mergePreview}>{squashMessage(pr, commits)}</pre>
-                    <button
-                      type="button"
-                      className={styles.codeButton}
-                      onClick={() => {
-                        setConfirming(false)
-                        dispatch({ type: 'mergePullRequest', slug, number: pr.number })
-                      }}
-                    >
-                      Confirm squash and merge
+                    <button type="button" className={styles.codeButton} disabled>
+                      Squash and merge
                     </button>
-                    <button
-                      type="button"
-                      className={styles.secondaryButton}
-                      onClick={() => setConfirming(false)}
-                    >
-                      Cancel
-                    </button>
-                  </div>
+                  </>
                 ) : (
-                  <button
-                    type="button"
-                    className={styles.codeButton}
-                    onClick={() => setConfirming(true)}
-                  >
-                    Squash and merge
-                  </button>
+                  <>
+                    <p className={styles.mergeSummary}>
+                      {pr.reviewState === 'approved'
+                        ? '✔ Changes approved. This branch has no conflicts with the base branch.'
+                        : 'Waiting for a review. You can still merge when you’re ready.'}
+                    </p>
+                    {confirming ? (
+                      <div className={styles.mergeConfirm}>
+                        <p className={styles.muted}>
+                          Your {commits.length} {commits.length === 1 ? 'commit' : 'commits'} will
+                          become 1 commit on <code>{pr.base}</code>:
+                        </p>
+                        <pre className={styles.mergePreview}>{squashMessage(pr, commits)}</pre>
+                        <button
+                          type="button"
+                          className={styles.codeButton}
+                          onClick={() => {
+                            setConfirming(false)
+                            dispatch({ type: 'mergePullRequest', slug, number: pr.number })
+                          }}
+                        >
+                          Confirm squash and merge
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.secondaryButton}
+                          onClick={() => setConfirming(false)}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        className={styles.codeButton}
+                        onClick={() => setConfirming(true)}
+                      >
+                        Squash and merge
+                      </button>
+                    )}
+                  </>
                 )}
               </>
             )}

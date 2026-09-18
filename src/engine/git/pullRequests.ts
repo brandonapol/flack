@@ -2,6 +2,15 @@
  * Pull requests, as GitNub does them: open a PR from a branch, get it reviewed, bring it up to
  * date with the base branch, and squash-merge it into one commit.
  */
+import {
+  findMergeBase,
+  mergeTrees,
+  replay,
+  resolveConflict,
+  type ConflictChoice,
+  type ConflictedFile,
+  type MergeTreesResult,
+} from './merge'
 import { headId, isAncestor, log, makeCommit, reachable } from './repo'
 import { diffTrees } from './tree'
 import type { Commit, CommitId, FileTree, LocalRepo, Person, RemoteRepo } from './types'
@@ -57,20 +66,37 @@ export function mergeBase(remote: RemoteRepo, pr: PullRequest): CommitId | undef
   const branchTip = remote.branches[pr.branch]
   const baseTip = remote.branches[pr.base]
   if (!branchTip || !baseTip) return undefined
-  const onBranch = reachable(remote.commits, branchTip)
-  for (const commit of log(remote.commits, baseTip)) {
-    if (onBranch.has(commit.id)) return commit.id
-  }
-  return undefined
+  return findMergeBase(remote.commits, branchTip, baseTip)
 }
 
-/** Open PRs go stale when the base branch moves on. Conflict detection arrives with #36. */
+/**
+ * The PR's changes combined with whatever has landed on the base since it branched off. "Ours" is
+ * the PR branch and "theirs" is the base, as when you merge `main` into your branch.
+ */
+export function pullRequestMerge(remote: RemoteRepo, pr: PullRequest): MergeTreesResult {
+  const base = mergeBase(remote, pr)
+  return mergeTrees(
+    base ? remote.commits[base].tree : {},
+    remote.commits[remote.branches[pr.branch]].tree,
+    remote.commits[remote.branches[pr.base]].tree
+  )
+}
+
+/** Files where the PR and the base changed the same lines. Empty when it can merge cleanly. */
+export function pullRequestConflicts(remote: RemoteRepo, pr: PullRequest): ConflictedFile[] {
+  if (!remote.branches[pr.branch] || !remote.branches[pr.base]) return []
+  const merged = pullRequestMerge(remote, pr)
+  return merged.ok ? [] : merged.conflicts
+}
+
+/** Open PRs go stale when the base branch moves on, and conflict when it moved the same lines. */
 export function derivePullRequestStatus(remote: RemoteRepo, pr: PullRequest): PullRequestStatus {
   if (pr.status === 'merged' || pr.status === 'closed') return pr.status
   const baseTip = remote.branches[pr.base]
   const branchTip = remote.branches[pr.branch]
   if (!baseTip || !branchTip) return pr.status
-  return isAncestor(remote.commits, baseTip, branchTip) ? 'open' : 'needs-update'
+  if (isAncestor(remote.commits, baseTip, branchTip)) return 'open'
+  return pullRequestConflicts(remote, pr).length > 0 ? 'has-conflicts' : 'needs-update'
 }
 
 export function refreshPullRequests(remote: RemoteRepo): RemoteRepo {
@@ -140,21 +166,24 @@ export function squashMessage(pr: PullRequest, commits: Commit[]): string {
   return `${pr.title} (#${pr.number})${body ? `\n\n${body}` : ''}`
 }
 
-/** Collapses every commit on the branch into one new commit on the base branch. */
+/**
+ * Collapses every commit on the branch into one new commit on the base branch. If the base has
+ * moved on, its changes are kept: the squash commit is the 3-way merge of the two. Throws on a PR
+ * with conflicts — GitNub doesn't offer the button then.
+ */
 export function squashMerge(
   remote: RemoteRepo,
   pr: PullRequest,
   options: { author: Person; timestamp: number }
 ): { remote: RemoteRepo; commit: Commit } {
-  const commits = pullRequestCommits(remote, pr)
-  const branchTip = remote.branches[pr.branch]
-  const baseTip = remote.branches[pr.base]
+  const merged = pullRequestMerge(remote, pr)
+  if (!merged.ok) throw new Error(`Pull request #${pr.number} has conflicts`)
   const commit = makeCommit({
-    parents: [baseTip],
-    message: squashMessage(pr, commits),
+    parents: [remote.branches[pr.base]],
+    message: squashMessage(pr, pullRequestCommits(remote, pr)),
     author: options.author,
     timestamp: options.timestamp,
-    tree: remote.commits[branchTip].tree,
+    tree: merged.tree,
   })
   const next: RemoteRepo = {
     ...remote,
@@ -169,52 +198,78 @@ export function squashMerge(
   return { remote: refreshPullRequests(next), commit }
 }
 
-/** Replays a run of commits onto a new parent, keeping each commit's own changes. */
-export function replayCommits(
-  commits: Commit[],
-  onto: CommitId,
-  ontoTree: FileTree,
-  lookup: (id: CommitId) => Commit,
-  /** Replayed commits are new commits, so they get a new time, as after a real rebase. */
-  timestamp?: number
-): { commits: Commit[]; tree: FileTree } {
-  let parent = onto
-  let tree = ontoTree
-  const replayed: Commit[] = []
-  for (const commit of commits) {
-    const before = commit.parents[0] ? lookup(commit.parents[0]).tree : {}
-    const next = { ...tree }
-    for (const change of diffTrees(before, commit.tree)) {
-      if (change.kind === 'deleted') delete next[change.path]
-      else next[change.path] = commit.tree[change.path]
-    }
-    const rebased = makeCommit({
-      ...commit,
-      parents: [parent],
-      tree: next,
-      timestamp: timestamp ?? commit.timestamp,
-    })
-    replayed.push(rebased)
-    parent = rebased.id
-    tree = next
+/**
+ * Resolves a conflicted PR the way GitNub's web editor does: a merge commit on the PR branch,
+ * *Merge branch 'main' into my-branch*, with each file resolved by the choice given for it
+ * (default: `both`). Afterwards the PR is up to date and can be squash-merged.
+ */
+export function resolvePullRequestConflicts(
+  remote: RemoteRepo,
+  pr: PullRequest,
+  options: {
+    choices?: Record<string, ConflictChoice | ConflictChoice[]>
+    author: Person
+    timestamp: number
   }
-  return { commits: replayed, tree }
+): { remote: RemoteRepo; commit: Commit } {
+  const base = mergeBase(remote, pr)
+  const branchTip = remote.branches[pr.branch]
+  const baseTip = remote.branches[pr.base]
+  const merged = mergeTrees(
+    base ? remote.commits[base].tree : {},
+    remote.commits[branchTip].tree,
+    remote.commits[baseTip].tree
+  )
+  const tree: FileTree = merged.ok
+    ? merged.tree
+    : { ...merged.tree, ...resolvedTree(merged.conflicts, options.choices) }
+  const commit = makeCommit({
+    parents: [branchTip, baseTip],
+    message: `Merge branch '${pr.base}' into ${pr.branch}`,
+    author: options.author,
+    timestamp: options.timestamp,
+    tree,
+  })
+  return {
+    commit,
+    remote: refreshPullRequests({
+      ...remote,
+      commits: { ...remote.commits, [commit.id]: commit },
+      branches: { ...remote.branches, [pr.branch]: commit.id },
+    }),
+  }
 }
 
-export interface UpdateBranchResult {
-  remote: RemoteRepo
-  local?: LocalRepo
-  /** The branch tip before and after, for the little before/after graph. */
-  from: CommitId
-  to: CommitId
-  /** True when the learner's clone was moved along too. */
-  updatedLocal: boolean
+function resolvedTree(
+  conflicts: ConflictedFile[],
+  choices: Record<string, ConflictChoice | ConflictChoice[]> = {}
+): FileTree {
+  const tree: FileTree = {}
+  for (const file of conflicts) {
+    const content = resolveConflict(file, choices[file.path] ?? 'both')
+    if (content !== undefined) tree[file.path] = content
+  }
+  return tree
 }
+
+export type UpdateBranchResult =
+  | {
+      ok: true
+      remote: RemoteRepo
+      local?: LocalRepo
+      /** The branch tip before and after, for the little before/after graph. */
+      from: CommitId
+      to: CommitId
+      /** True when the learner's clone was moved along too. */
+      updatedLocal: boolean
+    }
+  | { ok: false; conflicts: ConflictedFile[] }
 
 /**
  * GitNub's **Update branch**: replays the branch's commits on top of the current base tip
- * (a rebase). The learner's clone follows along when it's safe: same branch, nothing uncommitted,
- * and nothing local that GitNub hasn't got.
+ * (a rebase), each 3-way merged so nothing the base changed is lost. Refuses when they conflict.
+ * The learner's clone follows along when it's safe: same branch, nothing uncommitted, and nothing
+ * local that GitNub hasn't got.
  */
 export function updateBranch(
   remote: RemoteRepo,
@@ -224,18 +279,17 @@ export function updateBranch(
 ): UpdateBranchResult {
   const from = remote.branches[pr.branch]
   const baseTip = remote.branches[pr.base]
-  const commits = pullRequestCommits(remote, pr)
-  const { commits: replayed } = replayCommits(
-    commits,
+  const replayed = replay(
+    remote.commits,
+    pullRequestCommits(remote, pr),
     baseTip,
-    remote.commits[baseTip].tree,
-    (id) => remote.commits[id],
     options.timestamp
   )
-  const tip = replayed[replayed.length - 1]?.id ?? baseTip
+  if (!replayed.ok) return { ok: false, conflicts: replayed.conflicts }
+  const tip = replayed.tip
 
   const nextCommits = { ...remote.commits }
-  for (const commit of replayed) nextCommits[commit.id] = commit
+  for (const commit of replayed.commits) nextCommits[commit.id] = commit
   const nextRemote = refreshPullRequests({
     ...remote,
     commits: nextCommits,
@@ -263,7 +317,7 @@ export function updateBranch(
     }
   }
 
-  return { remote: nextRemote, local: nextLocal, from, to: tip, updatedLocal }
+  return { ok: true, remote: nextRemote, local: nextLocal, from, to: tip, updatedLocal }
 }
 
 export function deleteRemoteBranch(remote: RemoteRepo, branch: string): RemoteRepo {

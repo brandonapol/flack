@@ -209,6 +209,46 @@ describe('an out-of-date branch', () => {
   })
 })
 
+describe('a pull request with conflicts', () => {
+  function samTakesTheSameSpot(store: GameStore) {
+    act(() =>
+      store.getState().dispatch({
+        type: 'applyEffect',
+        effect: {
+          type: 'remoteCommit',
+          slug: SLUG,
+          author: 'sam',
+          message: 'Add Sam Rivera to the team list (#5)',
+          edits: [{ kind: 'appendLine', path: 'team.md', text: '- Sam Rivera' }],
+        },
+      })
+    )
+  }
+
+  it('says so, lists the files, and blocks merging until they are resolved', () => {
+    const store = setup(`/gitnub/${SLUG}`)
+    const pr = openPr(store)
+    samTakesTheSameSpot(store)
+    expect(findPullRequest(remote(store), pr.number)?.status).toBe('has-conflicts')
+
+    expect(screen.getByText('This branch has conflicts that must be resolved')).toBeInTheDocument()
+    expect(
+      within(screen.getByRole('list', { name: 'Conflicting files' })).getByText('team.md')
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Squash and merge' })).toBeDisabled()
+    expect(screen.queryByRole('button', { name: 'Update branch' })).not.toBeInTheDocument()
+
+    act(() =>
+      store.getState().dispatch({ type: 'resolveConflicts', slug: SLUG, number: pr.number })
+    )
+    expect(findPullRequest(remote(store), pr.number)?.status).toBe('open')
+    expect(
+      screen.queryByText('This branch has conflicts that must be resolved')
+    ).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Squash and merge' })).toBeEnabled()
+  })
+})
+
 describe('the pull requests list', () => {
   it('shows open and merged pull requests', () => {
     const store = setup(`/gitnub/${SLUG}`)

@@ -7,9 +7,11 @@ import {
   openPullRequest,
   openPullRequestFor,
   squashMerge,
+  resolvePullRequestConflicts,
   updateBranch,
 } from './git/pullRequests'
-import type { RemoteRepo } from './git/types'
+import type { ConflictChoice } from './git/merge'
+import type { Person, RemoteRepo } from './git/types'
 import { runLine } from './shell/run'
 import { HOME, type CoreState } from './state'
 import { applyEffect } from './story/effects'
@@ -92,6 +94,13 @@ export type Action =
   | { type: 'openPullRequest'; slug: string; branch: string; title: string; body?: string }
   | { type: 'mergePullRequest'; slug: string; number: number }
   | { type: 'updateBranch'; slug: string; number: number }
+  /** GitNub's conflict resolver: one choice per conflicted file, `both` when not given. */
+  | {
+      type: 'resolveConflicts'
+      slug: string
+      number: number
+      choices?: Record<string, ConflictChoice | ConflictChoice[]>
+    }
   | { type: 'deleteRemoteBranch'; slug: string; branch: string }
   | { type: 'applyEffect'; effect: Effect }
   | { type: 'showHint' }
@@ -299,12 +308,11 @@ export function reduce(config: GameConfig, previous: GameState, action: Action):
     case 'mergePullRequest': {
       const remote = state.git.remotes[action.slug]
       const pr = remote && findPullRequest(remote, action.number)
-      if (!remote || !pr || pr.status === 'merged') return { state: previous, effects: [] }
+      if (!remote || !pr || pr.status === 'merged' || pr.status === 'has-conflicts') {
+        return { state: previous, effects: [] }
+      }
       const result = squashMerge(remote, pr, {
-        author: {
-          name: state.git.config.userName ?? state.player.name ?? 'You',
-          email: state.git.config.userEmail ?? 'you@inkwell.example',
-        },
+        author: playerAuthor(state),
         timestamp: state.clock,
       })
       return advanceStory(config, withRemote(state, result.remote), [
@@ -321,6 +329,7 @@ export function reduce(config: GameConfig, previous: GameState, action: Action):
         pr,
         state.git.local?.slug === action.slug ? state.git.local : undefined
       )
+      if (!result.ok) return { state: previous, effects: [] }
       const next: GameState = {
         ...state,
         git: {
@@ -331,6 +340,20 @@ export function reduce(config: GameConfig, previous: GameState, action: Action):
       }
       return advanceStory(config, next, [
         { type: 'branchUpdated', number: pr.number, branch: pr.branch },
+      ])
+    }
+
+    case 'resolveConflicts': {
+      const remote = state.git.remotes[action.slug]
+      const pr = remote && findPullRequest(remote, action.number)
+      if (!remote || !pr || pr.status !== 'has-conflicts') return { state: previous, effects: [] }
+      const result = resolvePullRequestConflicts(remote, pr, {
+        choices: action.choices,
+        author: playerAuthor(state),
+        timestamp: state.clock,
+      })
+      return advanceStory(config, withRemote(state, result.remote), [
+        { type: 'conflictsResolved', number: pr.number, branch: pr.branch },
       ])
     }
 
@@ -447,5 +470,13 @@ function withRemote(state: GameState, remote: RemoteRepo): GameState {
   return {
     ...state,
     git: { ...state.git, remotes: { ...state.git.remotes, [remote.slug]: remote } },
+  }
+}
+
+/** Who the learner's GitNub clicks are made as: their Git identity, or their name. */
+function playerAuthor(state: GameState): Person {
+  return {
+    name: state.git.config.userName ?? state.player.name ?? 'You',
+    email: state.git.config.userEmail ?? 'you@inkwell.example',
   }
 }

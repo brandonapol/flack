@@ -8,6 +8,9 @@ import {
   mergeText,
   mergeTrees,
   rebase,
+  renderMarkers,
+  resolveConflict,
+  type ConflictedFile,
   type MergeOptions,
 } from './merge'
 import { clone, commit, headCommit, headId, isAncestor, log, stage } from './repo'
@@ -81,12 +84,13 @@ describe('mergeText', () => {
     expect(result).toEqual({
       ok: false,
       hunks: [{ ours: ['Two!'], theirs: ['TWO'], context: ['two'] }],
+      chunks: [['one'], 0, ['three', 'four', 'five', '']],
     })
   })
 
   it('two lines added at the same place conflict (the Chapter 8 case)', () => {
     const result = mergeText(TEAM_MD, `${TEAM_MD}- Ada\n`, `${TEAM_MD}- Sam Rivera\n`)
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       ok: false,
       hunks: [{ ours: ['- Ada'], theirs: ['- Sam Rivera'], context: [] }],
     })
@@ -104,8 +108,16 @@ describe('mergeTrees', () => {
   it('a file changed on one side and deleted on the other is a conflict', () => {
     const result = mergeTrees(base, { ...base, 'b.md': 'B\n' }, { 'a.md': 'a\n' })
     expect(result).toEqual({
+      tree: { 'a.md': 'a\n' },
       ok: false,
-      conflicts: [{ path: 'b.md', hunks: [{ ours: ['B'], theirs: [], context: ['b'] }] }],
+      conflicts: [
+        {
+          path: 'b.md',
+          hunks: [{ ours: ['B'], theirs: [], context: ['b'] }],
+          chunks: [0],
+          deletedBy: 'theirs',
+        },
+      ],
     })
   })
 })
@@ -183,7 +195,7 @@ describe('merge', () => {
   it('reports a conflict and changes nothing', () => {
     const { local, theirs } = diverged(appendLine('team.md', '- Sam Rivera'))
     const result = merge(local, theirs, mergeOptions)
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       ok: false,
       kind: 'conflict',
       conflicts: [
@@ -262,5 +274,56 @@ describe('rebase', () => {
     )
     expect(toReplay.map((c) => c.message)).toEqual(['Add Ada', 'Sam’s change'])
     expect(isAncestor(merged.local.commits, theirs, headId(merged.local))).toBe(true)
+  })
+})
+
+describe('resolveConflict', () => {
+  const both = mergeTrees(
+    { 'team.md': TEAM_MD },
+    { 'team.md': `${TEAM_MD}- Ada\n` },
+    {
+      'team.md': `${TEAM_MD}- Sam Rivera\n`,
+    }
+  )
+  if (both.ok) throw new Error('expected a conflict')
+  const [file] = both.conflicts
+
+  it('keeps mine, theirs, or both (mine first)', () => {
+    expect(resolveConflict(file, 'ours')).toBe(`${TEAM_MD}- Ada\n`)
+    expect(resolveConflict(file, 'theirs')).toBe(`${TEAM_MD}- Sam Rivera\n`)
+    expect(resolveConflict(file, 'both')).toBe(`${TEAM_MD}- Ada\n- Sam Rivera\n`)
+  })
+
+  it('takes one choice per hunk', () => {
+    const result = mergeText('a\nb\nc\nd\ne\n', 'A1\nb\nc\nd\nE1\n', 'A2\nb\nc\nd\nE2\n')
+    if (result.ok) throw new Error()
+    const two: ConflictedFile = { path: 'x.md', ...result }
+    expect(resolveConflict(two, ['ours', 'theirs'])).toBe('A1\nb\nc\nd\nE2\n')
+  })
+
+  it('a modify/delete conflict keeps the file or deletes it', () => {
+    const deleted = mergeTrees({ 'a.md': 'a\n' }, { 'a.md': 'A\n' }, {})
+    if (deleted.ok) throw new Error()
+    const [conflict] = deleted.conflicts
+    expect(resolveConflict(conflict, 'ours')).toBe('A\n')
+    expect(resolveConflict(conflict, 'theirs')).toBeUndefined()
+    expect(resolveConflict(conflict, 'both')).toBe('A\n')
+  })
+})
+
+describe('renderMarkers', () => {
+  it('matches the markers real Git writes', () => {
+    const result = mergeTrees(
+      { 'team.md': TEAM_MD },
+      { 'team.md': `${TEAM_MD}- Ada\n` },
+      {
+        'team.md': `${TEAM_MD}- Sam Rivera\n`,
+      }
+    )
+    if (result.ok) throw new Error()
+    // $ git merge other && cat team.md   (git 2.50)
+    expect(renderMarkers(result.conflicts[0], { ours: 'HEAD', theirs: 'other' })).toBe(
+      `${TEAM_MD}<<<<<<< HEAD\n- Ada\n=======\n- Sam Rivera\n>>>>>>> other\n`
+    )
   })
 })
