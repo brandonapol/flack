@@ -5,12 +5,14 @@ import { Instructions } from '../instructions'
 import { Terminal } from '../terminal'
 import { DesktopTabs } from './DesktopTabs'
 import styles from './Layout.module.css'
+import { SaveNotice } from './SaveNotice'
 import { SmallScreenNotice } from './SmallScreenNotice'
 
 export function Layout() {
   return (
     <>
       <SmallScreenNotice />
+      <SaveNotice />
       <UnsavedEditsDialog />
       <FlackNotifications />
       <div className={styles.layout}>

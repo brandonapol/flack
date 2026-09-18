@@ -2,6 +2,7 @@ import type { GameEvent } from '../../engine/events'
 import type { Chapter } from '../../engine/story/types'
 import { DOCS } from '../docsLinks'
 import { MERGE_VS_REBASE } from '../labScenarios'
+import { withClone } from './helpers'
 
 const finished = (scenario: string) => (_state: unknown, event: GameEvent) =>
   event.type === 'commitLabCompleted' && event.scenario === scenario && event.mode === 'guided'
@@ -13,7 +14,7 @@ export const tidierHistoryChapter: Chapter = {
   intro:
     'No terminal today. You’ve squashed and rebased already — by clicking buttons on GitNub. Now you’ll do both by hand in the Commit Lab, so you can see what they do to history.',
   setup: (state) => ({
-    ...state,
+    ...withClone(state),
     ui: { ...state.ui, unlockedTabs: ['flack', 'gitnub', 'editor'] },
   }),
   steps: [
