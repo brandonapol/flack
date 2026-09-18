@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { log } from '../../../git/repo'
 import { appendLine, remoteCommit } from '../../../git/sync'
-import { inRepo, type Session } from './harness'
+import { DOCS_URL, inRepo, session, type Session } from './harness'
 
 const SLUG = 'inkwell/docs-site'
 
@@ -246,5 +246,20 @@ describe('git help', () => {
     const text = inRepo().run('git').lastText
     expect(text).toContain('   merge      Join two or more development histories together')
     expect(text).toContain('   rebase     Reapply commits on top of another base tip')
+  })
+})
+
+describe('git merge without an identity', () => {
+  it('fast-forwards anyway, but needs one for a merge commit', () => {
+    const ff = samPushes(session().run(`git clone ${DOCS_URL}`, 'cd docs-site'))
+    ff.run('git fetch', 'git merge origin/main')
+    expect(ff.lastText).toContain('Fast-forward')
+
+    const s = diverged().run('git fetch')
+    s.state = { ...s.state, git: { ...s.state.git, config: {} } }
+    const before = head(s).id
+    s.run('git merge origin/main')
+    expect(s.lastText).toContain('Author identity unknown')
+    expect(head(s).id).toBe(before)
   })
 })

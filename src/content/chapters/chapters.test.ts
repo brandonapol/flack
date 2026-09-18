@@ -265,3 +265,76 @@ describe('Chapter 4: Someone else changed it', () => {
     ])
   })
 })
+
+describe('Chapter 5: Look before you leap', () => {
+  const CHAPTER_5: Action[] = [
+    cmd('git fetch'),
+    cmd('git status'),
+    cmd('git log --oneline origin/main'),
+    cmd('git merge origin/main'),
+    { type: 'openFile', path: 'docs/welcome.md' },
+  ]
+  const afterDayOne = () => {
+    const { state } = playDayOne()
+    return flushEffects(config, ...startChapterAt(state, '05-look-before-you-leap'))
+  }
+
+  it('fetches, sees it is behind, reads the log and fast-forwards', () => {
+    const { trace, state } = playChapter(config, '05-look-before-you-leap', CHAPTER_5, {
+      from: playDayOne().state,
+    })
+    expect(trace).toEqual(['fetch', 'status', 'log', 'merge', 'look'])
+    expect(state.story.phase).toBe('complete')
+    const repo = state.git.local!
+    expect(repo.branches.main).toBe(state.git.remotes[DOCS_SITE].branches.main)
+    expect(repo.working['docs/welcome.md']).toContain('documentation')
+    expect(repo.working['team.md']).toContain(`- ${NAME}`)
+    // A fast-forward: no merge commit.
+    expect(repo.commits[repo.branches.main].parents).toHaveLength(1)
+    expect(state.flack.messages.map((message) => message.id)).toContain('alex-typo')
+  })
+
+  it('git status before fetching says “up to date”, and Robin explains why', () => {
+    const state = play(config, afterDayOne(), [cmd('git status')])
+    expect(state.story.completedSteps).toEqual([])
+    expect(JSON.stringify(state.shell.output.slice(-6))).toContain(
+      "Your branch is up to date with 'origin/main'."
+    )
+    expect(state.flack.messages.at(-1)).toMatchObject({ from: 'robin', channel: 'dm-robin' })
+    expect(state.flack.messages.at(-1)?.text).toContain('memory')
+  })
+
+  it('status shows behind by one after the fetch', () => {
+    const state = play(config, afterDayOne(), [cmd('git fetch'), cmd('git status')])
+    expect(JSON.stringify(state.shell.output.slice(-6))).toContain(
+      "Your branch is behind 'origin/main' by 1 commit, and can be fast-forwarded."
+    )
+    expect(state.story.completedSteps).toEqual(['fetch', 'status'])
+  })
+
+  it('git pull counts for the last step too — it is fetch and merge in one', () => {
+    const state = play(config, afterDayOne(), [
+      cmd('git fetch'),
+      cmd('git status'),
+      cmd('git log --oneline origin/main'),
+      cmd('git pull'),
+    ])
+    expect(state.story.completedSteps).toEqual(['fetch', 'status', 'log', 'merge'])
+  })
+
+  it('git merge main gets a nudge towards origin/main', () => {
+    const state = play(config, afterDayOne(), [
+      cmd('git fetch'),
+      cmd('git status'),
+      cmd('git log --oneline origin/main'),
+      cmd('git merge main'),
+    ])
+    expect(state.story.completedSteps).toEqual(['fetch', 'status', 'log'])
+    expect(state.flack.messages.at(-1)?.text).toContain('origin/main')
+  })
+
+  it('can be started on its own, with a fresh clone', () => {
+    const { trace } = playChapter(config, '05-look-before-you-leap', CHAPTER_5)
+    expect(trace).toEqual(['fetch', 'status', 'log', 'merge', 'look'])
+  })
+})
