@@ -174,6 +174,25 @@ describe('Chapter 2: Sign the list', () => {
     expect(after.story.completedSteps).toEqual(['open-team-md'])
     expect(after.flack.messages.at(-1)?.text).toContain('more than one new line')
   })
+
+  it('does not accept the placeholder “Your Name”, and Robin says so', () => {
+    const state = start()
+    const current = state.git.local!.working['team.md']
+    const after = play(config, state, [
+      { type: 'openFile', path: 'team.md' },
+      { type: 'saveFile', path: 'team.md', content: `${current}- Your Name\n` },
+    ])
+    expect(after.story.completedSteps).toEqual(['open-team-md'])
+    expect(after.player.name).toBeUndefined()
+    expect(after.flack.messages.at(-1)?.text).toContain('placeholder')
+  })
+
+  it('never offers the placeholder as something to copy', () => {
+    const step = config.chapters
+      .find((chapter) => chapter.id === '02-sign-the-list')!
+      .steps.find((candidate) => candidate.id === 'add-name')!
+    expect(step.body).not.toContain('`- Your Name`')
+  })
 })
 
 describe('Chapter 3: Save it to GitNub', () => {

@@ -4,11 +4,15 @@ import { DOCS } from '../docsLinks'
 import { DOCS_SITE } from '../world'
 import { addedLines, keptExistingLines, nameFromBullet, ran } from './helpers'
 
+/** "Your Name", typed (or pasted) as-is from an old hint or habit. */
+const isPlaceholder = (name: string) => /^your name$/i.test(name.trim())
+
 /** Exactly one new non-empty bullet, with everything that was there before still there. */
 function signedTheList(state: Parameters<typeof addedLines>[0]): string | undefined {
   const added = addedLines(state, 'team.md')
   if (added.length !== 1 || !keptExistingLines(state, 'team.md')) return undefined
   const name = nameFromBullet(added[0])
+  if (isPlaceholder(name)) return undefined
   return name.length > 0 && added[0].trim().startsWith('-') ? name : undefined
 }
 
@@ -56,7 +60,7 @@ export const signTheListChapter: Chapter = {
     {
       id: 'add-name',
       title: 'Add your name and save',
-      body: 'Add one line at the bottom: `- Your Name`. Then press **Save** (or Ctrl+S; ⌘S on a Mac). Saving changes the file on your computer — nobody else can see it yet.',
+      body: 'Add one line at the bottom: a dash, a space, then your own name, like *- Ada Lovelace*. Then press **Save** (or Ctrl+S; ⌘S on a Mac). Saving changes the file on your computer — nobody else can see it yet.',
       hints: [
         'Click at the end of the last line, press Enter, and type `- ` followed by your name.',
         'Keep the other names: just add one line at the bottom, starting with `- `.',
@@ -71,6 +75,22 @@ export const signTheListChapter: Chapter = {
       afterNote:
         'Saved — on your computer. Git hasn’t recorded anything yet, and GitNub knows nothing about it. That’s the next chapter.',
       reactions: [
+        {
+          id: 'placeholder-name',
+          when: (state, event) => {
+            if (event.type !== 'fileSaved' || event.path !== 'team.md') return false
+            const added = addedLines(state, 'team.md')
+            return added.length === 1 && isPlaceholder(nameFromBullet(added[0]))
+          },
+          effects: [
+            {
+              type: 'flackMessage',
+              channel: 'dm-robin',
+              from: 'robin',
+              text: 'Ha — “Your Name” is the placeholder! Put your own name there instead and save again. 🙂',
+            },
+          ],
+        },
         {
           id: 'too-many-lines',
           when: (state, event) =>
