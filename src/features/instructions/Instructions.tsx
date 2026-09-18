@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 
 import { currentChapter, currentStep, shouldPulseHint } from '../../engine/story/runner'
 import { interpolate } from '../../engine/story/template'
@@ -28,7 +28,9 @@ export function Instructions() {
   if (!chapter) return <div className={styles.panel} />
 
   const number = config.chapters.findIndex((candidate) => candidate.id === chapter.id) + 1
-  const isLastChapter = number === config.chapters.length
+  // The chapter that closes Day one: the next one (if any) belongs to a later milestone.
+  const endsDayOne =
+    chapter.milestone === 'day-one' && config.chapters[number]?.milestone !== 'day-one'
   const done = story.completedSteps.length + story.skippedSteps.length
   const progress = Math.round((done / chapter.steps.length) * 100)
   const lastCompleted = chapter.steps.find(
@@ -80,8 +82,18 @@ export function Instructions() {
           interpolate={fill}
         />
 
-        {isLastChapter && story.phase !== 'playing' ? (
+        {endsDayOne && story.phase !== 'playing' ? (
           <DayOneComplete />
+        ) : story.phase === 'finished' ? (
+          <section className={styles.card} aria-label="All caught up">
+            <h2 className={styles.cardTitle}>You’re all caught up 🎉</h2>
+            <p>That’s every chapter so far. More of Keeping in sync is on its way.</p>
+            <div className={styles.actions}>
+              <Link className={styles.primary} to="/cheat-sheet">
+                Open the cheat sheet
+              </Link>
+            </div>
+          </section>
         ) : story.phase === 'complete' ? (
           <section className={styles.card} aria-label="Chapter complete">
             <h2 className={styles.cardTitle}>Chapter complete 🎉</h2>

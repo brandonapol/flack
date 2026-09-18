@@ -213,17 +213,18 @@ export function registerGitSyncCommands<S extends CoreState>(registry: Registry<
       const target = resolveTarget(repo.local, parsed.positional[0])
       if (!target.ok) return fail(...target.output)
 
+      // Only a merge commit needs to know who you are; a fast-forward makes no commit.
       const author = identity(state.git.config)
-      if (!author) return fail(...formatIdentityUnknown())
       const result = merge(repo.local, target.id, {
         message: target.local
           ? `Merge branch '${target.name}'`
           : target.name.startsWith('origin/')
             ? `Merge remote-tracking branch '${target.name}'`
             : `Merge commit '${target.name}'`,
-        author,
+        author: author ?? { name: '', email: '' },
         timestamp: state.clock,
       })
+      if (result.kind === 'merge' && !author) return fail(...formatIdentityUnknown())
       return {
         state: result.ok ? withLocal(state, result.local) : state,
         ok: result.ok,

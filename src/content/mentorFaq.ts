@@ -46,6 +46,14 @@ export const MENTOR_FAQ: Record<string, MentorEntry> = {
     question: 'What does “Squash and merge” mean?',
     answer: `It takes every commit on your branch and lands them on \`main\` as **one** tidy commit. That’s why our history reads like a list of finished changes rather than "wip", "typo", "actually fix it".\n\nMore: ${link('squashMerge')}`,
   },
+  'what-is-origin-main': {
+    question: 'What’s origin/main?',
+    answer: `Your computer’s memory of GitNub’s \`main\`: what it looked like the last time you checked. It only moves when you \`git fetch\` (or \`git pull\`, which fetches first).\n\nThat’s why \`git status\` can say “up to date” when it isn’t — it’s comparing against an old memory.`,
+  },
+  'fetch-vs-pull': {
+    question: 'What’s the difference between fetch and pull?',
+    answer: `\`git fetch\` downloads what’s new and updates \`origin/main\`, but leaves your files alone. \`git pull\` does that *and then* merges it into your branch.\n\nFetch first when you want to look before you leap: \`git log --oneline origin/main\`.\n\nMore: ${link('gitFetch')}`,
+  },
   'out-of-date-branch': {
     question: 'My PR says it’s out of date with the base branch. What now?',
     answer:

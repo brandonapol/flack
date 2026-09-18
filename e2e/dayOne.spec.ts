@@ -167,7 +167,7 @@ test('a reload in the middle of Chapter 3 picks up where you left off', async ({
   await chapter3UpToAdd(page)
 
   await page.reload()
-  await expect(page.getByText('Chapter 4 of 5')).toBeVisible()
+  await expect(page.getByText(/^Chapter 4 of \d+$/)).toBeVisible()
   await expectDone(page, 'Stage your change')
   await run(page, 'git status')
   await expect(page.getByRole('log', { name: 'Terminal output' })).toContainText(

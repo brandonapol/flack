@@ -12,9 +12,15 @@ const SHARE_MESSAGE =
 export function DayOneComplete() {
   const game = useGame((s) => s.game)
   const chapters = useGame((s) => s.config.chapters)
+  const dispatch = useGame((s) => s.dispatch)
+  const canContinue =
+    game.story.phase === 'complete' &&
+    chapters.some((chapter) => chapter.milestone === 'keeping-in-sync')
   const [copied, setCopied] = useState(false)
 
-  const learned = chapters.flatMap((chapter) => chapter.summary)
+  const learned = chapters
+    .filter((chapter) => chapter.milestone === 'day-one')
+    .flatMap((chapter) => chapter.summary)
 
   return (
     <section className={styles.card} aria-label="Day one complete">
@@ -54,12 +60,22 @@ export function DayOneComplete() {
         </button>
       </div>
 
-      <p className={styles.comingSoon}>
-        <button type="button" className={styles.action} disabled>
+      {canContinue ? (
+        <button
+          type="button"
+          className={`${styles.primary} ${styles.continue}`}
+          onClick={() => dispatch({ type: 'continueStory' })}
+        >
           Continue to Keeping in sync
-        </button>{' '}
-        <span className={styles.muted}>— coming soon</span>
-      </p>
+        </button>
+      ) : (
+        <p className={styles.comingSoon}>
+          <button type="button" className={styles.action} disabled>
+            Continue to Keeping in sync
+          </button>{' '}
+          <span className={styles.muted}>— coming soon</span>
+        </p>
+      )}
     </section>
   )
 }

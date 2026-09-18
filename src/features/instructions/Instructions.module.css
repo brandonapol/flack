@@ -422,3 +422,7 @@
 .card .primary {
   text-decoration: none;
 }
+
+.continue {
+  margin-top: 12px;
+}
