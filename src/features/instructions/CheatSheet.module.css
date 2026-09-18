@@ -1,0 +1,153 @@
+.page {
+  min-height: 100vh;
+  padding: 24px 16px 48px;
+  background: var(--paper);
+  overflow-y: auto;
+}
+
+.toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  max-width: 46rem;
+  margin: 0 auto 16px;
+  font-size: 0.875rem;
+}
+
+.toolbar a {
+  color: var(--accent);
+}
+
+.toolbar button {
+  margin-left: auto;
+  padding: 5px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  font: inherit;
+  cursor: pointer;
+}
+
+.sheet {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 28px 32px 32px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.title {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.subtitle {
+  margin: 2px 0 16px;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.loop {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.loop li {
+  display: grid;
+  grid-template-columns: minmax(12rem, 16rem) 1fr;
+  gap: 12px;
+  padding: 5px 0;
+  border-top: 1px solid var(--border);
+  font-size: 0.8125rem;
+}
+
+.command {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.what {
+  color: var(--text-muted);
+}
+
+.docs {
+  margin-left: 6px;
+  color: var(--accent);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.also {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--chrome);
+}
+
+.alsoTitle {
+  margin: 0 0 6px;
+  font-size: 0.9375rem;
+}
+
+.alsoList {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 16px;
+  margin: 0;
+  font-size: 0.75rem;
+}
+
+.alsoList dt {
+  font-weight: 700;
+}
+
+.alsoList dd {
+  margin: 0 0 4px;
+  color: var(--text-muted);
+}
+
+.footer {
+  margin: 14px 0 0;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+@media print {
+  .page {
+    padding: 0;
+    background: white;
+  }
+
+  .toolbar {
+    display: none;
+  }
+
+  .sheet {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    border: none;
+  }
+
+  .loop li,
+  .alsoList {
+    font-size: 9.5pt;
+  }
+
+  .title {
+    font-size: 16pt;
+  }
+
+  .also {
+    background: none;
+  }
+
+  a::after {
+    content: '';
+  }
+}

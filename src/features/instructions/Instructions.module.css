@@ -404,3 +404,21 @@
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+
+.subTitle {
+  margin: 14px 0 6px;
+  font-size: 0.9375rem;
+}
+
+.comingSoon {
+  margin: 12px 0 0;
+  font-size: 0.8125rem;
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+.card .primary {
+  text-decoration: none;
+}

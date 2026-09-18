@@ -79,7 +79,7 @@ export const pullChapter: Chapter = {
           type: 'flackMessage',
           channel: 'docs-team',
           from: 'jordan',
-          text: 'Two names on the list before lunch. That’s the whole loop, by the way — branch, commit, push, pull request, merge, pull. Everything else builds on it. ☕',
+          text: 'Nice work today, {{player.name}}! 🎉 That’s the whole loop, by the way — branch, commit, push, pull request, squash-merge, pull. Everything else builds on it. ☕',
           delayMs: 3000,
         },
       ],
