@@ -105,7 +105,8 @@ export interface Reaction {
 export interface Chapter {
   id: string
   title: string
-  milestone: 'day-one' | 'keeping-in-sync'
+  /** `bonus`: optional extras after graduation, outside the numbered chapters. */
+  milestone: 'day-one' | 'keeping-in-sync' | 'bonus'
   intro: string
   /** Builds a valid starting state from the previous one, or from scratch when jumping here. */
   setup: (state: GameState, config: GameConfig) => GameState

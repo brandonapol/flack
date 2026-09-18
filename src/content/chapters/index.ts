@@ -8,8 +8,9 @@ import { fetchChapter } from './05-fetch'
 import { updateBranchChapter } from './06-update-branch'
 import { tidierHistoryChapter } from './07-tidier-history'
 import { conflictChapter } from './08-conflict'
+import { oopsChapter } from './09-oops'
 
-/** Every chapter, in order: Day one, then Keeping in sync. */
+/** Every chapter, in order: Day one, Keeping in sync, then the bonus round. */
 export const CHAPTERS: Chapter[] = [
   welcomeChapter,
   cloneChapter,
@@ -20,6 +21,7 @@ export const CHAPTERS: Chapter[] = [
   updateBranchChapter,
   tidierHistoryChapter,
   conflictChapter,
+  oopsChapter,
 ]
 
 export * from './helpers'

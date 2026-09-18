@@ -97,6 +97,13 @@ for (const [index, id] of ['00', '01', '02', '03', '04', '05', '06', '07', '08']
   })
 }
 
+test('?chapter=09 lands in the playable bonus chapter', async ({ page }) => {
+  await page.goto('./?fast=1&chapter=09')
+  await expect(page.getByText('Bonus chapter', { exact: true })).toBeVisible()
+  await run(page, 'git status')
+  await expect(terminalOutput(page)).toContainText('notes.txt')
+})
+
 test('Reset everything goes back to Chapter 1 and survives a reload', async ({ page }) => {
   await page.goto('./?fast=1&chapter=05')
   await run(page, 'git fetch')

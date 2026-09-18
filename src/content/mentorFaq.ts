@@ -95,6 +95,13 @@ export const MENTOR_FAQ: Record<string, MentorEntry> = {
     answer:
       'You almost certainly haven’t, and in Flack you definitely haven’t. Git keeps every commit, GitNub still has its copy, and there’s a **Restart chapter** button at the bottom left. Tell me what you ran and we’ll read it together.',
   },
+  'amend-after-push': {
+    question: 'I amended a commit I’d already pushed. Now what?',
+    answer:
+      'Your copy and GitNub’s now disagree, so `git push` gets rejected — Git is protecting the commit other people may already have. The easy way out: ask me or a teammate before forcing anything. Next time, fix a pushed commit with a new commit instead. See ' +
+      link('gitCommit') +
+      '.',
+  },
   'undo-my-edit': {
     question: 'How do I undo an edit I haven’t committed?',
     answer:

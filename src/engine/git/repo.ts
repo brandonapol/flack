@@ -201,6 +201,37 @@ export function commit(
   }
 }
 
+/**
+ * `git commit --amend`: replaces the last commit with a new one that has the same parents, the
+ * staged tree, and a new message (or the old one). The original author is kept, as Git does.
+ */
+export function amend(
+  local: LocalRepo,
+  options: { message?: string; config: GitConfig; timestamp: number }
+): CommitResult {
+  if (!hasIdentity(options.config)) return { ok: false, error: 'identity-unknown' }
+  if (options.message !== undefined && !options.message.trim()) {
+    return { ok: false, error: 'empty-message' }
+  }
+  const replaced = headCommit(local)
+  const created = makeCommit({
+    parents: replaced.parents,
+    message: options.message?.trim() ?? replaced.message,
+    author: replaced.author,
+    timestamp: options.timestamp,
+    tree: local.index,
+  })
+  return {
+    ok: true,
+    commit: created,
+    local: {
+      ...local,
+      commits: { ...local.commits, [created.id]: created },
+      branches: { ...local.branches, [local.head]: created.id },
+    },
+  }
+}
+
 export function reachable(commits: CommitMap, from: CommitId | CommitId[]): Set<CommitId> {
   const seen = new Set<CommitId>()
   const stack = Array.isArray(from) ? [...from] : [from]

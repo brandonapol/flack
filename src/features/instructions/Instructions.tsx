@@ -32,6 +32,7 @@ export function Instructions() {
 
   if (!chapter) return <div className={styles.panel} />
 
+  const numbered = config.chapters.filter((candidate) => candidate.milestone !== 'bonus')
   const number = config.chapters.findIndex((candidate) => candidate.id === chapter.id) + 1
   // The chapter that closes Day one: the next one (if any) belongs to a later milestone.
   const endsDayOne = chapter.milestone === 'day-one' && endsMilestone(config, chapter.id)
@@ -49,7 +50,9 @@ export function Instructions() {
     <div className={styles.panel}>
       <header className={styles.header}>
         <p className={styles.chapterNumber}>
-          Chapter {number} of {config.chapters.length}
+          {chapter.milestone === 'bonus'
+            ? 'Bonus chapter'
+            : `Chapter ${number} of ${numbered.length}`}
         </p>
         <h1 className={styles.chapterTitle}>{fill(chapter.title)}</h1>
         <div
@@ -91,12 +94,26 @@ export function Instructions() {
           <DayOneComplete />
         ) : endsSync && story.phase !== 'playing' ? (
           <Graduation />
+        ) : chapter.milestone === 'bonus' && story.phase !== 'playing' ? (
+          <section className={styles.card} aria-label="Bonus complete">
+            <h2 className={styles.cardTitle}>Bonus complete 🧰</h2>
+            <p>Three ways out of “I think I broke something”:</p>
+            <ul className={styles.summary}>
+              {chapter.summary.map((point) => (
+                <li key={point}>
+                  <Markdown source={fill(point)} inline />
+                </li>
+              ))}
+            </ul>
+          </section>
         ) : story.phase === 'complete' ? (
           <section className={styles.card} aria-label="Chapter complete">
             <h2 className={styles.cardTitle}>Chapter complete 🎉</h2>
             <ul className={styles.summary}>
               {chapter.summary.map((point) => (
-                <li key={point}>{fill(point)}</li>
+                <li key={point}>
+                  <Markdown source={fill(point)} inline />
+                </li>
               ))}
             </ul>
             <button

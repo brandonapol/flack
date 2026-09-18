@@ -15,6 +15,8 @@ const NEXT = [DOCS.branching, DOCS.rebasing, DOCS.pullRequests, DOCS.mergeConfli
 export function Graduation() {
   const chapters = useGame((s) => s.config.chapters)
   const game = useGame((s) => s.game)
+  const dispatch = useGame((s) => s.dispatch)
+  const bonus = chapters.find((chapter) => chapter.milestone === 'bonus')
   const [copied, setCopied] = useState(false)
   const learned = chapters
     .filter((chapter) => chapter.milestone === 'keeping-in-sync')
@@ -57,6 +59,23 @@ export function Graduation() {
           {copied ? 'Copied!' : 'Copy a message to share'}
         </button>
       </div>
+
+      {bonus && game.story.phase === 'complete' && (
+        <>
+          <h3 className={styles.subTitle}>One more, if you like</h3>
+          <p>
+            <strong>{bonus.title}</strong> — a short bonus chapter on getting out of “I think I
+            broke something”.
+          </p>
+          <button
+            type="button"
+            className={styles.action}
+            onClick={() => dispatch({ type: 'continueStory' })}
+          >
+            Try the bonus chapter
+          </button>
+        </>
+      )}
 
       <h3 className={styles.subTitle}>Where to go next</h3>
       <ul className={styles.summary}>
