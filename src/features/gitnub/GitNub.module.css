@@ -45,22 +45,6 @@
   clip-path: polygon(50% 100%, 0 38%, 22% 0, 78% 0, 100% 38%);
 }
 
-.search {
-  flex: 1;
-  max-width: 260px;
-  padding: 3px 10px;
-  border: 1px solid #4a5170;
-  border-radius: 6px;
-  color: #aab1cc;
-  font-size: 0.75rem;
-}
-
-.search kbd {
-  padding: 0 4px;
-  border: 1px solid #4a5170;
-  border-radius: 3px;
-}
-
 .me {
   width: 22px;
   height: 22px;
@@ -277,7 +261,8 @@
   top: calc(100% + 6px);
   right: 0;
   z-index: 10;
-  width: 340px;
+  /* Wide enough for the whole clone address, so nobody thinks it's been cut off. */
+  width: min(460px, calc(100vw - 32px));
   padding: 12px;
   border: 1px solid var(--border-strong);
   border-radius: 8px;

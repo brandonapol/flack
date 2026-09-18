@@ -28,6 +28,8 @@ export function ChannelView({ channelId }: { channelId: string }) {
     [allTyping, channelId]
   )
   const dispatch = useGame((s) => s.dispatch)
+  // Point at the reply buttons only when there are some to press.
+  const awaitingReply = messages.some((message) => message.quickReplies && !message.repliedWith)
   const isMentorChannel = useGame((s) => s.config.mentor?.channel === channelId)
   const endRef = useRef<HTMLDivElement>(null)
 
@@ -92,7 +94,11 @@ export function ChannelView({ channelId }: { channelId: string }) {
       <div className={styles.composer}>
         <input
           className={styles.composerInput}
-          placeholder="Use the reply buttons for now"
+          placeholder={
+            awaitingReply
+              ? 'Use the reply buttons above'
+              : 'No typing needed here: follow the step on the left'
+          }
           aria-label="Message box (disabled in this tutorial)"
           disabled
         />

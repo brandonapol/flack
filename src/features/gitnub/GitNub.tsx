@@ -17,9 +17,6 @@ export function GitNub() {
           <span aria-hidden="true" className={styles.logoMark} />
           GitNub
         </Link>
-        <span className={styles.search} aria-hidden="true">
-          Type <kbd>/</kbd> to search
-        </span>
         <span className={styles.me} aria-hidden="true" />
       </header>
       <div className={styles.page}>

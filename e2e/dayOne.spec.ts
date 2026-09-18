@@ -21,7 +21,12 @@ async function chapter1(page: Page) {
   await gitnub(page).getByRole('link', { name: 'docs-site' }).click()
   await gitnub(page).getByRole('button', { name: /Code/ }).click()
   const dialog = page.getByRole('dialog', { name: 'Clone this repository' })
-  const url = await dialog.getByRole('textbox', { name: 'Clone address' }).inputValue()
+  const address = dialog.getByRole('textbox', { name: 'Clone address' })
+  // The whole address is visible, not cut off (#84).
+  expect(await address.evaluate((el: HTMLInputElement) => el.scrollWidth <= el.clientWidth)).toBe(
+    true
+  )
+  const url = await address.inputValue()
   await dialog.getByRole('button', { name: 'Copy' }).click()
   // Paste what was copied, as a learner would.
   const copied = await page.evaluate(() => navigator.clipboard.readText())
