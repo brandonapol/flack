@@ -55,6 +55,7 @@ function completeStep(
       completedSteps: [...next.story.completedSteps, step.id],
       skippedSteps: [...next.story.skippedSteps, ...skipped],
       misses: 0,
+      firedReactions: next.story.firedReactions,
       hintsShown: 0,
       solutionShown: false,
       ...(finished
@@ -91,9 +92,31 @@ function checkEvent(
     }
   }
 
+  const step = chapter.steps[state.story.stepIndex]
+  const reactions = (step?.reactions ?? []).filter(
+    (reaction) =>
+      !state.story.firedReactions.includes(`${step.id}:${reaction.id}`) &&
+      reaction.when(state, event)
+  )
+  if (reactions.length > 0) {
+    return {
+      state: {
+        ...state,
+        story: {
+          ...state.story,
+          firedReactions: [
+            ...state.story.firedReactions,
+            ...reactions.map((reaction) => `${step.id}:${reaction.id}`),
+          ],
+        },
+      },
+      effects: reactions.flatMap((reaction) => reaction.effects),
+      events: [],
+    }
+  }
+
   if (event.type === 'command' && !NEUTRAL_COMMANDS.has(event.name)) {
     const misses = state.story.misses + 1
-    const step = chapter.steps[state.story.stepIndex]
     const hintsShown =
       misses >= AUTO_HINT_AFTER_MISSES && step.hints.length > 0
         ? Math.max(state.story.hintsShown, 1)

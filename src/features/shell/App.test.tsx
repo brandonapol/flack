@@ -12,14 +12,18 @@ const noStorage: StorageLike = {
   removeItem: () => undefined,
 }
 
-function renderApp(hash = '') {
+type TabName = 'flack' | 'gitnub' | 'editor'
+
+function renderApp(hash = '', tabs?: TabName[]) {
   window.location.hash = hash
   const store = createGameStore({ config: createGameConfig(), storage: noStorage })
+  if (tabs)
+    store.setState((s) => ({ game: { ...s.game, ui: { ...s.game.ui, unlockedTabs: tabs } } }))
   render(<App store={store} />)
   return store
 }
 
-function unlock(store: GameStore, tabs: Array<'flack' | 'gitnub' | 'editor'>) {
+function unlock(store: GameStore, tabs: TabName[]) {
   act(() => {
     store.setState((s) => ({ game: { ...s.game, ui: { ...s.game.ui, unlockedTabs: tabs } } }))
   })
@@ -48,7 +52,7 @@ describe('App shell', () => {
   })
 
   it('a deep link to GitNub opens the GitNub tab', async () => {
-    const store = renderApp('#/gitnub/inkwell/docs-site')
+    const store = renderApp('#/gitnub/inkwell/docs-site', ['flack', 'gitnub'])
     expect(await screen.findByRole('tab', { name: 'GitNub' })).toHaveAttribute(
       'aria-selected',
       'true'

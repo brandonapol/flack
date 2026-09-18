@@ -82,6 +82,17 @@ export interface Step {
   onComplete?: Effect[]
   /** State changes that can't be expressed as effects, e.g. capturing the player's name. */
   apply?: (state: GameState, event: GameEvent) => GameState
+  /**
+   * Answers to things that happen *while* a step is unfinished: a command that failed in an
+   * interesting way, a wrong turn worth a word from Robin. Each one fires at most once per step.
+   */
+  reactions?: Reaction[]
+}
+
+export interface Reaction {
+  id: string
+  when: (state: GameState, event: GameEvent) => boolean
+  effects: Effect[]
 }
 
 export interface Chapter {

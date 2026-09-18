@@ -40,6 +40,8 @@ export interface StoryState {
   completedChapters: string[]
   /** Commands run on the current step that didn't complete it. */
   misses: number
+  /** Reactions that have already fired, as `<stepId>:<reactionId>`. */
+  firedReactions: string[]
   hintsShown: number
   solutionShown: boolean
   /** The state when the chapter started, for "Restart chapter". */
@@ -126,6 +128,7 @@ export function blankState(config: GameConfig): GameState {
       skippedSteps: [],
       completedChapters: [],
       misses: 0,
+      firedReactions: [],
       hintsShown: 0,
       solutionShown: false,
     },
@@ -151,6 +154,7 @@ export function startChapter(config: GameConfig, from: GameState, chapterId: str
         completedSteps: [],
         skippedSteps: [],
         misses: 0,
+        firedReactions: [],
         hintsShown: 0,
         solutionShown: false,
         checkpoint: undefined,
