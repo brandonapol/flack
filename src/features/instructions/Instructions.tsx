@@ -13,6 +13,7 @@ import styles from './Instructions.module.css'
 import { InstructionsText } from './InstructionsText'
 import { endsMilestone } from './progress'
 import { StepList } from './StepList'
+import { WhereAreMyChanges } from './WhereAreMyChanges'
 
 export function Instructions() {
   const game = useGame((s) => s.game)
@@ -188,6 +189,9 @@ export function Instructions() {
             </section>
           )
         )}
+
+        {/* From Chapter 2 on, once there's a repository to look into. */}
+        {number >= 3 && <WhereAreMyChanges />}
       </div>
 
       <footer className={styles.footer}>
