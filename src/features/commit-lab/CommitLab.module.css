@@ -78,9 +78,12 @@
 }
 
 .node {
-  cursor: grab;
   transition: transform 400ms ease;
   animation: appear 300ms ease;
+}
+
+.interactive {
+  cursor: grab;
 }
 
 .node circle {
@@ -117,6 +120,8 @@
   cursor: grabbing;
   transition: none;
   opacity: 0.85;
+  /* So the drop finds the commit underneath, not the one being dragged. */
+  pointer-events: none;
 }
 
 .initials {
@@ -274,4 +279,53 @@
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
+}
+
+.caption .hint {
+  margin-top: 6px;
+  color: var(--text-muted);
+}
+
+.figure {
+  margin: 12px 0 0;
+}
+
+.figureTitle {
+  margin-bottom: 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.panels {
+  display: grid;
+  gap: 10px;
+}
+
+.panel {
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.panelLabel {
+  margin: 0 0 4px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+/* Scale the still graph down to fit the Instructions column. */
+.panelGraph svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.panelText {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.compact .initials {
+  font-size: 8px;
 }

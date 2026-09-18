@@ -78,6 +78,8 @@ export interface Step {
   afterNote?: string
   docs?: DocsLink[]
   optional?: boolean
+  /** A picture under the step's text. */
+  figure?: LabFigure
   /**
    * Repo files the learner may edit during this step. Everything else opens read-only, so nobody
    * wanders into an unscripted change. Omit to allow editing any file.
@@ -148,6 +150,14 @@ export interface LabScenario {
   target?: LabGraph
   /** The message a squash gets here, instead of the old messages joined. */
   squashLabel?: string
+  /** Said after an operation, on top of its caption: why it is (or isn't) the one we're after. */
+  hints?: Partial<Record<'rebase' | 'merge' | 'squash' | 'cherryPick', string>>
+}
+
+/** Commit graphs side by side, drawn in Instructions with the Commit Lab's renderer. */
+export interface LabFigure {
+  title: string
+  panels: Array<{ label: string; description: string; graph: LabGraph }>
 }
 
 /** Everything the engine needs from content. The engine never imports content directly. */

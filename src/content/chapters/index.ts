@@ -6,6 +6,7 @@ import { pullRequestChapter } from './03-pull-request'
 import { pullChapter } from './04-pull'
 import { fetchChapter } from './05-fetch'
 import { updateBranchChapter } from './06-update-branch'
+import { tidierHistoryChapter } from './07-tidier-history'
 
 /** Every chapter, in order: Day one, then Keeping in sync. */
 export const CHAPTERS: Chapter[] = [
@@ -16,6 +17,7 @@ export const CHAPTERS: Chapter[] = [
   pullChapter,
   fetchChapter,
   updateBranchChapter,
+  tidierHistoryChapter,
 ]
 
 export * from './helpers'

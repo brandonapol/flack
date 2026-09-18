@@ -6,6 +6,7 @@ import {
   rebase,
   squash,
   type LabGraph,
+  type LabNode,
   type LabResult,
   type Resolution,
 } from '../../engine/lab/graph'
@@ -91,4 +92,19 @@ export function actionsFor(
     const result = action.run()
     return result.ok || result.kind === 'conflict'
   })
+}
+
+/** A commit in words, for screen readers. */
+export function describeNode(graph: LabGraph, node: LabNode): string {
+  const tips = tipsOf(graph, node.id)
+  return [
+    node.label,
+    `by ${node.author}`,
+    `on ${node.lane}`,
+    node.copyOf ? 'a new copy' : '',
+    node.squashed ? `squashed from ${node.squashed.length} commits` : '',
+    tips.length > 0 ? `newest on ${tips.join(' and ')}` : '',
+  ]
+    .filter(Boolean)
+    .join(', ')
 }
