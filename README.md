@@ -10,6 +10,8 @@ visual sandbox called the Commit Lab, because those are concepts, not keystrokes
 
 Nothing is installed, nothing is real, and nothing you do can break anything.
 
+**Play it:** https://brandonapol.github.io/flack/
+
 ## Running it
 
 ```sh
@@ -18,6 +20,11 @@ npm run dev
 ```
 
 Node 24 (see `.nvmrc`).
+
+Every push to `main` publishes the built site to the `github-pages` branch, which GitHub Pages
+serves (`.github/workflows/pages-branch.yml`). Builds use the base path `/flack/`; set
+`BASE_PATH` to host it somewhere else (`BASE_PATH=/ npm run build`). Routes live in the hash
+(`/#/gitnub/…`), so deep links work on any static host.
 
 | Script               | What it does                              |
 | -------------------- | ----------------------------------------- |

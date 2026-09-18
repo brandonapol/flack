@@ -1,7 +1,10 @@
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vitest/config'
 
-export default defineConfig({
+// Built (and previewed) for GitHub Pages at /flack/ by default; set BASE_PATH to host it
+// anywhere else. The dev server stays at /.
+export default defineConfig(({ command, isPreview }) => ({
+  base: command === 'build' || isPreview ? (process.env.BASE_PATH ?? '/flack/') : '/',
   plugins: [react()],
   test: {
     projects: [
@@ -24,4 +27,4 @@ export default defineConfig({
       },
     ],
   },
-})
+}))
