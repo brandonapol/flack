@@ -78,12 +78,12 @@ describe('git config', () => {
 })
 
 describe('git clone', () => {
-  it('clones docs-site with realistic output and unlocks the editor', () => {
+  it('clones docs-site with realistic output, leaving tabs to the story', () => {
     const s = session().run(`git clone ${DOCS_URL}`)
     expect(s.state.git.local?.dir).toBe('docs-site')
     expect(s.last[0].text).toBe("Cloning into 'docs-site'...")
     expect(s.lastText).toMatch(/Receiving objects: 100% \(\d+\/\d+\), done\./)
-    expect(s.effects).toEqual([{ type: 'unlockTab', tab: 'editor' }])
+    expect(s.effects).toEqual([])
     expect(s.ok).toBe(true)
   })
 

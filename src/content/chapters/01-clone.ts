@@ -44,11 +44,14 @@ export const cloneChapter: Chapter = {
         `Type: git clone ${DOCS_SITE_URL}`,
       ],
       solution: `git clone ${DOCS_SITE_URL}`,
-      goal: (state, event) => ran(event, 'git', 'clone') && Boolean(local(state)),
+      // Cloned early, before the story asked? Then this step is already done.
+      goal: (state, event) =>
+        (ran(event, 'git', 'clone') || event.type === 'stepEntered') && Boolean(local(state)),
       afterNote:
         'You now have your own complete copy. GitNub still has its copy — from here on there are two, and they only match when you make them match.',
       docs: [DOCS.gitClone],
       onComplete: [
+        { type: 'unlockTab', tab: 'editor' },
         {
           type: 'flackMessage',
           id: 'robin-hello',

@@ -52,7 +52,9 @@ export default function Editor() {
   const isDirty = path !== undefined && dirty.has(path)
   const saved = path ? working[path] : ''
   const value = path ? (buffers[path] ?? saved) : ''
-  const readOnly = Boolean(path && step?.editableFiles && !step.editableFiles.includes(path))
+  // Only the files the current step is about can be changed, so nothing gets edited by accident
+  // before (or after) the story needs it. Between chapters there's no step, and anything goes.
+  const readOnly = Boolean(path && step && !(step.editableFiles ?? []).includes(path))
   // The step says `open team.md`? Then that's the file to offer when nothing is open yet.
   const suggested = /^open (\S+)$/.exec(step?.solution ?? '')?.[1]
   const offer = !path && suggested && exists(suggested) ? suggested : undefined
