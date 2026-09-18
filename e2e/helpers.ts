@@ -49,3 +49,17 @@ export async function selectWordInEditor(page: Page, word: string) {
   if (!box) throw new Error(`“${word}” isn’t in the Editor`)
   await page.mouse.dblclick(box.x, box.y)
 }
+
+/** From the repo page after a push: the banner's Create merge request, then the form's. */
+export async function createMergeRequest(page: Page) {
+  await gitnub(page).getByRole('link', { name: 'docs-site' }).click()
+  await gitnub(page).getByRole('link', { name: 'Create merge request' }).click()
+  await gitnub(page).getByRole('button', { name: 'Create merge request' }).click()
+}
+
+/** Waits for the review, then merges (Squash commits and Delete source branch are on). */
+export async function mergeWhenApproved(page: Page) {
+  await expect(gitnub(page).getByText('approved this merge request')).toBeVisible()
+  await gitnub(page).getByRole('button', { name: 'Merge', exact: true }).click()
+  await expect(gitnub(page).getByText(/The changes were merged into/)).toBeVisible()
+}

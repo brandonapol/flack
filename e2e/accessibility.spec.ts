@@ -1,7 +1,15 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test, type Locator, type Page } from '@playwright/test'
 
-import { expectDone, gitnub, openTab, run, selectWordInEditor } from './helpers'
+import {
+  createMergeRequest,
+  expectDone,
+  gitnub,
+  mergeWhenApproved,
+  openTab,
+  run,
+  selectWordInEditor,
+} from './helpers'
 
 /** Serious and critical axe violations on the page as it is now, as readable one-liners. */
 async function violations(page: Page): Promise<string[]> {
@@ -50,7 +58,7 @@ test.describe('axe: no serious or critical violations', () => {
     expect(await violations(page)).toEqual([])
   })
 
-  test('a pull request that is out of date', async ({ page }) => {
+  test('a merge request that needs a rebase', async ({ page }) => {
     await page.goto('./?fast=1&chapter=06')
     await run(page, 'git switch -c ada-typo')
     await run(page, 'open docs/style-guide.md')
@@ -60,12 +68,8 @@ test.describe('axe: no serious or critical violations', () => {
     await run(page, 'git commit -am "Fix a typo"')
     await run(page, 'git push -u origin ada-typo')
     await openTab(page, /GitNub/)
-    await gitnub(page).getByRole('link', { name: 'docs-site' }).click()
-    await gitnub(page)
-      .getByRole('link', { name: /Compare & pull request/ })
-      .click()
-    await gitnub(page).getByRole('button', { name: 'Create pull request' }).click()
-    await expect(gitnub(page).getByRole('button', { name: 'Update branch' })).toBeVisible()
+    await createMergeRequest(page)
+    await expect(gitnub(page).getByRole('button', { name: 'Rebase' })).toBeVisible()
     expect(await violations(page)).toEqual([])
   })
 
@@ -117,11 +121,7 @@ test.describe('axe: no serious or critical violations', () => {
     await run(page, 'git commit -am "Add my writing tip"')
     await run(page, 'git push -u origin ada-tip')
     await openTab(page, /GitNub/)
-    await gitnub(page).getByRole('link', { name: 'docs-site' }).click()
-    await gitnub(page)
-      .getByRole('link', { name: /Compare & pull request/ })
-      .click()
-    await gitnub(page).getByRole('button', { name: 'Create pull request' }).click()
+    await createMergeRequest(page)
     await gitnub(page).getByRole('button', { name: 'See what’s conflicting →' }).click()
     const lab = page.getByRole('dialog', { name: 'Two tips, one spot' })
     await lab
@@ -139,10 +139,8 @@ test.describe('axe: no serious or critical violations', () => {
     expect(await violations(page)).toEqual([])
 
     await choices.getByRole('button', { name: 'Keep both' }).click()
-    await gitnub(page).getByRole('button', { name: 'Mark as resolved' }).click()
-    await expect(gitnub(page).getByText('approved these changes')).toBeVisible()
-    await gitnub(page).getByRole('button', { name: 'Squash and merge' }).click()
-    await gitnub(page).getByRole('button', { name: 'Confirm squash and merge' }).click()
+    await gitnub(page).getByRole('button', { name: 'Commit to source branch' }).click()
+    await mergeWhenApproved(page)
     await expect(
       gitnub(page)
         .getByText(/Merged/)

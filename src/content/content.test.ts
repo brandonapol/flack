@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { clone } from '../engine/git/repo'
 import { log } from '../engine/git/repo'
 import { characters } from './characters'
+import { createGameConfig } from './config'
 import { ALLOWED_DOCS_HOSTS, DOCS } from './docsLinks'
 import { findGlossaryEntry, GLOSSARY } from './glossary'
 import { LAB_SCENARIOS } from './labScenarios'
@@ -53,11 +54,11 @@ describe('glossary', () => {
     }
   })
 
-  it('covers the branch and pull request workflow and has dropped trunk-based terms', () => {
+  it('covers the branch and merge request workflow and has dropped trunk-based terms', () => {
     for (const term of [
       'branch',
-      'pull request',
-      'base branch',
+      'merge request',
+      'target branch',
       'squash merge',
       'rebase',
       'cherry-pick',
@@ -65,7 +66,9 @@ describe('glossary', () => {
     ]) {
       expect(findGlossaryEntry(term), term).toBeDefined()
     }
-    expect(findGlossaryEntry('PR')?.term).toBe('pull request')
+    expect(findGlossaryEntry('MR')?.term).toBe('merge request')
+    // Writers who've used GitHub still find it.
+    expect(findGlossaryEntry('pull request')?.term).toBe('merge request')
     expect(findGlossaryEntry('trunk')).toBeUndefined()
   })
 })
@@ -107,11 +110,11 @@ describe('world', () => {
     expect(tree['team.md']).toMatch(/- Jordan Lee\n- Robin Okafor\n$/)
   })
 
-  it('docs-site has a short history of squash-merged pull requests', () => {
+  it('docs-site has a short history of squash-merged merge requests, GitLab-style', () => {
     const history = log(docsSite.commits, docsSite.branches.main)
     expect(history).toHaveLength(4)
     expect(
-      history.filter((commit) => /\(#\d+\)$/.test(commit.message.split('\n')[0]))
+      history.filter((commit) => /See merge request inkwell\/docs-site!\d+$/.test(commit.message))
     ).toHaveLength(3)
     expect(history.every((commit) => commit.parents.length <= 1)).toBe(true)
   })
@@ -149,15 +152,15 @@ describe('Ask Robin', () => {
     }
   })
 
-  it('covers the branch and pull request workflow', () => {
+  it('covers the branch and merge request workflow', () => {
     for (const id of [
       'what-is-a-branch',
-      'what-is-a-pr',
+      'what-is-an-mr',
       'what-is-squash-merge',
       'out-of-date-branch',
       'what-is-a-rebase',
       'what-is-cherry-pick',
-      'pr-has-conflicts',
+      'mr-has-conflicts',
       'what-are-markers',
       'delete-branch',
     ]) {
@@ -187,5 +190,38 @@ describe('Commit Lab scenarios', () => {
           expect(ids.has(parent), `${node.id} → ${parent}`).toBe(true)
       }
     }
+  })
+})
+
+describe('GitLab vocabulary', () => {
+  /** Every string reachable from a value: step text, hints, messages, effects, answers… */
+  function strings(value: unknown, into: string[] = []): string[] {
+    if (typeof value === 'string') into.push(value)
+    else if (Array.isArray(value)) value.forEach((item) => strings(item, into))
+    else if (value && typeof value === 'object')
+      Object.values(value).forEach((v) => strings(v, into))
+    return into
+  }
+
+  it('never says pull request, PR, Update branch or Squash and merge to the learner', () => {
+    const config = createGameConfig()
+    const text = strings([
+      config.chapters,
+      MENTOR_FAQ,
+      LAB_SCENARIOS,
+      GLOSSARY.map(({ term, definition }) => ({ term, definition })),
+      DOCS,
+      log(createRemotes()[DOCS_SITE].commits, createRemotes()[DOCS_SITE].branches.main),
+    ])
+      // Ids like `open-pr` and `pr-conflict` aren't shown to anyone.
+      .filter((line) => !/^[a-z0-9-]+$/.test(line))
+      // Saying what GitHub calls it is the one deliberate exception.
+      .map((line) => line.replace(/\(?GitHub calls[^.)]*[.)]/g, ''))
+      // …and GitLab's own docs page, which really is called that.
+      .map((line) => line.replace(/Squash and merge \(GitLab\)/g, ''))
+    const offenders = text.filter((line) =>
+      /pull request|\bPRs?\b|Update branch|Squash and merge|\(#\d+\)/i.test(line)
+    )
+    expect(offenders).toEqual([])
   })
 })

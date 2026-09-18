@@ -93,7 +93,7 @@ describe('squash merge', () => {
     expect(squashed.parents).toEqual([before])
     expect(log(merged.commits, merged.branches.main)).toHaveLength(3)
     expect(squashed.message).toBe(
-      'Add Ada Lovelace to the team list (#1)\n\nFirst day!\n\n* Add - Ada Lovelace\n\n* Add - (she/they) docs'
+      'Add Ada Lovelace to the team list\n\nSee merge request inkwell/docs-site!1'
     )
     expect(squashed.tree['team.md']).toContain('- Ada Lovelace')
     expect(findPullRequest(merged, 1)).toMatchObject({
@@ -105,7 +105,7 @@ describe('squash merge', () => {
   it('previews exactly the message it will use', () => {
     const { remote } = adaBranch()
     const { remote: withPr, pullRequest } = openAdaPr(remote)
-    const preview = squashMessage(pullRequest, pullRequestCommits(withPr, pullRequest))
+    const preview = squashMessage(withPr.slug, pullRequest)
     const { commit: squashed } = squashMerge(withPr, pullRequest, {
       author: { name: 'Ada', email: 'a@b.c' },
       timestamp: T0,

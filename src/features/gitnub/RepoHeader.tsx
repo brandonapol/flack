@@ -36,7 +36,7 @@ export function RepoHeader({
           to={repoPath(repo.slug, 'pulls')}
           aria-current={active === 'pulls' ? 'page' : undefined}
         >
-          Pull requests
+          Merge requests
           {openCount > 0 && <span className={styles.tabCount}>{openCount}</span>}
         </Link>
         <Link

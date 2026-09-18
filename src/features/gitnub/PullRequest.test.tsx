@@ -68,51 +68,54 @@ function setup(path: string) {
   return store
 }
 
-/** Opens the PR through the UI, the way a learner would. */
+/** Creates the merge request through the UI, the way a learner would. */
 function openPr(store: GameStore) {
-  click(screen.getByRole('link', { name: /Compare & pull request/ }))
-  click(screen.getByRole('button', { name: 'Create pull request' }))
+  click(screen.getByRole('link', { name: 'Create merge request' }))
+  click(screen.getByRole('button', { name: 'Create merge request' }))
   return findPullRequest(remote(store), 4)!
 }
 
-describe('opening a pull request', () => {
+describe('creating a merge request', () => {
   it('the repo page nudges you after a branch push', () => {
     setup(`/gitnub/${SLUG}`)
-    const prompt = screen.getByText(/had recent pushes/)
-    expect(prompt).toHaveTextContent('ada-team-list')
-    expect(screen.getByRole('link', { name: /Compare & pull request/ })).toBeInTheDocument()
+    const prompt = screen.getByText(/You pushed to/)
+    expect(prompt).toHaveTextContent('You pushed to ada-team-list just now')
+    expect(screen.getByRole('link', { name: 'Create merge request' })).toBeInTheDocument()
   })
 
-  it('the form is prefilled from the last commit and creates the PR', () => {
+  it('the form is prefilled from the last commit and creates the MR', () => {
     const store = setup(`/gitnub/${SLUG}`)
-    click(screen.getByRole('link', { name: /Compare & pull request/ }))
+    click(screen.getByRole('link', { name: 'Create merge request' }))
+    expect(screen.getByRole('heading', { name: 'New merge request' })).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: 'Title' })).toHaveValue(
       'Add Ada Lovelace to the team list'
     )
-    click(screen.getByRole('button', { name: 'Create pull request' }))
+    click(screen.getByRole('button', { name: 'Create merge request' }))
 
     const pr = findPullRequest(remote(store), 4)
     expect(pr).toMatchObject({ branch: 'ada-team-list', base: 'main', status: 'open' })
     expect(probe.path).toBe(`/gitnub/${SLUG}/pull/4`)
     expect(
-      screen.getByRole('heading', { name: /Add Ada Lovelace to the team list #4/ })
+      screen.getByRole('heading', { name: /Add Ada Lovelace to the team list !4/ })
     ).toBeInTheDocument()
-    expect(screen.getByText(/wants to merge 1 commit into/)).toBeInTheDocument()
+    expect(screen.getByText(/requested to merge/)).toHaveTextContent(
+      'requested to merge ada-team-list into main'
+    )
   })
 
-  it('the banner goes away once the branch has a PR', () => {
+  it('the banner goes away once the branch has an MR', () => {
     const store = setup(`/gitnub/${SLUG}`)
     openPr(store)
     click(screen.getByRole('link', { name: 'docs-site' }))
-    expect(screen.queryByText(/had recent pushes/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/You pushed to/)).not.toBeInTheDocument()
   })
 })
 
-describe('the pull request page', () => {
+describe('the merge request page', () => {
   it('shows a review once a teammate has looked', () => {
     const store = setup(`/gitnub/${SLUG}`)
     const pr = openPr(store)
-    expect(screen.getByText(/Waiting for a review/)).toBeInTheDocument()
+    expect(screen.getByText(/Approval is optional/)).toBeInTheDocument()
     act(() =>
       store.getState().dispatch({
         type: 'applyEffect',
@@ -126,9 +129,9 @@ describe('the pull request page', () => {
         },
       })
     )
-    expect(screen.getByText('approved these changes')).toBeInTheDocument()
+    expect(screen.getByText('approved this merge request')).toBeInTheDocument()
     expect(screen.getByText('Welcome aboard! 🎉')).toBeInTheDocument()
-    expect(screen.getByText(/Changes approved/)).toBeInTheDocument()
+    expect(screen.getByText(/Approved. Ready to merge!/)).toBeInTheDocument()
   })
 
   it('lists the commits and the files changed', () => {
@@ -138,33 +141,41 @@ describe('the pull request page', () => {
     const commits = screen.getByRole('list')
     expect(within(commits).getByText('Add Ada Lovelace to the team list')).toBeInTheDocument()
     expect(commits).toHaveTextContent('Ada Lovelace committed')
-    click(screen.getByRole('tab', { name: /Files changed 1/ }))
+    click(screen.getByRole('tab', { name: /Changes 1/ }))
     const diff = screen.getByRole('table', { name: 'Changes to team.md' })
     expect(diff).toHaveTextContent('- Ada Lovelace')
   })
 
-  it('squash merge previews the message, makes one commit on main, and offers to delete the branch', () => {
+  it('Merge squashes into one commit on main, as previewed, and deletes the source branch', () => {
     const store = setup(`/gitnub/${SLUG}`)
     openPr(store)
     const before = log(remote(store).commits, remote(store).branches.main).length
 
-    click(screen.getByRole('button', { name: 'Squash and merge' }))
-    const preview = screen.getByText(/Add Ada Lovelace to the team list \(#4\)/)
-    expect(screen.getByText(/will become/)).toHaveTextContent(
-      'Your 1 commit will become 1 commit on main'
-    )
-    click(screen.getByRole('button', { name: 'Confirm squash and merge' }))
+    expect(screen.getByRole('checkbox', { name: /Squash commits/ })).toBeChecked()
+    expect(screen.getByRole('checkbox', { name: /Squash commits/ })).toBeDisabled()
+    expect(screen.getByRole('checkbox', { name: 'Delete source branch' })).toBeChecked()
+    expect(screen.getByText('1 commit will be added to main.')).toBeInTheDocument()
+    const preview = screen.getByText(/See merge request inkwell\/docs-site!4/)
+    click(screen.getByRole('button', { name: 'Merge' }))
 
     const after = log(remote(store).commits, remote(store).branches.main)
     expect(after).toHaveLength(before + 1)
     expect(after[0].message).toBe(preview.textContent)
     expect(after[0].author.name).toBe('Ada Lovelace')
     expect(findPullRequest(remote(store), 4)).toMatchObject({ status: 'merged' })
-    expect(screen.getAllByText(/Merged/).length).toBeGreaterThan(0)
-
-    click(screen.getByRole('button', { name: 'Delete branch' }))
+    expect(screen.getByText(/The changes were merged into/)).toBeInTheDocument()
     expect(remote(store).branches['ada-team-list']).toBeUndefined()
-    expect(screen.getByText(/Branch deleted/)).toBeInTheDocument()
+    expect(screen.getByText(/The source branch has been deleted/)).toBeInTheDocument()
+  })
+
+  it('with Delete source branch unticked, the branch stays until you delete it', () => {
+    const store = setup(`/gitnub/${SLUG}`)
+    openPr(store)
+    click(screen.getByRole('checkbox', { name: 'Delete source branch' }))
+    click(screen.getByRole('button', { name: 'Merge' }))
+    expect(remote(store).branches['ada-team-list']).toBeDefined()
+    click(screen.getByRole('button', { name: 'Delete source branch' }))
+    expect(remote(store).branches['ada-team-list']).toBeUndefined()
   })
 })
 
@@ -177,48 +188,42 @@ describe('an out-of-date branch', () => {
           type: 'remoteCommit',
           slug: SLUG,
           author: 'sam',
-          message: 'Add Sam Rivera to the team list (#5)',
+          message: 'Add Sam Rivera to the team list\n\nSee merge request inkwell/docs-site!5',
           edits: [{ kind: 'appendLine', path: 'docs/welcome.md', text: 'Hello from Sam.' }],
         },
       })
     )
   }
 
-  it('trying to merge an out-of-date branch explains it needs updating first', () => {
+  it('blocks merging until the source branch is rebased', () => {
     const store = setup(`/gitnub/${SLUG}`)
     const pr = openPr(store)
     samMerges(store)
-    const mainBefore = remote(store).branches.main
-    click(screen.getByRole('button', { name: 'Squash and merge' }))
-    expect(screen.getByRole('alert')).toHaveTextContent('Update the branch first')
-    expect(
-      screen.queryByRole('button', { name: 'Confirm squash and merge' })
-    ).not.toBeInTheDocument()
-    expect(remote(store).branches.main).toBe(mainBefore)
     expect(findPullRequest(remote(store), pr.number)?.status).toBe('needs-update')
+    expect(screen.getByRole('button', { name: 'Merge' })).toBeDisabled()
 
-    click(screen.getByRole('button', { name: 'Update branch' }))
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
-    click(screen.getByRole('button', { name: 'Squash and merge' }))
-    expect(screen.getByRole('button', { name: 'Confirm squash and merge' })).toBeInTheDocument()
+    click(screen.getByRole('button', { name: 'Rebase' }))
+    expect(screen.getByRole('button', { name: 'Merge' })).toBeEnabled()
   })
 
-  it('Update branch replays the commits and clears the banner', () => {
+  it('Rebase replays the commits and clears the banner', () => {
     const store = setup(`/gitnub/${SLUG}`)
     const pr = openPr(store)
     samMerges(store)
     expect(findPullRequest(remote(store), pr.number)?.status).toBe('needs-update')
-    expect(screen.getByText('This branch is out of date with the base branch')).toBeInTheDocument()
+    expect(
+      screen.getAllByText(
+        'Merge blocked: the source branch must be rebased onto the target branch.'
+      ).length
+    ).toBeGreaterThan(0)
 
     const before = remote(store).branches['ada-team-list']
-    click(screen.getByRole('button', { name: 'Update branch' }))
+    click(screen.getByRole('button', { name: 'Rebase' }))
 
     expect(findPullRequest(remote(store), pr.number)?.status).toBe('open')
     expect(remote(store).branches['ada-team-list']).not.toBe(before)
-    expect(
-      screen.queryByText('This branch is out of date with the base branch')
-    ).not.toBeInTheDocument()
-    expect(screen.getByText('Branch updated')).toBeInTheDocument()
+    expect(screen.queryByText(/must be rebased/)).not.toBeInTheDocument()
+    expect(screen.getByText('Source branch rebased')).toBeInTheDocument()
     expect(screen.getByRole('img')).toHaveAccessibleName(/sit on top of the latest main/)
 
     // The learner's clone came along, so the branch there matches GitNub.
@@ -228,7 +233,7 @@ describe('an out-of-date branch', () => {
   })
 })
 
-describe('a pull request with conflicts', () => {
+describe('a merge request with conflicts', () => {
   function samTakesTheSameSpot(store: GameStore) {
     act(() =>
       store.getState().dispatch({
@@ -237,7 +242,7 @@ describe('a pull request with conflicts', () => {
           type: 'remoteCommit',
           slug: SLUG,
           author: 'sam',
-          message: 'Add Sam Rivera to the team list (#5)',
+          message: 'Add Sam Rivera to the team list\n\nSee merge request inkwell/docs-site!5',
           edits: [{ kind: 'appendLine', path: 'team.md', text: '- Sam Rivera' }],
         },
       })
@@ -250,21 +255,26 @@ describe('a pull request with conflicts', () => {
     samTakesTheSameSpot(store)
     expect(findPullRequest(remote(store), pr.number)?.status).toBe('has-conflicts')
 
-    expect(screen.getByText('This branch has conflicts that must be resolved')).toBeInTheDocument()
+    expect(
+      screen.getByRole('note', { name: 'Resolve conflicts: 1 file between ada-team-list and main' })
+    ).toBeInTheDocument()
+    expect(screen.getByText('Merge blocked: merge conflicts must be resolved.')).toBeInTheDocument()
     expect(
       within(screen.getByRole('list', { name: 'Conflicting files' })).getByText('team.md')
     ).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Squash and merge' })).toBeDisabled()
-    expect(screen.queryByRole('button', { name: 'Update branch' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Merge' })).toBeDisabled()
+    expect(screen.queryByRole('button', { name: 'Rebase' })).not.toBeInTheDocument()
 
     act(() =>
       store.getState().dispatch({ type: 'resolveConflicts', slug: SLUG, number: pr.number })
     )
     expect(findPullRequest(remote(store), pr.number)?.status).toBe('open')
     expect(
-      screen.queryByText('This branch has conflicts that must be resolved')
+      screen.queryByRole('note', {
+        name: 'Resolve conflicts: 1 file between ada-team-list and main',
+      })
     ).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Squash and merge' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Merge' })).toBeEnabled()
   })
 })
 
@@ -279,7 +289,7 @@ describe('resolving a conflict on GitNub', () => {
           type: 'remoteCommit',
           slug: SLUG,
           author: 'sam',
-          message: 'Add Sam Rivera to the team list (#5)',
+          message: 'Add Sam Rivera to the team list\n\nSee merge request inkwell/docs-site!5',
           edits: [{ kind: 'appendLine', path: 'team.md', text: '- Sam Rivera' }],
         },
       })
@@ -289,7 +299,7 @@ describe('resolving a conflict on GitNub', () => {
 
   it('previews each choice, nudges when one drops a change, and shows the markers', () => {
     conflicted()
-    const resolve = screen.getByRole('button', { name: 'Mark as resolved' })
+    const resolve = screen.getByRole('button', { name: 'Commit to source branch' })
     expect(resolve).toBeDisabled()
     const choices = screen.getByRole('group', { name: 'Resolve team.md' })
 
@@ -310,10 +320,10 @@ describe('resolving a conflict on GitNub', () => {
     expect(screen.getByText(/<<<<<<< ada-team-list/)).toHaveTextContent('>>>>>>> main')
   })
 
-  it('Mark as resolved merges main in with the choice, and Undo takes it back', () => {
+  it('Commit to source branch merges main in with the choice, and Undo takes it back', () => {
     const { store, pr } = conflicted()
     click(screen.getByRole('button', { name: 'Keep theirs' }))
-    click(screen.getByRole('button', { name: 'Mark as resolved' }))
+    click(screen.getByRole('button', { name: 'Commit to source branch' }))
     expect(findPullRequest(remote(store), pr.number)?.status).toBe('open')
     const tip = remote(store).branches['ada-team-list']
     expect(remote(store).commits[tip].message).toBe("Merge branch 'main' into ada-team-list")
@@ -322,16 +332,20 @@ describe('resolving a conflict on GitNub', () => {
 
     click(screen.getByRole('button', { name: 'Undo and choose again' }))
     expect(findPullRequest(remote(store), pr.number)?.status).toBe('has-conflicts')
-    expect(screen.getByText('This branch has conflicts that must be resolved')).toBeInTheDocument()
+    expect(
+      screen.getByRole('note', { name: 'Resolve conflicts: 1 file between ada-team-list and main' })
+    ).toBeInTheDocument()
   })
 })
 
-describe('the pull requests list', () => {
-  it('shows open and merged pull requests', () => {
+describe('the merge requests list', () => {
+  it('shows open and merged merge requests', () => {
     const store = setup(`/gitnub/${SLUG}`)
     openPr(store)
-    click(screen.getByRole('link', { name: /All pull requests/ }))
-    expect(screen.getByRole('heading', { name: '1 open · 0 merged' })).toBeInTheDocument()
+    click(screen.getByRole('link', { name: /All merge requests/ }))
+    expect(
+      screen.getByRole('heading', { name: 'Merge requests · 1 open · 0 merged' })
+    ).toBeInTheDocument()
     expect(
       screen.getByRole('link', { name: 'Add Ada Lovelace to the team list' })
     ).toBeInTheDocument()

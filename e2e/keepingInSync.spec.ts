@@ -1,9 +1,11 @@
 import { expect, test, type Page } from '@playwright/test'
 
 import {
+  createMergeRequest,
   expectDone,
   gitnub,
   keepGoing,
+  mergeWhenApproved,
   openTab,
   run,
   selectWordInEditor,
@@ -22,7 +24,7 @@ async function chapter5(page: Page, catchUp: 'merge' | 'pull') {
   await run(page, 'git status')
   await expect(terminalOutput(page)).toContainText('behind')
   await run(page, 'git log --oneline origin/main')
-  await expect(terminalOutput(page)).toContainText('Fix a typo on the welcome page (#6)')
+  await expect(terminalOutput(page)).toContainText('Fix a typo on the welcome page')
   // Both roads lead to the same place: merge what was fetched, or fetch and merge again in one go.
   await run(page, catchUp === 'merge' ? 'git merge origin/main' : 'git pull')
   await expect(terminalOutput(page)).toContainText('Fast-forward')
@@ -44,20 +46,16 @@ async function chapter6(page: Page) {
   await run(page, 'git push -u origin ada-typo')
 
   await openTab(page, /GitNub/)
-  await gitnub(page).getByRole('link', { name: 'docs-site' }).click()
-  await gitnub(page)
-    .getByRole('link', { name: /Compare & pull request/ })
-    .click()
-  await gitnub(page).getByRole('button', { name: 'Create pull request' }).click()
+  await createMergeRequest(page)
 
-  // Alex's pull request lands while ours waits for review.
+  // Alex's merge request lands while ours waits for review.
   await expect(
-    gitnub(page).getByText('This branch is out of date with the base branch').first()
+    gitnub(page)
+      .getByText(/must be rebased onto the target branch/)
+      .first()
   ).toBeVisible()
-  await gitnub(page).getByRole('button', { name: 'Update branch' }).click()
-  await expect(gitnub(page).getByText('approved these changes')).toBeVisible()
-  await gitnub(page).getByRole('button', { name: 'Squash and merge' }).click()
-  await gitnub(page).getByRole('button', { name: 'Confirm squash and merge' }).click()
+  await gitnub(page).getByRole('button', { name: 'Rebase' }).click()
+  await mergeWhenApproved(page)
 
   await run(page, 'git switch main')
   await run(page, 'git pull')
@@ -67,9 +65,7 @@ async function chapter6(page: Page) {
   await keepGoing(page)
 }
 
-test('Chapters 5 and 6: fetch, look, merge; then an out-of-date PR and Update branch', async ({
-  page,
-}) => {
+test('Chapters 5 and 6: fetch, look, merge; then an MR that needs a rebase', async ({ page }) => {
   await page.goto('./?fast=1&chapter=05')
   await chapter5(page, 'merge')
   await chapter6(page)
@@ -170,5 +166,5 @@ test('the Where are my changes? panel follows a commit to GitNub', async ({ page
   await run(page, 'git commit -m "Add me to the team list"')
   await expect(where).toContainText('1 commit waiting to push')
   await run(page, 'git push -u origin ada-team-list')
-  await expect(where).toContainText('your branch is on GitNub with no pull request yet')
+  await expect(where).toContainText('your branch is on GitNub with no merge request yet')
 })

@@ -119,8 +119,8 @@ hint: See the 'Note about fast-forwards' in 'git push --help' for details.`
     })
     expect(plainText(formatPush(result, SLUG).filter((l) => l.tone !== 'muted'))).toBe(
       `remote: 
-remote: Create a pull request for 'ada-team-list' on GitNub by visiting:
-remote:      https://gitnub.com/inkwell/docs-site/pull/new/ada-team-list
+remote: To create a merge request for ada-team-list, visit:
+remote:   https://gitnub.com/inkwell/docs-site/-/merge_requests/new?merge_request%5Bsource_branch%5D=ada-team-list
 remote: 
 To https://gitnub.com/inkwell/docs-site.git
  * [new branch]      ada-team-list -> ada-team-list
@@ -348,11 +348,11 @@ describe('applyEdits', () => {
 })
 
 describe('remoteCommit', () => {
-  it('a merged pull request’s number in the message is taken', () => {
+  it('a merged merge request’s number in the message is taken', () => {
     const remote = { ...docsSite(), nextPullRequest: 4 }
     const after = remoteCommit(remote, {
       author: sam,
-      message: 'Add Sam to the team list (#5)',
+      message: 'Add Sam to the team list\n\nSee merge request inkwell/docs-site!5',
       change: appendLine('team.md', '- Sam'),
       timestamp: T0 + 900,
     }).remote

@@ -8,7 +8,7 @@ import styles from './GitNub.module.css'
 import { NotFound } from './GitNub'
 import { RepoHeader } from './RepoHeader'
 
-/** The "open a pull request" form, reached from the Compare & pull request banner. */
+/** The "New merge request" form, reached from the Create merge request banner. */
 export function ComparePage() {
   const { org, repo: name, branch } = useParams()
   const slug = `${org}/${name}`
@@ -41,10 +41,10 @@ export function ComparePage() {
   return (
     <div>
       <RepoHeader repo={repo} active="pulls" />
-      <h2 className={styles.sectionTitle}>Open a pull request</h2>
+      <h2 className={styles.sectionTitle}>New merge request</h2>
       <p className={styles.muted}>
-        <code className={styles.branchChip}>{repo.defaultBranch}</code> ←{' '}
-        <code className={styles.branchChip}>{branch}</code> · {commits.length}{' '}
+        From <code className={styles.branchChip}>{branch}</code> into{' '}
+        <code className={styles.branchChip}>{repo.defaultBranch}</code> · {commits.length}{' '}
         {commits.length === 1 ? 'commit' : 'commits'}
       </p>
       <form
@@ -64,7 +64,7 @@ export function ComparePage() {
           <textarea rows={4} value={body} onChange={(event) => setBody(event.target.value)} />
         </label>
         <button type="submit" className={styles.codeButton}>
-          Create pull request
+          Create merge request
         </button>
       </form>
     </div>

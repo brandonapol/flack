@@ -327,8 +327,8 @@ export function remoteCommit(
     timestamp: input.timestamp,
     tree: input.change({ ...remote.commits[parent].tree }),
   })
-  // A scripted "(#7)" is a pull request someone merged: the next one opened can't reuse its number.
-  const numbered = /\(#(\d+)\)\s*$/.exec(input.message.split('\n')[0])
+  // A scripted "See merge request …!7" is one someone merged: the next one can't reuse its number.
+  const numbered = /See merge request \S*!(\d+)\s*$/m.exec(input.message)
   return {
     commit: created,
     remote: {

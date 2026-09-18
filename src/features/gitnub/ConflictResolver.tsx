@@ -37,11 +37,14 @@ export function ConflictResolver({
   return (
     <div className={styles.prNotice} role="note" aria-labelledby="conflict-title">
       <p id="conflict-title" className={styles.prNoticeTitle}>
-        This branch has conflicts that must be resolved
+        Resolve conflicts: {conflicts.length} {conflicts.length === 1 ? 'file' : 'files'} between{' '}
+        <code>{pr.branch}</code> and <code>{pr.base}</code>
       </p>
       <p className={styles.muted}>
         Your branch and <code>{pr.base}</code> both changed the same lines. Nothing is broken and
-        nothing is lost — someone just has to choose what to keep.
+        nothing is lost — someone just has to choose what to keep. (Real GitLab labels these{' '}
+        <strong>Use ours</strong> and <strong>Use theirs</strong>; keeping both is{' '}
+        <strong>Edit inline</strong>.)
       </p>
       <ul className={styles.conflictFiles} aria-label="Conflicting files">
         {conflicts.map((file) => (
@@ -77,7 +80,7 @@ export function ConflictResolver({
         disabled={!ready}
         onClick={() => dispatch({ type: 'resolveConflicts', slug, number: pr.number, choices })}
       >
-        Mark as resolved
+        Commit to source branch
       </button>
     </div>
   )

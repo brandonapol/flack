@@ -72,7 +72,7 @@ describe('Chapter 7 in the Commit Lab', () => {
 
     act(() => void fireEvent.click(screen.getByRole('button', { name: 'Undo' })))
     perform('Reword the formatting tips', 'Add two team tips', 'Rebase onto here')
-    expect(screen.getByText(/exactly what/)).toHaveTextContent('Update branch')
+    expect(screen.getByText(/exactly what/)).toHaveTextContent('Rebase did for you')
     expect(store.getState().game.story.completedSteps).toEqual(['read-robin', 'squash', 'rebase'])
     expect(store.getState().game.story.phase).toBe('complete')
   })

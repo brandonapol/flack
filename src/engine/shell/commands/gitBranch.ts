@@ -259,7 +259,7 @@ export function registerGitBranchCommands<S extends CoreState>(registry: Registr
                 'muted'
               ),
               line(
-                '💡 After a squash merge, Git can’t tell your commits made it to main, because they became one new commit. If GitNub shows the pull request as merged, -D is safe.',
+                '💡 After a squash merge, Git can’t tell your commits made it to main, because they became one new commit. If GitNub shows the merge request as merged, -D is safe.',
                 'muted'
               )
             )

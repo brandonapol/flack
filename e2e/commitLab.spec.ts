@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-// Chapter 3's Ask Robin includes "What does Squash and merge mean?", which links to the lab.
+// Chapter 3’s Ask Robin includes "What does Squash commits mean?", which links to the lab.
 test('Ask Robin opens the Commit Lab, and a real drag squashes commits', async ({ page }) => {
   await page.goto('./?fast=1&chapter=03')
   await page.getByRole('tab', { name: /Flack/ }).click()
@@ -10,7 +10,7 @@ test('Ask Robin opens the Commit Lab, and a real drag squashes commits', async (
     .click()
   await page
     .getByRole('list', { name: 'Questions you can ask Robin' })
-    .getByRole('button', { name: /Squash and merge/ })
+    .getByRole('button', { name: /Squash commits/ })
     .click()
   await page.getByRole('button', { name: 'Try it in the Commit Lab' }).click()
 

@@ -12,7 +12,7 @@ const CONFLICT_NOTE = [
     'muted'
   ),
   line(
-    '   the same lines, you choose what to keep on the pull request’s GitNub page instead.',
+    '   the same lines, you choose what to keep on the merge request’s GitNub page instead.',
     'muted'
   ),
 ]

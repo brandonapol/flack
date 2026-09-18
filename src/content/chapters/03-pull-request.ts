@@ -34,7 +34,7 @@ export const pullRequestChapter: Chapter = {
   title: 'Save it to GitNub',
   milestone: 'day-one',
   intro:
-    'Your name is saved on your computer. Now it needs to reach GitNub — the way everything does here: a branch, a commit, a pull request, and a squash merge.',
+    'Your name is saved on your computer. Now it needs to reach GitNub — the way everything does here: a branch, a commit, a merge request, and a squash merge.',
   setup: (state: GameState, config: GameConfig) => {
     void config
     return {
@@ -62,7 +62,7 @@ export const pullRequestChapter: Chapter = {
           id: 'jordan-branch',
           channel: 'docs-team',
           from: 'jordan',
-          text: 'When you’re ready to share it: branch, commit, push, then open a pull request. I’ll review it as soon as it’s up. 👍',
+          text: 'When you’re ready to share it: branch, commit, push, then create a merge request. I’ll review it as soon as it’s up. 👍',
         },
       ],
     },
@@ -119,16 +119,16 @@ export const pullRequestChapter: Chapter = {
       solution: 'git push -u origin {{player.slug}}-team-list',
       goal: (_state, event) => event.type === 'branchPushed',
       afterNote:
-        'Notice what GitNub said back: it’s offering you a pull request. That’s the next step, and it happens on the website.',
+        'Notice what GitNub said back: it’s offering you a merge request. That’s the next step, and it happens on the website.',
       docs: [DOCS.gitPush],
     },
     {
       id: 'open-pr',
-      title: 'Open a pull request',
-      body: 'On the **GitNub** tab, click **Compare & pull request**, then **Create pull request**. A pull request says: *here’s my branch, please take a look*.',
+      title: 'Create a merge request',
+      body: 'On the **GitNub** tab, click **Create merge request** in the banner, then **Create merge request** again at the bottom of the form. A merge request (MR) says: *here’s my branch, please take a look*.',
       hints: [
         'Switch to the GitNub tab — there’s a blue banner about your branch.',
-        'Click **Compare & pull request**, then **Create pull request**.',
+        'Click **Create merge request** in the banner, then **Create merge request** on the form.',
       ],
       goal: (_state, event) => event.type === 'pullRequestOpened',
       afterNote: 'Jordan gets a notification. Reviews are usually quick here.',
@@ -137,10 +137,10 @@ export const pullRequestChapter: Chapter = {
         {
           type: 'reviewPullRequest',
           slug: DOCS_SITE,
-          // Pull requests #1-#3 are already in docs-site's history, so this is the learner's.
+          // Merge requests !1–!3 are already in docs-site's history, so this is the learner's.
           number: 4,
           author: 'jordan',
-          body: 'Looks great — welcome aboard! Squash and merge whenever you’re ready. 🎉',
+          body: 'Looks great — welcome aboard! Merge whenever you’re ready. 🎉',
           approve: true,
           delayMs: 5000,
         },
@@ -148,18 +148,18 @@ export const pullRequestChapter: Chapter = {
           type: 'flackMessage',
           channel: 'docs-team',
           from: 'jordan',
-          text: 'Approved your pull request — go ahead and squash-merge it. 🎉',
+          text: 'Approved your merge request — go ahead and merge it. 🎉',
           delayMs: 5200,
         },
       ],
     },
     {
       id: 'merge',
-      title: 'Squash and merge it',
-      body: 'On the pull request, click **Squash and merge**, then confirm. Your commits become **one** tidy commit on `main` — that’s why our history reads like a list of finished changes.',
+      title: 'Merge it',
+      body: 'On the merge request, click **Merge**. **Squash commits** is always on here, so your commits become **one** tidy commit on `main` — that’s why our history reads like a list of finished changes.',
       hints: [
-        'The green **Squash and merge** button is at the bottom of the pull request.',
-        'Click it, then **Confirm squash and merge**.',
+        'The blue **Merge** button is at the bottom of the merge request.',
+        'Leave **Delete source branch** ticked, and click **Merge**.',
       ],
       goal: (_state, event) => event.type === 'pullRequestMerged',
       afterNote: 'Your name is on `main` now, and the whole team can see it.',
@@ -167,10 +167,12 @@ export const pullRequestChapter: Chapter = {
     },
     {
       id: 'delete-branch',
-      title: 'Delete the branch (optional)',
-      body: 'Click **Delete branch**. It’s safe: your work is on `main` now, as its own commit. Tidying up keeps the branch list readable.',
+      title: 'Delete the source branch (optional)',
+      body: 'With **Delete source branch** ticked, merging already did this. If you unticked it, click **Delete source branch** now. It’s safe: your work is on `main`, as its own commit.',
       optional: true,
-      hints: ['The **Delete branch** button appears right after merging.'],
+      hints: [
+        'The **Delete source branch** button appears right after merging, if the branch is still there.',
+      ],
       goal: (_state, event) => event.type === 'remoteBranchDeleted',
     },
     {
@@ -193,14 +195,14 @@ export const pullRequestChapter: Chapter = {
         return Boolean(repo && repo.head === 'main' && repo.branches.main === remote.branches.main)
       },
       afterNote:
-        'Your copy and GitNub’s match again. Branch → commit → push → pull request → squash merge → pull: that’s the loop, and you’ve done it once now.',
+        'Your copy and GitNub’s match again. Branch → commit → push → merge request → squash merge → pull: that’s the loop, and you’ve done it once now.',
       docs: [DOCS.gitPull],
     },
   ],
-  mentorQuestions: ['what-is-a-branch', 'what-is-a-pr', 'what-is-squash-merge', 'delete-branch'],
+  mentorQuestions: ['what-is-a-branch', 'what-is-an-mr', 'what-is-squash-merge', 'delete-branch'],
   summary: [
     '`git switch -c <name>` starts a branch; `git add` stages; `git commit -m "…"` saves a commit.',
-    '`git push -u origin <branch>` puts the branch on GitNub, where you open a pull request.',
-    '**Squash and merge** turns the branch into one commit on `main`; `git pull` brings it back to you.',
+    '`git push -u origin <branch>` puts the branch on GitNub, where you create a merge request.',
+    '**Merge** (with **Squash commits**) turns the branch into one commit on `main`; `git pull` brings it back to you.',
   ],
 }

@@ -80,7 +80,7 @@ const outOfDate: LabScenario = {
   id: 'out-of-date',
   title: 'What “out of date” looks like',
   intro:
-    'This is your pull request right now: your fix started from the style guide, and Alex’s tips landed on `main` after. Drag **your commit** onto **Alex’s** and choose **Rebase onto here** — that’s exactly what **Update branch** does.',
+    'This is your merge request right now: your fix started from the style guide, and Alex’s tips landed on `main` after. Drag **your commit** onto **Alex’s** and choose **Rebase onto here** — that’s exactly what **Rebase** does.',
   start: {
     lanes: ['main', 'yours'],
     branches: { main: 'm3', yours: 'y1' },
@@ -205,7 +205,7 @@ const tidyRebase: LabScenario = {
       'That’s a merge: both histories kept, joined by a new commit. Perfectly valid — but here we want one straight line. Undo, then try **Rebase onto here**.',
     cherryPick:
       'That copied your commit onto main, but your branch still starts from the old spot. Undo, and try **Rebase onto here**.',
-    rebase: 'One straight line. That’s exactly what **Update branch** did for you in Chapter 6.',
+    rebase: 'One straight line. That’s exactly what **Rebase** did for you in Chapter 6.',
   },
 }
 
@@ -236,7 +236,7 @@ const prConflict: LabScenario = {
   id: 'pr-conflict',
   title: 'Two tips, one spot',
   intro:
-    'Your pull request and Sam’s both added a line at the very bottom of **Team tips** — the same spot. Drag your commit onto Sam’s and choose **Merge with here** to see the conflict. Try **Keep mine**, then Undo and try **Keep theirs**: see what each one leaves out.',
+    'Your merge request and Sam’s both added a line at the very bottom of **Team tips** — the same spot. Drag your commit onto Sam’s and choose **Merge with here** to see the conflict. Try **Keep mine**, then Undo and try **Keep theirs**: see what each one leaves out.',
   start: {
     lanes: ['main', 'yours'],
     branches: { main: 's1', yours: 'y1' },

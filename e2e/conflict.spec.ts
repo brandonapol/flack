@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-import { gitnub, run } from './helpers'
+import { createMergeRequest, gitnub, mergeWhenApproved, run } from './helpers'
 
 const STYLE_GUIDE = 'docs/style-guide.md'
 const TIP = '- Say the most important thing first.'
@@ -18,13 +18,9 @@ test('Chapter 8: a PR conflict, the Commit Lab, Keep both, and graduation', asyn
   await run(page, 'git push -u origin ada-tip')
 
   await page.getByRole('tab', { name: /GitNub/ }).click()
-  await gitnub(page).getByRole('link', { name: 'docs-site' }).click()
-  await gitnub(page)
-    .getByRole('link', { name: /Compare & pull request/ })
-    .click()
-  await gitnub(page).getByRole('button', { name: 'Create pull request' }).click()
+  await createMergeRequest(page)
   await expect(
-    gitnub(page).getByText('This branch has conflicts that must be resolved')
+    gitnub(page).getByText('Merge blocked: merge conflicts must be resolved.')
   ).toBeVisible()
 
   // Why: the Commit Lab, opened from the banner.
@@ -43,10 +39,8 @@ test('Chapter 8: a PR conflict, the Commit Lab, Keep both, and graduation', asyn
   await choices.getByRole('button', { name: 'Keep mine' }).click()
   await expect(gitnub(page).getByText(/That drops what’s on main/)).toBeVisible()
   await choices.getByRole('button', { name: 'Keep both' }).click()
-  await gitnub(page).getByRole('button', { name: 'Mark as resolved' }).click()
-  await expect(gitnub(page).getByText('approved these changes')).toBeVisible()
-  await gitnub(page).getByRole('button', { name: 'Squash and merge' }).click()
-  await gitnub(page).getByRole('button', { name: 'Confirm squash and merge' }).click()
+  await gitnub(page).getByRole('button', { name: 'Commit to source branch' }).click()
+  await mergeWhenApproved(page)
 
   await page.getByRole('tab', { name: /Flack/ }).click()
   await page
@@ -62,7 +56,7 @@ test('Chapter 8: a PR conflict, the Commit Lab, Keep both, and graduation', asyn
 
   // Cheat sheet v2 prints on one or two pages.
   await graduated.getByRole('link', { name: 'Open the cheat sheet' }).click()
-  await expect(page.getByRole('heading', { name: 'When your pull request says…' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'When your merge request says…' })).toBeVisible()
   await page.emulateMedia({ media: 'print' })
   const pdf = await page.pdf({ format: 'Letter' })
   const pages = pdf.toString('latin1').match(/\/Type\s*\/Page[^s]/g)?.length ?? 0

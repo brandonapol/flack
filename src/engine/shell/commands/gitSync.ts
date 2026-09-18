@@ -47,7 +47,7 @@ export function registerGitSyncCommands<S extends CoreState>(registry: Registry<
             '   anyone else’s work. If a push is refused, bring their changes in first: `git pull`, or',
             'muted'
           ),
-          line('   Update branch on your pull request.', 'muted')
+          line('   Rebase on your merge request.', 'muted')
         )
       }
       const parsed = parseArgs(argv.slice(2), { flags: ['-u', '--set-upstream'] })
@@ -191,7 +191,7 @@ export function registerGitSyncCommands<S extends CoreState>(registry: Registry<
             'muted'
           ),
           line(
-            '   a pull request, Update branch on its GitNub page does the rebase for you.',
+            '   a merge request, the Rebase button on its GitNub page does it for you.',
             'muted'
           ),
         ],

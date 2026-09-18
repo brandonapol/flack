@@ -34,8 +34,7 @@ export function PullRequestPage() {
   const now = useGame((s) => s.game.clock)
   const dispatch = useGame((s) => s.dispatch)
   const [tab, setTab] = useState<Tab>('conversation')
-  const [confirming, setConfirming] = useState(false)
-  const [triedWhileOutOfDate, setTriedWhileOutOfDate] = useState(false)
+  const [deleteSource, setDeleteSource] = useState(true)
   const [updated, setUpdated] = useState<{ from: string; to: string }>()
 
   if (!repo) return <NotFound />
@@ -59,25 +58,24 @@ export function PullRequestPage() {
       <RepoHeader repo={repo} active="pulls" />
 
       <h2 className={styles.prTitle}>
-        {pr.title} <span className={styles.prNumber}>#{pr.number}</span>
+        {pr.title} <span className={styles.prNumber}>!{pr.number}</span>
       </h2>
       <p className={styles.prMeta}>
         <span className={merged ? styles.statusMerged : styles.statusOpen}>
           {merged ? '✔' : '⌥'} {statusLabel}
         </span>{' '}
-        <strong>{author}</strong> wants to merge {commits.length}{' '}
-        {commits.length === 1 ? 'commit' : 'commits'} into{' '}
-        <code className={styles.branchChip}>{pr.base}</code> from{' '}
-        <code className={styles.branchChip}>{pr.branch}</code>
-        {pr.branchDeleted && <span className={styles.badge}>branch deleted</span>}
+        <strong>{author}</strong> requested to merge{' '}
+        <code className={styles.branchChip}>{pr.branch}</code> into{' '}
+        <code className={styles.branchChip}>{pr.base}</code>
+        {pr.branchDeleted && <span className={styles.badge}>source branch deleted</span>}
       </p>
 
-      <div className={styles.prTabs} role="tablist" aria-label="Pull request">
+      <div className={styles.prTabs} role="tablist" aria-label="Merge request">
         {(
           [
-            ['conversation', 'Conversation'],
+            ['conversation', 'Overview'],
             ['commits', `Commits ${commits.length}`],
-            ['files', `Files changed ${diffs.length}`],
+            ['files', `Changes ${diffs.length}`],
           ] as Array<[Tab, string]>
         ).map(([id, label]) => (
           <button
@@ -97,8 +95,8 @@ export function PullRequestPage() {
         <div className={styles.prBody}>
           <article className={styles.prComment}>
             <p className={styles.prCommentHeader}>
-              <Avatar name={author} size={22} square /> <strong>{author}</strong> opened this{' '}
-              {relativeTime(pr.openedAt, now)}
+              <Avatar name={author} size={22} square /> <strong>{author}</strong> created this merge
+              request {relativeTime(pr.openedAt, now)}
             </p>
             {pr.body ? (
               <Markdown source={pr.body} className={markdownStyles.markdown} />
@@ -120,7 +118,7 @@ export function PullRequestPage() {
                   />{' '}
                   <strong>{character?.name ?? comment.author}</strong>{' '}
                   {comment.kind === 'approval' ? (
-                    <span className={styles.approved}>approved these changes</span>
+                    <span className={styles.approved}>approved this merge request</span>
                   ) : (
                     'commented'
                   )}{' '}
@@ -134,11 +132,11 @@ export function PullRequestPage() {
           {needsUpdate && !merged && (
             <div className={styles.prNotice} role="note">
               <p className={styles.prNoticeTitle}>
-                This branch is out of date with the base branch
+                Merge blocked: the source branch must be rebased onto the target branch.
               </p>
               <p className={styles.muted}>
-                Someone else’s work landed on <code>{pr.base}</code> first. Updating replays your
-                commits on top of it — that’s a <strong>rebase</strong>. Nothing is lost.
+                Someone else’s work landed on <code>{pr.base}</code> first. <strong>Rebase</strong>{' '}
+                replays your commits on top of it. Nothing is lost.
               </p>
               <button
                 type="button"
@@ -149,7 +147,7 @@ export function PullRequestPage() {
                   setUpdated({ from: before, to: '' })
                 }}
               >
-                Update branch
+                Rebase
               </button>
             </div>
           )}
@@ -175,7 +173,7 @@ export function PullRequestPage() {
           )}
           {updated && !needsUpdate && !merged && (
             <div className={styles.prNotice} role="status">
-              <p className={styles.prNoticeTitle}>Branch updated</p>
+              <p className={styles.prNoticeTitle}>Source branch rebased</p>
               <BranchGraph base={pr.base} branch={pr.branch} commits={commits.length} />
               <p className={styles.muted}>
                 Your commits were replayed on top of <code>{pr.base}</code>. In the terminal this is{' '}
@@ -188,9 +186,9 @@ export function PullRequestPage() {
             {merged ? (
               <>
                 <p className={styles.mergedLine}>
-                  <span className={styles.statusMerged}>✔ Merged</span> as{' '}
-                  <code>{pr.mergedCommit ? shortId(pr.mergedCommit) : ''}</code> — your change is on{' '}
-                  <code>{pr.base}</code> now.
+                  <span className={styles.statusMerged}>✔ Merged</span> The changes were merged into{' '}
+                  <code>{pr.base}</code> with{' '}
+                  <code>{pr.mergedCommit ? shortId(pr.mergedCommit) : ''}</code>.
                 </p>
                 {!pr.branchDeleted && repo.branches[pr.branch] && (
                   <button
@@ -200,79 +198,69 @@ export function PullRequestPage() {
                       dispatch({ type: 'deleteRemoteBranch', slug, branch: pr.branch })
                     }
                   >
-                    Delete branch
+                    Delete source branch
                   </button>
                 )}
                 {pr.branchDeleted && (
                   <p className={styles.muted}>
-                    Branch deleted. Back in the terminal, run <code>git switch {pr.base}</code> then{' '}
-                    <code>git pull</code> to catch up.
+                    The source branch has been deleted. Back in the terminal, run{' '}
+                    <code>git switch {pr.base}</code> then <code>git pull</code> to catch up.
                   </p>
                 )}
               </>
             ) : (
               <>
-                {conflicted.length > 0 ? (
+                {conflicted.length > 0 || needsUpdate ? (
                   <>
                     <p className={styles.mergeSummary}>
-                      Merging is blocked until the conflicts are resolved.
+                      {needsUpdate
+                        ? 'Merge blocked: the source branch must be rebased onto the target branch.'
+                        : 'Merge blocked: merge conflicts must be resolved.'}
                     </p>
                     <button type="button" className={styles.codeButton} disabled>
-                      Squash and merge
+                      Merge
                     </button>
                   </>
                 ) : (
                   <>
                     <p className={styles.mergeSummary}>
-                      {needsUpdate
-                        ? 'This branch is out of date with the base branch.'
-                        : pr.reviewState === 'approved'
-                          ? '✔ Changes approved. This branch has no conflicts with the base branch.'
-                          : 'Waiting for a review. You can still merge when you’re ready.'}
+                      {pr.reviewState === 'approved'
+                        ? '✔ Approved. Ready to merge!'
+                        : 'Ready to merge! Approval is optional, but it’s worth waiting for a review.'}
                     </p>
-                    {needsUpdate && triedWhileOutOfDate && (
-                      <p className={styles.mergeBlocked} role="alert">
-                        Update the branch first: someone else’s work landed on{' '}
-                        <code>{pr.base}</code> after you opened this. Use{' '}
-                        <strong>Update branch</strong> above, then merge.
-                      </p>
-                    )}
-                    {confirming && !needsUpdate ? (
-                      <div className={styles.mergeConfirm}>
-                        <p className={styles.muted}>
-                          Your {commits.length} {commits.length === 1 ? 'commit' : 'commits'} will
-                          become 1 commit on <code>{pr.base}</code>:
-                        </p>
-                        <pre className={styles.mergePreview}>{squashMessage(pr, commits)}</pre>
-                        <button
-                          type="button"
-                          className={styles.codeButton}
-                          onClick={() => {
-                            setConfirming(false)
-                            dispatch({ type: 'mergePullRequest', slug, number: pr.number })
-                          }}
-                        >
-                          Confirm squash and merge
-                        </button>
-                        <button
-                          type="button"
-                          className={styles.secondaryButton}
-                          onClick={() => setConfirming(false)}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        className={styles.codeButton}
-                        onClick={() =>
-                          needsUpdate ? setTriedWhileOutOfDate(true) : setConfirming(true)
+                    <label className={styles.mergeOption}>
+                      <input
+                        type="checkbox"
+                        checked={deleteSource}
+                        onChange={(event) => setDeleteSource(event.target.checked)}
+                      />{' '}
+                      Delete source branch
+                    </label>
+                    <label className={styles.mergeOption}>
+                      <input type="checkbox" checked disabled /> Squash commits{' '}
+                      <span className={styles.muted}>(required on this project)</span>
+                    </label>
+                    <p className={styles.muted}>
+                      {commits.length === 1
+                        ? `1 commit will be added to ${pr.base}.`
+                        : `${commits.length} commits will be squashed into 1 and added to ${pr.base}.`}
+                    </p>
+                    <details className={styles.mergePreviewBox}>
+                      <summary>Squash commit message</summary>
+                      <pre className={styles.mergePreview}>{squashMessage(slug, pr)}</pre>
+                    </details>
+                    <button
+                      type="button"
+                      className={styles.codeButton}
+                      onClick={() => {
+                        dispatch({ type: 'mergePullRequest', slug, number: pr.number })
+                        if (deleteSource) {
+                          dispatch({ type: 'deleteRemoteBranch', slug, branch: pr.branch })
                         }
-                      >
-                        Squash and merge
-                      </button>
-                    )}
+                      }}
+                    >
+                      Merge
+                    </button>
                   </>
                 )}
               </>
@@ -300,7 +288,7 @@ export function PullRequestPage() {
       {tab === 'files' && <DiffView diffs={diffs} />}
 
       <p className={styles.backLink}>
-        <Link to={repoPath(slug, 'pulls')}>← All pull requests</Link>
+        <Link to={repoPath(slug, 'pulls')}>← All merge requests</Link>
       </p>
     </div>
   )

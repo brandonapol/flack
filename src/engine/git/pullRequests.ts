@@ -160,12 +160,12 @@ export function reviewPullRequest(
   }
 }
 
-/** The message GitNub composes for a squash merge, shown in the merge box before you click. */
-export function squashMessage(pr: PullRequest, commits: Commit[]): string {
-  const body = [pr.body.trim(), ...commits.map((commit) => `* ${commit.message.split('\n')[0]}`)]
-    .filter(Boolean)
-    .join('\n\n')
-  return `${pr.title} (#${pr.number})${body ? `\n\n${body}` : ''}`
+/**
+ * The message GitNub composes for a squash merge, as GitLab does by default: the merge request's
+ * title, then a trailer pointing back to it. Shown in the merge box before you click.
+ */
+export function squashMessage(slug: string, pr: PullRequest): string {
+  return `${pr.title}\n\nSee merge request ${slug}!${pr.number}`
 }
 
 /**
@@ -182,7 +182,7 @@ export function squashMerge(
   if (!merged.ok) throw new Error(`Pull request #${pr.number} has conflicts`)
   const commit = makeCommit({
     parents: [remote.branches[pr.base]],
-    message: squashMessage(pr, pullRequestCommits(remote, pr)),
+    message: squashMessage(remote.slug, pr),
     author: options.author,
     timestamp: options.timestamp,
     tree: merged.tree,

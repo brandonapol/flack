@@ -35,8 +35,8 @@ The source for docs.inkwell.example: everything our customers read about Inkwell
 
 - Every page is a Markdown file in the \`docs/\` folder.
 - Make a branch for your change, commit it, and push the branch to GitNub.
-- Open a pull request. Someone on the docs team reviews it.
-- When it's approved, click **Squash and merge**. Your change is live on \`main\`.
+- Create a merge request. Someone on the docs team reviews it.
+- When it's approved, click **Merge** (we always squash). Your change is live on \`main\`.
 
 New here? Add your name to \`team.md\`, then say hi in #docs-team on Flack.
 `
@@ -61,6 +61,11 @@ Inkwell helps teams write, review and publish ${WELCOME_TYPO} together.
 - New to Inkwell? Read the quick tour.
 - Setting up a team? See the admin guide.
 `
+
+/** A squash commit as GitLab writes it: the merge request's title, then a link back to it. */
+export function mergedAs(title: string, number: number): string {
+  return `${title}\n\nSee merge request ${DOCS_SITE}!${number}`
+}
 
 /** "recieve" is the typo the learner fixes in Chapter 6. */
 export const STYLE_GUIDE_TYPO = 'recieve'
@@ -123,21 +128,19 @@ function docsSiteHistory(): HistoryEntry[] {
     },
     {
       // Squash-merged pull requests: one tidy commit each, titled "<PR title> (#n)".
-      message:
-        'Add a style guide (#1)\n\n* Draft the style guide\n* Add team tips\n* Fix heading case',
+      message: mergedAs('Add a style guide', 1),
       author: person('robin'),
       timestamp: WORLD_START - 21 * DAY,
       tree: v2,
     },
     {
-      message: 'Add a team list (#2)',
+      message: mergedAs('Add a team list', 2),
       author: person('jordan'),
       timestamp: WORLD_START - 14 * DAY,
       tree: v3,
     },
     {
-      message:
-        'Explain branches and pull requests in the README (#3)\n\n* Describe the review flow\n* Point new people at team.md',
+      message: mergedAs('Explain branches and merge requests in the README', 3),
       author: person('robin'),
       timestamp: WORLD_START - 3 * DAY,
       tree: v4,
@@ -149,7 +152,7 @@ export function createDocsSite(): RemoteRepo {
   return createRemote({
     slug: DOCS_SITE,
     description: 'Inkwell product documentation',
-    // Pull requests #1–#3 are already in the history.
+    // Merge requests !1–!3 are already in the history.
     nextPullRequest: 4,
     history: docsSiteHistory(),
   })

@@ -29,14 +29,14 @@ const BOXES: Array<{ id: Box; title: string; explain: string; next: string }> = 
   },
   {
     id: 'pr',
-    title: 'Open PR',
+    title: 'Open MR',
     explain: 'Your branch on GitNub, asking to join `main`.',
-    next: 'Next: a review, then **Squash and merge**. Out of date? **Update branch**. Conflicts? Usually **Keep both**.',
+    next: 'Next: a review, then **Merge**. Needs a rebase? **Rebase**. Conflicts? Usually **Keep both**.',
   },
   {
     id: 'main',
     title: 'GitNub main',
-    explain: 'The team’s shared history. Everything ends up here, one commit per pull request.',
+    explain: 'The team’s shared history. Everything ends up here, one commit per merge request.',
     next: 'When it has commits you don’t: `git switch main`, then `git pull`.',
   },
 ]
@@ -52,9 +52,9 @@ function valueOf(box: Box, summary: ChangesSummary): string {
       return n(summary.commits, 'to push', 'to push')
     case 'pr':
       return summary.pr
-        ? `#${summary.pr.number} ${summary.pr.words}`
+        ? `!${summary.pr.number} ${summary.pr.words}`
         : summary.pushedWithoutPr
-          ? 'pushed — no pull request yet'
+          ? 'pushed — no merge request yet'
           : 'none'
     case 'main':
       return summary.behind > 0 ? `${n(summary.behind, 'new commit')} for you` : 'up to date'

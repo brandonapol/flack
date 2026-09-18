@@ -65,7 +65,7 @@ describe('Where are my changes?', () => {
   it('follows a change from the editor all the way to GitNub’s main and back', () => {
     const store = setup()
     expect(said()).toBe(
-      'On main: 0 changes in your working files, 0 changes staged, 0 commits waiting to push, no pull request, you have everything on GitNub’s main.'
+      'On main: 0 changes in your working files, 0 changes staged, 0 commits waiting to push, no merge request, you have everything on GitNub’s main.'
     )
 
     // Typing in the Editor counts before it's even saved.
@@ -95,7 +95,7 @@ describe('Where are my changes?', () => {
 
     act_(store, 'git push -u origin ada-list')
     expect(said()).toContain(
-      '0 commits waiting to push, your branch is on GitNub with no pull request yet'
+      '0 commits waiting to push, your branch is on GitNub with no merge request yet'
     )
 
     act(() =>
@@ -103,9 +103,9 @@ describe('Where are my changes?', () => {
         .getState()
         .dispatch({ type: 'openPullRequest', slug: SLUG, branch: 'ada-list', title: 'Add Ada' })
     )
-    expect(said()).toContain('pull request #4 waiting for review')
+    expect(said()).toContain('merge request !4 waiting for review')
 
-    // A coworker's pull request lands first.
+    // A coworker's merge request lands first.
     act(() =>
       store.getState().dispatch({
         type: 'applyEffect',
@@ -113,29 +113,29 @@ describe('Where are my changes?', () => {
           type: 'remoteCommit',
           slug: SLUG,
           author: 'sam',
-          message: 'Fix a typo (#5)',
+          message: 'Fix a typo\n\nSee merge request inkwell/docs-site!5',
           edits: [{ kind: 'appendLine', path: 'docs/welcome.md', text: 'Hello.' }],
         },
       })
     )
-    expect(said()).toContain('pull request #4 someone else got there first')
+    expect(said()).toContain('merge request !4 someone else got there first')
     expect(said()).toContain('GitNub’s main has 1 commit you don’t have yet')
 
     act(() => store.getState().dispatch({ type: 'updateBranch', slug: SLUG, number: 4 }))
-    expect(said()).toContain('pull request #4 waiting for review')
+    expect(said()).toContain('merge request !4 waiting for review')
     expect(said()).toContain('you have everything on GitNub’s main')
 
-    // Squash and merge: two commits become one on main.
+    // Merge, squashing: two commits become one on main.
     flush()
     act(() => store.getState().dispatch({ type: 'mergePullRequest', slug: SLUG, number: 4 }))
-    expect(said()).toContain('pull request #4 merged')
+    expect(said()).toContain('merge request !4 merged')
     expect(said()).toContain('GitNub’s main has 1 commit you don’t have yet')
     flush()
     expect(tokens('pr')).toBe(2)
 
     act_(store, 'git switch main', 'git pull')
     expect(said()).toBe(
-      'On main: 0 changes in your working files, 0 changes staged, 0 commits waiting to push, no pull request, you have everything on GitNub’s main.'
+      'On main: 0 changes in your working files, 0 changes staged, 0 commits waiting to push, no merge request, you have everything on GitNub’s main.'
     )
 
     // Tokens are gone once they've arrived.

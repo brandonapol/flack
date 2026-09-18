@@ -60,7 +60,7 @@ describe('GitNub repo page', () => {
     ).toEqual(['docs', 'README.md', 'team.md'])
     expect(screen.getByText('4 commits')).toBeInTheDocument()
     expect(
-      screen.getByText('Explain branches and pull requests in the README (#3)', {
+      screen.getByText('Explain branches and merge requests in the README', {
         selector: 'span',
       })
     ).toBeInTheDocument()

@@ -4,7 +4,7 @@ import type { GameState } from '../../engine/game'
 import type { Chapter } from '../../engine/story/types'
 import { DOCS } from '../docsLinks'
 import { SAM_TIP } from '../labScenarios'
-import { DOCS_SITE } from '../world'
+import { DOCS_SITE, mergedAs } from '../world'
 import { addedLines, docsSite, keptExistingLines, local, ran } from './helpers'
 
 const STYLE_GUIDE = 'docs/style-guide.md'
@@ -118,8 +118,8 @@ export const conflictChapter: Chapter = {
     },
     {
       id: 'open-pr',
-      title: 'Open a pull request',
-      body: 'On GitNub: **Compare & pull request**, then **Create pull request**.',
+      title: 'Create a merge request',
+      body: 'On GitNub: **Create merge request** in the banner, then **Create merge request** on the form.',
       hints: ['The banner on the docs-site page has the button.'],
       goal: (_state, event) => event.type === 'pullRequestOpened',
       onComplete: [
@@ -127,7 +127,7 @@ export const conflictChapter: Chapter = {
           type: 'remoteCommit',
           slug: DOCS_SITE,
           author: 'sam',
-          message: 'Add my writing tip (#10)',
+          message: mergedAs('Add my writing tip', 10),
           edits: [{ kind: 'appendLine', path: STYLE_GUIDE, text: SAM_TIP }],
           delayMs: 4000,
         },
@@ -143,9 +143,9 @@ export const conflictChapter: Chapter = {
     },
     {
       id: 'conflict',
-      title: 'Your PR has a conflict',
-      body: 'Keep an eye on your pull request. Sam just merged a tip too…',
-      hints: ['Open your pull request on GitNub.'],
+      title: 'Your MR has a conflict',
+      body: 'Keep an eye on your merge request. Sam just merged a tip too…',
+      hints: ['Open your merge request on GitNub.'],
       goal: (state, event) =>
         (event.type === 'remoteUpdated' || event.type === 'stepEntered') &&
         myPullRequest(state)?.status === 'has-conflicts',
@@ -156,7 +156,7 @@ export const conflictChapter: Chapter = {
           type: 'flackMessage',
           channel: 'dm-robin',
           from: 'robin',
-          text: 'Saw your PR says it has conflicts — this is the most normal thing in the world, and nothing is broken. You and Sam both added a line at the same spot, so Git wants a human to say what the result should be. That’s all.',
+          text: 'Saw your MR says it has conflicts — this is the most normal thing in the world, and nothing is broken. You and Sam both added a line at the same spot, so Git wants a human to say what the result should be. That’s all.',
           delayMs: 800,
         },
       ],
@@ -164,9 +164,9 @@ export const conflictChapter: Chapter = {
     {
       id: 'see-why',
       title: 'See what’s conflicting',
-      body: 'On your pull request, click **See what’s conflicting →**. In the Commit Lab, combine the two branches, try **Keep mine** and **Keep theirs**, and see what each leaves out. Click **I get it** when you’re done.',
+      body: 'On your merge request, click **See what’s conflicting →**. In the Commit Lab, combine the two branches, try **Keep mine** and **Keep theirs**, and see what each leaves out. Click **I get it** when you’re done.',
       hints: [
-        'The button is in the conflict banner on your pull request.',
+        'The button is in the conflict banner on your merge request.',
         'Drag your commit onto Sam’s and choose **Merge with here**.',
       ],
       goal: (_state, event) =>
@@ -176,7 +176,7 @@ export const conflictChapter: Chapter = {
     {
       id: 'resolve',
       title: 'Keep both, and mark it resolved',
-      body: 'Back on your pull request: under `docs/style-guide.md`, choose **Keep both**, then **Mark as resolved**.',
+      body: 'Back on your merge request: under `docs/style-guide.md`, choose **Keep both**, then **Commit to source branch**.',
       hints: [
         'The conflict banner lists the file with three buttons: Keep mine, Keep theirs, Keep both.',
         'Pick **Keep both** — the preview shows both tips — then **Mark as resolved**.',
@@ -194,7 +194,7 @@ export const conflictChapter: Chapter = {
               type: 'flackMessage',
               channel: 'dm-robin',
               from: 'robin',
-              text: 'That works as far as Git is concerned — but one of the tips is gone now. Click **Undo and choose again** on your pull request and pick **Keep both**.',
+              text: 'That works as far as Git is concerned — but one of the tips is gone now. Click **Undo and choose again** on your merge request and pick **Keep both**.',
             },
           ],
         },
@@ -213,9 +213,9 @@ export const conflictChapter: Chapter = {
     },
     {
       id: 'merge',
-      title: 'Squash and merge it',
-      body: 'Once Jordan approves, **Squash and merge**.',
-      hints: ['The button is at the bottom of the pull request.'],
+      title: 'Merge it',
+      body: 'Once Jordan approves, **Merge**.',
+      hints: ['The **Merge** button is at the bottom of the merge request.'],
       goal: (_state, event) => event.type === 'pullRequestMerged',
       onComplete: [
         {
@@ -258,7 +258,7 @@ export const conflictChapter: Chapter = {
       ],
     },
   ],
-  mentorQuestions: ['pr-has-conflicts', 'what-are-markers', 'i-broke-it'],
+  mentorQuestions: ['mr-has-conflicts', 'what-are-markers', 'i-broke-it'],
   summary: [
     'A **conflict** means two changes touched the same lines. Nothing is broken; someone just chooses.',
     'On GitNub you pick **Keep mine**, **Keep theirs** or **Keep both** — for lists, usually both.',
