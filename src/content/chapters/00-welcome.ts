@@ -41,10 +41,11 @@ export const welcomeChapter: Chapter = {
           id: 'welcome-task',
           channel: 'docs-team',
           from: 'jordan',
-          text: 'First task: our docs live in a repository on **GitNub**. Take a look at `inkwell/docs-site` — the GitNub tab is now open for you.',
+          text: 'First task: our docs live in a repository on **GitNub**. I’ve unlocked the GitNub tab for you — click it at the top of the middle panel and take a look at `inkwell/docs-site`.',
           delayMs: 2500,
         },
-        { type: 'unlockTab', tab: 'gitnub', delayMs: 2500 },
+        // Unlocked straight away: the next step asks for it before Jordan's message arrives.
+        { type: 'unlockTab', tab: 'gitnub' },
       ],
     },
     {

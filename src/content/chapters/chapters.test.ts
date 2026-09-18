@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { blankState, type Action, type GameState } from '../../engine/game'
+import { blankState, reduce, type Action, type GameState } from '../../engine/game'
 import { log } from '../../engine/git/repo'
 import { findPullRequest, pullRequestCommits } from '../../engine/git/pullRequests'
 import { play, playChapter } from '../../engine/story/harness'
@@ -103,6 +103,19 @@ describe('Chapter 0: Welcome', () => {
     expect(state.story.phase).toBe('complete')
     expect(state.ui.unlockedTabs).toContain('gitnub')
     expect(state.flack.messages.map((message) => message.id)).toContain('welcome-task')
+  })
+
+  it('unlocks GitNub the moment you say hello, before Jordan’s next message', () => {
+    const started = startChapter(config, blankState(config), '00-welcome')
+    // No flushing: delayed effects (Jordan's message) haven't happened yet.
+    const { state, effects } = reduce(config, started.state, {
+      type: 'flackReply',
+      messageId: 'welcome',
+      replyId: 'thanks',
+    })
+    expect(state.ui.unlockedTabs).toContain('gitnub')
+    expect(state.story.completedSteps).toEqual(['say-hello'])
+    expect(effects.map((effect) => effect.type)).toContain('flackMessage')
   })
 
   it('starts with only Flack unlocked', () => {
