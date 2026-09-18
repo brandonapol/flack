@@ -160,7 +160,7 @@ export const fetchChapter: Chapter = {
       goal: (_state, event) => event.type === 'fileOpened' && event.path === 'docs/welcome.md',
     },
   ],
-  mentorQuestions: ['what-is-origin-main', 'fetch-vs-pull', 'i-broke-it'],
+  mentorQuestions: ['what-is-origin-main', 'fetch-vs-pull', 'what-is-a-rebase', 'i-broke-it'],
   summary: [
     '`git fetch` downloads what’s new on GitNub without touching your files.',
     '`origin/main` is your computer’s memory of GitNub; `git status` compares against it.',

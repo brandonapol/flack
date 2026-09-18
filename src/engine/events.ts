@@ -22,6 +22,7 @@ export type GameEvent =
   | { type: 'pullRequestMerged'; number: number; branch: string }
   | { type: 'branchUpdated'; number: number; branch: string }
   | { type: 'conflictsResolved'; number: number; branch: string }
+  | { type: 'commitLabCompleted'; scenario: string; mode: 'guided' | 'free'; chapterId: string }
   | { type: 'remoteBranchDeleted'; branch: string }
   | { type: 'fileSaved'; path: string }
   | { type: 'fileOpened'; path: string }

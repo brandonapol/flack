@@ -4,6 +4,7 @@ import type { GameState } from '../engine/game'
 import { currentStep } from '../engine/story/runner'
 import { interpolate } from '../engine/story/template'
 import { DOCS } from './docsLinks'
+import { LAB_SCENARIOS } from './labScenarios'
 import { GENERAL_QUESTIONS, MENTOR_FAQ } from './mentorFaq'
 import { CHANNELS, DEFAULT_CHANNEL, MENTOR_CHANNEL } from './channels'
 import { CHAPTERS } from './chapters'
@@ -29,6 +30,7 @@ export function createGameConfig(): GameConfig {
     startTime: WORLD_START,
     mentor: { characterId: 'robin', channel: MENTOR_CHANNEL, entries: MENTOR_FAQ },
     mentorGeneralQuestions: GENERAL_QUESTIONS,
+    labScenarios: LAB_SCENARIOS,
   }
   return config
 }

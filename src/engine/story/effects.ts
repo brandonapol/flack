@@ -22,6 +22,7 @@ export function applyEffect(config: GameConfig, state: GameState, effect: Effect
         from: effect.from,
         text: interpolate(effect.text, state),
         time: state.clock,
+        ...(effect.lab ? { lab: effect.lab } : {}),
         ...(effect.quickReplies
           ? {
               quickReplies: effect.quickReplies.map((reply) => ({
@@ -138,6 +139,13 @@ export function applyEffect(config: GameConfig, state: GameState, effect: Effect
 
     case 'focusPanel':
       return { state, events: [] }
+
+    case 'openCommitLab':
+      if (!config.labScenarios?.[effect.scenario]) return { state, events: [] }
+      return {
+        state: { ...state, ui: { ...state.ui, commitLab: { scenario: effect.scenario } } },
+        events: [],
+      }
 
     case 'toast':
       return { state: { ...state, ui: { ...state.ui, toast: effect.text } }, events: [] }

@@ -3,6 +3,7 @@ import type { Person } from '../git/types'
 import type { GameEvent, Tab } from '../events'
 import type { Registry } from '../shell/registry'
 import type { GameState } from '../game'
+import type { LabGraph } from '../lab/graph'
 
 export interface QuickReply {
   id: string
@@ -23,6 +24,8 @@ export type Effect = (
       from: string
       text: string
       quickReplies?: QuickReply[]
+      /** Offer "Try it in the Commit Lab" under the message, with this scenario. */
+      lab?: string
     }
   | {
       type: 'remoteCommit'
@@ -47,6 +50,7 @@ export type Effect = (
   | { type: 'openFile'; path: string }
   | { type: 'focusPanel'; panel: 'terminal' | 'middle' }
   | { type: 'toast'; text: string }
+  | { type: 'openCommitLab'; scenario: string }
   | { type: 'showHint' }
 ) & {
   /** Wait this long before applying. Only the store honours delays; tests apply at once. */
@@ -128,6 +132,21 @@ export interface Channel {
 export interface MentorEntry {
   question: string
   answer: string
+  /** A Commit Lab scenario to try it in, offered under the answer. */
+  lab?: string
+}
+
+/** A Commit Lab setup: a graph to rearrange, and (in guided mode) the shape to reach. */
+export interface LabScenario {
+  id: string
+  title: string
+  /** What to do, shown above the graph. Markdown. */
+  intro: string
+  start: LabGraph
+  /** Guided mode: finished once the graph has this shape. Without it, the lab is a sandbox. */
+  target?: LabGraph
+  /** The message a squash gets here, instead of the old messages joined. */
+  squashLabel?: string
 }
 
 /** Everything the engine needs from content. The engine never imports content directly. */
@@ -150,4 +169,5 @@ export interface GameConfig {
   }
   /** Questions Ask Robin always offers, on top of the current chapter's. */
   mentorGeneralQuestions?: string[]
+  labScenarios?: Record<string, LabScenario>
 }

@@ -70,6 +70,7 @@ export function ChannelView({ channelId }: { channelId: string }) {
               onReply={(replyId) =>
                 dispatch({ type: 'flackReply', messageId: message.id, replyId })
               }
+              onOpenLab={(scenario) => dispatch({ type: 'openCommitLab', scenario })}
             />
           )
         })}
@@ -106,9 +107,10 @@ interface MessageProps {
   character?: Character
   grouped: boolean
   onReply: (replyId: string) => void
+  onOpenLab: (scenario: string) => void
 }
 
-function Message({ message, name, character, grouped, onReply }: MessageProps) {
+function Message({ message, name, character, grouped, onReply, onOpenLab }: MessageProps) {
   return (
     <article className={grouped ? styles.messageGrouped : styles.message}>
       <div className={styles.messageAvatar}>
@@ -127,6 +129,13 @@ function Message({ message, name, character, grouped, onReply }: MessageProps) {
           </p>
         )}
         <Markdown source={message.text} className={styles.messageText} inline />
+        {message.lab && (
+          <div className={styles.replies}>
+            <button type="button" className={styles.reply} onClick={() => onOpenLab(message.lab!)}>
+              Try it in the Commit Lab
+            </button>
+          </div>
+        )}
         {message.quickReplies && !message.repliedWith && (
           <div className={styles.replies}>
             {message.quickReplies.map((reply) => (

@@ -1,1 +1,1 @@
-export {}
+export { CommitLab } from './CommitLab'
