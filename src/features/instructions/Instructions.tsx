@@ -5,6 +5,7 @@ import { currentChapter, currentStep, shouldPulseHint } from '../../engine/story
 import { interpolate } from '../../engine/story/template'
 import { useGame } from '../../store'
 import { ConfirmButton } from './ConfirmButton'
+import { DayOneComplete } from './DayOneComplete'
 import styles from './Instructions.module.css'
 import { InstructionsText } from './InstructionsText'
 import { StepList } from './StepList'
@@ -27,6 +28,7 @@ export function Instructions() {
   if (!chapter) return <div className={styles.panel} />
 
   const number = config.chapters.findIndex((candidate) => candidate.id === chapter.id) + 1
+  const isLastChapter = number === config.chapters.length
   const done = story.completedSteps.length + story.skippedSteps.length
   const progress = Math.round((done / chapter.steps.length) * 100)
   const lastCompleted = chapter.steps.find(
@@ -78,7 +80,9 @@ export function Instructions() {
           interpolate={fill}
         />
 
-        {story.phase === 'complete' ? (
+        {isLastChapter && story.phase !== 'playing' ? (
+          <DayOneComplete />
+        ) : story.phase === 'complete' ? (
           <section className={styles.card} aria-label="Chapter complete">
             <h2 className={styles.cardTitle}>Chapter complete 🎉</h2>
             <ul className={styles.summary}>
