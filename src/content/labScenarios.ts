@@ -300,9 +300,14 @@ const bonusReword: LabScenario = {
   id: 'bonus-reword',
   title: 'Bonus: one sentence, two rewrites',
   intro:
-    'The rarer kind of conflict. You and Alex both **rewrote the same sentence**. Merge your branch into `main` and settle it — but this time, think about whether keeping both makes sense.',
+    'The rarer kind of conflict. You and Alex both **rewrote the same sentence**. Combine the two branches (merge or rebase, either works) and settle it. This time, think about whether keeping both makes sense.',
   start: rewordStart,
-  target: after(merge(rewordStart, 'yours', 'main', { resolution: 'mine' })),
+  // Any way of combining the two works, as long as one sentence wins.
+  target: [
+    after(merge(rewordStart, 'yours', 'main', { resolution: 'mine' })),
+    after(merge(rewordStart, 'main', 'yours', { resolution: 'mine' })),
+    after(rebase(rewordStart, 'yours', 'a1', { resolution: 'mine' })),
+  ],
   avoid: 'both',
   resolutionHints: {
     both: 'Now the paragraph says the same thing twice. When two people rewrite the *same sentence*, both can’t stay. Undo and pick one.',
