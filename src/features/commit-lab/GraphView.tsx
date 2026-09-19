@@ -121,7 +121,13 @@ export function GraphView({
               : { 'aria-hidden': true })}
           >
             <title>{node.squashed ? node.squashed.join('\n') : node.label}</title>
-            <circle r={(node.parents.length > 1 ? 16 : 14) * (compact ? 0.8 : 1)} />
+            {/* A bigger, invisible target than the dot, so a click near it still lands. */}
+            {i && <circle className={styles.hit} r={24} />}
+            {i && <circle className={styles.ring} r={21} />}
+            <circle
+              className={styles.dot}
+              r={(node.parents.length > 1 ? 16 : 14) * (compact ? 0.8 : 1)}
+            />
             <text className={styles.initials} dy={compact ? 3 : 4}>
               {node.author.length <= 3 ? node.author : node.author.slice(0, 2)}
             </text>

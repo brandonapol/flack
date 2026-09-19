@@ -62,6 +62,12 @@ function perform(source: string, target: string, action: string) {
   )
 }
 
+/** The visible “Picked up …” note above the graph. */
+const pickedUp = () =>
+  screen.queryByText(
+    (_, element) => element?.tagName === 'P' && /^Picked up “/.test(element.textContent ?? '')
+  )
+
 const caption = () => screen.getByText(/^(Rebase|Merge|Squash|Cherry-pick) /, { selector: 'p' })
 const announced = () => screen.getAllByRole('status').at(-1)!.textContent
 
@@ -213,6 +219,34 @@ describe('Commit Lab', () => {
     click(screen.getByRole('button', { name: 'Keep mine' }))
     expect(completions()).toHaveLength(1)
     expect(screen.getByText('That’s the shape.')).toBeInTheDocument()
+  })
+
+  it('picking up and putting down stays in step with aria-pressed and the note', () => {
+    setup()
+    const links = commit('Add a tip about links')
+    press(links)
+    expect(links).toHaveAttribute('aria-pressed', 'true')
+    expect(pickedUp()).toHaveTextContent('Picked up “Add a tip about links” on yours')
+    click(links)
+    expect(links).toHaveAttribute('aria-pressed', 'false')
+    expect(pickedUp()).toBeNull()
+
+    press(links)
+    act(() => void fireEvent.keyDown(links, { key: 'Escape' }))
+    expect(links).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('a click that wobbles a little still picks a commit up', () => {
+    setup()
+    const links = commit('Add a tip about links')
+    const graph = screen.getByRole('group', { name: 'Commit graph' })
+    act(() => {
+      fireEvent.pointerDown(links, { clientX: 100, clientY: 100 })
+      fireEvent.pointerMove(graph, { clientX: 106, clientY: 104 })
+      fireEvent.pointerUp(graph, { clientX: 106, clientY: 104 })
+      fireEvent.click(links)
+    })
+    expect(links).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('free mode closes with “I get it”', () => {
