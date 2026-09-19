@@ -73,6 +73,8 @@ const announced = () => screen.getAllByRole('status').at(-1)!.textContent
 
 afterEach(() => {
   vi.restoreAllMocks()
+  // jsdom has no elementFromPoint; tests that fake one mustn't leave it for the next.
+  Reflect.deleteProperty(document, 'elementFromPoint')
 })
 
 describe('Commit Lab', () => {
@@ -240,12 +242,16 @@ describe('Commit Lab', () => {
     setup()
     const links = commit('Add a tip about links')
     const graph = screen.getByRole('group', { name: 'Commit graph' })
-    act(() => {
-      fireEvent.pointerDown(links, { clientX: 100, clientY: 100 })
-      fireEvent.pointerMove(graph, { clientX: 106, clientY: 104 })
-      fireEvent.pointerUp(graph, { clientX: 106, clientY: 104 })
-      fireEvent.click(links)
-    })
+    // jsdom has no PointerEvent, so send mouse events with pointer names: they carry coordinates.
+    // One act each, as in a browser: every event sees the state the one before it left.
+    const pointer = (target: Element, type: string, clientX: number, clientY: number) =>
+      act(() => void fireEvent(target, new MouseEvent(type, { bubbles: true, clientX, clientY })))
+    // Released over the same commit it was pressed on.
+    document.elementFromPoint = vi.fn(() => links)
+    pointer(links, 'pointerdown', 100, 100)
+    pointer(graph, 'pointermove', 106, 104)
+    pointer(graph, 'pointerup', 106, 104)
+    act(() => void fireEvent.click(links))
     expect(links).toHaveAttribute('aria-pressed', 'true')
   })
 
