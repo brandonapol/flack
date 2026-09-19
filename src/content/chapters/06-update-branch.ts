@@ -84,7 +84,7 @@ export const updateBranchChapter: Chapter = {
         `\`git add ${STYLE_GUIDE}\` first, then the commit.`,
         '`git status` shows what’s staged.',
       ],
-      solution: 'git commit -m "Fix a typo in the style guide"',
+      solution: [`git add ${STYLE_GUIDE}`, 'git commit -m "Fix a typo in the style guide"'],
       goal: (state, event) => {
         const repo = local(state)
         if (!ran(event, 'git', 'commit') || !repo || repo.head === 'main') return false
@@ -201,7 +201,7 @@ export const updateBranchChapter: Chapter = {
       title: 'Back to main, and pull',
       body: 'In the terminal: `git switch main`, then `git pull`. You’ll get Alex’s tips and your fix.',
       hints: ['`git switch main` first, then `git pull`.'],
-      solution: 'git pull',
+      solution: ['git switch main', 'git pull'],
       goal: (state, event) => {
         const repo = local(state)
         return (

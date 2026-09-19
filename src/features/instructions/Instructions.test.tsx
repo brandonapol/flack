@@ -13,8 +13,8 @@ const noStorage: StorageLike = {
   removeItem: () => undefined,
 }
 
-function setup() {
-  const store = createGameStore({ config: toyConfig(), storage: noStorage })
+function setup(config = toyConfig()) {
+  const store = createGameStore({ config, storage: noStorage })
   const dispatch = vi.fn(store.getState().dispatch)
   store.setState({ dispatch })
   render(
@@ -87,6 +87,15 @@ describe('Instructions panel', () => {
     click(screen.getByRole('button', { name: 'Show me' }))
     expect(screen.getByText('Do this:').parentElement).toHaveTextContent('echo hello')
     expect(store.getState().game.story.solutionShown).toBe(true)
+  })
+
+  it('shows every command, one per line, when a step needs several', () => {
+    const config = toyConfig()
+    config.chapters[0].steps[0].solution = ['echo one', 'echo two']
+    setup(config)
+    click(screen.getByRole('button', { name: 'Show me' }))
+    const commands = within(screen.getByText('Do this:').parentElement!).getAllByText(/^echo /)
+    expect(commands.map((command) => command.textContent)).toEqual(['echo one', 'echo two'])
   })
 
   it('pulses the hint button after two misses', () => {

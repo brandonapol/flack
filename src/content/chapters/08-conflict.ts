@@ -114,6 +114,11 @@ export const conflictChapter: Chapter = {
       title: 'Commit and push',
       body: `\`git add ${STYLE_GUIDE}\`, \`git commit -m "Add my writing tip"\`, then \`git push -u origin {{player.slug}}-tip\`.`,
       hints: ['Three commands: add, commit, push. The prompt shows your branch name.'],
+      solution: [
+        `git add ${STYLE_GUIDE}`,
+        'git commit -m "Add my writing tip"',
+        'git push -u origin {{player.slug}}-tip',
+      ],
       goal: (_state, event) => event.type === 'branchPushed',
     },
     {
