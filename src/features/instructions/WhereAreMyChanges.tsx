@@ -102,6 +102,7 @@ function movesBetween(before: ChangesSummary, after: ChangesSummary): Array<Omit
 export function WhereAreMyChanges({ finished = false }: { finished?: boolean }) {
   const game = useGame((s) => s.game)
   const summary = useMemo(() => summarizeChanges(game), [game])
+  const [panelOpen, setPanelOpen] = useState(false)
   const [open, setOpen] = useState<Box>()
   const [moves, setMoves] = useState<Move[]>([])
   const previous = useRef<ChangesSummary | undefined>(summary)
@@ -127,69 +128,91 @@ export function WhereAreMyChanges({ finished = false }: { finished?: boolean }) 
 
   if (!summary) return null
 
+  const anyActive =
+    summary.working > 0 ||
+    summary.staged > 0 ||
+    summary.commits > 0 ||
+    Boolean(summary.pr || summary.pushedWithoutPr) ||
+    (summary.behind > 0 && !finished)
+
   return (
     <section className={styles.panel} aria-labelledby="where-title">
-      <h2 id="where-title" className={styles.title}>
-        Where are my changes?
-      </h2>
+      <button
+        type="button"
+        className={styles.toggle}
+        aria-expanded={panelOpen}
+        onClick={() => setPanelOpen(!panelOpen)}
+      >
+        <span aria-hidden="true">{panelOpen ? '▾' : '▸'}</span>
+        <span id="where-title" className={styles.title}>
+          Where are my changes?
+        </span>
+        {!panelOpen && anyActive && (
+          <span className={styles.dot} aria-hidden="true" data-testid="wamc-dot" />
+        )}
+      </button>
       <p className={styles.srOnly} aria-live="polite">
         {describeChanges(summary)}
       </p>
-      <ol className={styles.boxes}>
-        {BOXES.map((box, index) => {
-          const value = valueOf(box.id, summary, finished)
-          const active =
-            (box.id === 'working' && summary.working > 0) ||
-            (box.id === 'staged' && summary.staged > 0) ||
-            (box.id === 'commits' && summary.commits > 0) ||
-            (box.id === 'pr' && Boolean(summary.pr || summary.pushedWithoutPr)) ||
-            (box.id === 'main' && summary.behind > 0 && !finished)
-          return (
-            <li key={box.id} className={styles.box} data-box={box.id}>
-              <button
-                type="button"
-                className={active ? `${styles.boxButton} ${styles.active}` : styles.boxButton}
-                aria-expanded={open === box.id}
-                onClick={() => setOpen(open === box.id ? undefined : box.id)}
-              >
-                <span className={styles.boxTitle}>{box.title}</span>
-                <span className={styles.boxValue}>{value}</span>
-              </button>
-              {open === box.id && (
-                <div className={styles.explain}>
-                  <Markdown source={box.explain} />
-                  <Markdown source={box.next} />
-                </div>
-              )}
-              {index < BOXES.length - 1 && (
-                <span className={styles.arrow} aria-hidden="true">
-                  ↓
-                </span>
-              )}
-            </li>
-          )
-        })}
-      </ol>
-      <div className={styles.tokens} aria-hidden="true">
-        {moves.flatMap((move) =>
-          Array.from({ length: move.tokens }, (_, i) => (
-            <span
-              key={`${move.id}-${i}`}
-              className={styles.token}
-              data-from={move.from}
-              data-to={move.to}
-              style={
-                {
-                  '--from': ORDER.indexOf(move.from),
-                  '--to': ORDER.indexOf(move.to),
-                  // Squash: tokens start side by side and meet in the middle.
-                  '--spread': `${(i - (move.tokens - 1) / 2) * 14}px`,
-                } as CSSProperties
-              }
-            />
-          ))
-        )}
-      </div>
+      {panelOpen && (
+        <>
+          <ol className={styles.boxes}>
+            {BOXES.map((box, index) => {
+              const value = valueOf(box.id, summary, finished)
+              const active =
+                (box.id === 'working' && summary.working > 0) ||
+                (box.id === 'staged' && summary.staged > 0) ||
+                (box.id === 'commits' && summary.commits > 0) ||
+                (box.id === 'pr' && Boolean(summary.pr || summary.pushedWithoutPr)) ||
+                (box.id === 'main' && summary.behind > 0 && !finished)
+              return (
+                <li key={box.id} className={styles.box} data-box={box.id}>
+                  <button
+                    type="button"
+                    className={active ? `${styles.boxButton} ${styles.active}` : styles.boxButton}
+                    aria-expanded={open === box.id}
+                    onClick={() => setOpen(open === box.id ? undefined : box.id)}
+                  >
+                    <span className={styles.boxTitle}>{box.title}</span>
+                    <span className={styles.boxValue}>{value}</span>
+                  </button>
+                  {open === box.id && (
+                    <div className={styles.explain}>
+                      <Markdown source={box.explain} />
+                      <Markdown source={box.next} />
+                    </div>
+                  )}
+                  {index < BOXES.length - 1 && (
+                    <span className={styles.arrow} aria-hidden="true">
+                      ↓
+                    </span>
+                  )}
+                </li>
+              )
+            })}
+          </ol>
+          <div className={styles.tokens} aria-hidden="true">
+            {moves.flatMap((move) =>
+              Array.from({ length: move.tokens }, (_, i) => (
+                <span
+                  key={`${move.id}-${i}`}
+                  className={styles.token}
+                  data-from={move.from}
+                  data-to={move.to}
+                  style={
+                    {
+                      '--from': ORDER.indexOf(move.from),
+                      '--to': ORDER.indexOf(move.to),
+                      // Squash: tokens start side by side and meet in the middle.
+                      '--spread': `${(i - (move.tokens - 1) / 2) * 14}px`,
+                    } as CSSProperties
+                  }
+                />
+              ))
+            )}
+          </div>
+        </>
+      )}
     </section>
   )
 }

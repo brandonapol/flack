@@ -157,6 +157,8 @@ test('a save from an older version of Flack is set aside, with a notice', async 
 test('the Where are my changes? panel follows a commit to GitNub', async ({ page }) => {
   await page.goto('./?fast=1&chapter=03')
   const where = page.getByRole('region', { name: 'Where are my changes?' })
+  // Collapsed by default; expand to see the boxes.
+  await where.getByRole('button', { name: 'Where are my changes?' }).click()
   await expect(where).toContainText('1 change in your working files')
   await run(page, 'git config --global user.name "Ada Lovelace"')
   await run(page, 'git config --global user.email ada@inkwell.example')
