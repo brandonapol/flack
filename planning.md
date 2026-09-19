@@ -277,8 +277,10 @@ learner to remember flag names.
   name capture (#21). Still happens with `main` checked out; branching starts
   in Ch 3 once there's something to commit.
 - **Ch 3 — Save it to GitNub** _(changed)_: `git switch -c <name>-team-list`
-  → `git add` → `git commit -m` (identity gotcha kept, still a great
-  teaching moment) → `git push -u origin <branch>` → GitNub shows **Create merge
+  → `git add` → **Tell Git who you are** (`git config --global user.name`
+  / `user.email`, its own step since #106; committing first still shows
+  Git's real "Author identity unknown" and Robin points back at the step)
+  → `git commit -m` → `git push -u origin <branch>` → GitNub shows **Create merge
   request** → open the MR → Jordan/Robin approve after a short delay →
   **Merge** (Squash commits on, **Delete source branch** ticked) → back in
   the terminal, `git switch
