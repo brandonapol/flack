@@ -41,7 +41,7 @@ const BOXES: Array<{ id: Box; title: string; explain: string; next: string }> = 
   },
 ]
 
-function valueOf(box: Box, summary: ChangesSummary): string {
+function valueOf(box: Box, summary: ChangesSummary, finished: boolean): string {
   const n = (count: number, one: string, many = `${one}s`) => `${count} ${count === 1 ? one : many}`
   switch (box) {
     case 'working':
@@ -57,7 +57,10 @@ function valueOf(box: Box, summary: ChangesSummary): string {
           ? 'pushed — no merge request yet'
           : 'none'
     case 'main':
-      return summary.behind > 0 ? `${n(summary.behind, 'new commit')} for you` : 'up to date'
+      if (summary.behind === 0) return 'up to date'
+      return finished
+        ? `${n(summary.behind, 'new commit')} · pull next time`
+        : `${n(summary.behind, 'new commit')} for you`
   }
 }
 
@@ -92,8 +95,11 @@ function movesBetween(before: ChangesSummary, after: ChangesSummary): Array<Omit
 /**
  * The five places a change can be, from a file on screen to GitNub's `main`, with how many are
  * where right now. Click a box to see what it means and what moves changes on.
+ *
+ * `finished`: nothing required is left in the chapter. New commits on GitNub's `main` are then
+ * something to pull when you next start work, not a step you've missed.
  */
-export function WhereAreMyChanges() {
+export function WhereAreMyChanges({ finished = false }: { finished?: boolean }) {
   const game = useGame((s) => s.game)
   const summary = useMemo(() => summarizeChanges(game), [game])
   const [open, setOpen] = useState<Box>()
@@ -131,13 +137,13 @@ export function WhereAreMyChanges() {
       </p>
       <ol className={styles.boxes}>
         {BOXES.map((box, index) => {
-          const value = valueOf(box.id, summary)
+          const value = valueOf(box.id, summary, finished)
           const active =
             (box.id === 'working' && summary.working > 0) ||
             (box.id === 'staged' && summary.staged > 0) ||
             (box.id === 'commits' && summary.commits > 0) ||
             (box.id === 'pr' && Boolean(summary.pr || summary.pushedWithoutPr)) ||
-            (box.id === 'main' && summary.behind > 0)
+            (box.id === 'main' && summary.behind > 0 && !finished)
           return (
             <li key={box.id} className={styles.box} data-box={box.id}>
               <button
