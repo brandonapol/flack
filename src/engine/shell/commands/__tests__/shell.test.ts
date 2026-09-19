@@ -15,6 +15,16 @@ describe('help', () => {
     s.run(`git clone ${DOCS_URL}`, 'help')
     expect(s.last.find((l) => l.text.includes('git status'))?.tone).toBeUndefined()
   })
+
+  it('lists the forms the lessons use, and says what origin and -u mean', () => {
+    const text = session().run(`git clone ${DOCS_URL}`, 'help').lastText
+    expect(text).toContain('git push -u origin <name>')
+    expect(text).toContain('git log --oneline origin/main')
+    expect(text).toContain('git switch main')
+    expect(text).toContain('git fetch')
+    expect(text).toContain('git merge origin/main')
+    expect(text).toContain('origin is GitNub’s copy of the repo')
+  })
 })
 
 describe('hint', () => {
