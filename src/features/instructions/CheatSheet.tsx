@@ -45,12 +45,12 @@ const LOOP: Line[] = [
   },
   {
     command: 'git push -u origin my-change',
-    what: 'Send your branch up to GitLab.',
+    what: 'Send your branch up to GitNub.',
     docs: DOCS.gitPush,
   },
   {
     command: 'Create the merge request',
-    what: 'On GitLab: “Create merge request” in the banner, then again on the form.',
+    what: 'On GitNub: “Create merge request” in the banner, then again on the form.',
     docs: DOCS.pullRequests,
   },
   {
@@ -210,6 +210,10 @@ export function CheatSheet() {
           Run these in <strong>Git Bash</strong>: right-click your docs folder and choose{' '}
           <em>Open Git Bash here</em>. Paste with Shift+Insert or a right-click. Stuck? Nothing you
           do with Git throws work away. Ask a teammate, and read the docs at git-scm.com.
+        </p>
+        <p className={styles.footer}>
+          GitNub is Flack’s stand-in for <strong>GitLab</strong>: the buttons have the same names,
+          so everything here works the same at work.
         </p>
       </article>
     </div>

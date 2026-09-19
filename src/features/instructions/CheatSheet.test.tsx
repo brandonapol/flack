@@ -67,6 +67,16 @@ describe('cheat sheet', () => {
     expect(also).toHaveTextContent('next module')
   })
 
+  it('calls the host GitNub, and says once that it stands in for GitLab', () => {
+    renderSheet()
+    const loop = screen.getAllByRole('listitem').map((item) => item.textContent ?? '')
+    expect(loop.some((text) => text.includes('GitNub'))).toBe(true)
+    expect(loop.some((text) => text.includes('GitLab'))).toBe(false)
+    expect(screen.getByText(/GitNub is Flack’s stand-in for/)).toHaveTextContent(
+      'GitNub is Flack’s stand-in for GitLab'
+    )
+  })
+
   it('never mentions trunk-based development', () => {
     const { container } = renderSheet()
     expect(container.textContent?.toLowerCase()).not.toContain('trunk')

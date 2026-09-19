@@ -361,6 +361,11 @@ Unchanged (#25): GitHub Pages, `vite base: '/flack/'`, deploy on push to
       (GitHub's "Update branch" above), **Resolve conflicts** →
       **Commit to source branch**, and GitLab docs links. Squash commits read
       `Title` + `See merge request inkwell/docs-site!4`.
+      Learner-facing naming (#116): in-game text says **GitNub** everywhere,
+      including the cheat sheet. The cheat sheet says once that GitNub is a
+      stand-in for GitLab. "GitLab" otherwise appears only where it means the
+      real product: 💡 real-world tips, the resolver's "Real GitLab labels
+      these…" note, and docs links.
 - [x] Completion tracking: none — decided (#38).
 - [x] Fictional company name "Inkwell": kept — decided (#38).
 - [x] Diverged `git pull`: Chapter 5 teaches the fast-forward catch-up; the
