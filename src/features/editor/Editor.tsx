@@ -1,3 +1,4 @@
+import { diffLines } from 'diff'
 import { useEffect, useMemo, type KeyboardEvent } from 'react'
 import { useNavigate, useParams } from 'react-router'
 
@@ -59,6 +60,15 @@ export default function Editor() {
   const suggested = /^open (\S+)$/.exec([step?.solution ?? ''].flat()[0])?.[1]
   const offer = !path && suggested && exists(suggested) ? suggested : undefined
 
+  // Lines that were already in the file and that this edit removes or changes. Adding lines is what
+  // steps ask for, so anything else is worth pointing out before it's saved.
+  const touched =
+    isDirty && !readOnly
+      ? diffLines(saved, value)
+          .filter((part) => part.removed && part.value.trim() !== '')
+          .reduce((sum, part) => sum + part.value.split('\n').filter((l) => l.trim()).length, 0)
+      : 0
+
   const save = () => {
     if (path && isDirty && !readOnly) dispatch({ type: 'saveFile', path, content: value })
   }
@@ -109,6 +119,20 @@ export default function Editor() {
         {readOnly && (
           <p className={styles.readOnly} role="note">
             🔒 This file is read-only right now: you don’t need to change it for this step.
+          </p>
+        )}
+        {path && touched > 0 && (
+          <p className={styles.touched} role="note">
+            ⚠️ This edit changes {touched === 1 ? '1 line' : `${touched} lines`} that{' '}
+            {touched === 1 ? 'was' : 'were'} already in <code>{path}</code>, not just adds new ones.
+            Meant to?{' '}
+            <button
+              type="button"
+              className={styles.undoEdits}
+              onClick={() => dispatch({ type: 'discardBuffer', path })}
+            >
+              Undo my changes
+            </button>
           </p>
         )}
         {path ? (

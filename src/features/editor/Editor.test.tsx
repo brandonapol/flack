@@ -98,6 +98,24 @@ describe('Editor', () => {
     expect(screen.queryByText('(unsaved changes)')).not.toBeInTheDocument()
   })
 
+  it('says so when an edit changes lines that were already there, and can undo it', async () => {
+    const { store, user } = setup('/editor/team.md')
+    typeAtEnd('- Ada Lovelace\n')
+    expect(screen.queryByText(/already in/)).not.toBeInTheDocument()
+
+    act(() => {
+      const view = editorView()
+      const text = view.state.doc.toString()
+      const from = text.indexOf('- Robin Okafor')
+      view.dispatch({ changes: { from, to: from + 1, insert: '- -' } })
+    })
+    const note = screen.getByText(/already in/).closest('p')!
+    expect(note).toHaveTextContent('This edit changes 1 line that was already in team.md')
+    await user.click(within(note).getByRole('button', { name: 'Undo my changes' }))
+    expect(store.getState().game.editor.buffers).toEqual({})
+    await waitFor(() => expect(editorView().state.doc.toString()).not.toContain('- -'))
+  })
+
   it('⌘S and Ctrl+S save', async () => {
     const { store, user } = setup('/editor/team.md')
     typeAtEnd('- Ada\n')
