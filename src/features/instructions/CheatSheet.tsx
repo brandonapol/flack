@@ -100,7 +100,8 @@ const WHEN_PR: Array<{ title: string; steps: string[]; docs: { label: string; hr
     title: '…it has conflicts',
     steps: [
       'Nothing is broken: you and someone else changed the same lines.',
-      'Click **Resolve conflicts**. **Use ours** or **Use theirs**, or **Edit inline** to keep both.',
+      'Click **Resolve conflicts**. For each file, **Keep mine**, **Keep theirs** or **Keep both**.',
+      'On real GitLab those are **Use ours**, **Use theirs**, and **Edit inline** to keep both.',
       '**Commit to source branch**, then merge.',
     ],
     docs: DOCS.mergeConflicts,
