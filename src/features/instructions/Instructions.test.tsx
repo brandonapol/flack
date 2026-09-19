@@ -234,3 +234,30 @@ describe('Where are my changes?, from Chapter 3 on', () => {
     expect(screen.getByRole('button', { name: /^GitNub main/ })).toBeInTheDocument()
   })
 })
+
+describe('the fetch-vs-pull diagram', () => {
+  it('shows on Chapter 6’s git fetch step, and nowhere else', () => {
+    const store = createGameStore({
+      config: createGameConfig(),
+      storage: noStorage,
+      search: '?chapter=05',
+    })
+    render(
+      <GameStoreProvider store={store}>
+        <MemoryRouter>
+          <Instructions />
+        </MemoryRouter>
+      </GameStoreProvider>
+    )
+    expect(screen.getByRole('heading', { name: 'Run git fetch', level: 2 })).toBeInTheDocument()
+    expect(
+      screen.getByText('Fetch, then merge — or pull, both at once')
+    ).toBeInTheDocument()
+
+    run(store, 'git fetch')
+    expect(screen.getByRole('heading', { name: 'Ask git status again', level: 2 })).toBeInTheDocument()
+    expect(
+      screen.queryByText('Fetch, then merge — or pull, both at once')
+    ).not.toBeInTheDocument()
+  })
+})

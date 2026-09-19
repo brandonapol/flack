@@ -1,0 +1,65 @@
+.figure {
+  margin: 12px 0 0;
+}
+
+.title {
+  margin-bottom: 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.stages {
+  display: grid;
+  gap: 10px;
+}
+
+.stage {
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.stageLabel {
+  margin: 0 0 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.refs {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 0 6px;
+  padding: 0;
+  list-style: none;
+}
+
+.ref {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.75rem;
+}
+
+.ref.moved {
+  border-color: var(--accent);
+  background: #eef2ff;
+}
+
+.refTitle {
+  color: var(--text-muted);
+}
+
+.refCommit {
+  font-weight: 600;
+}
+
+.stageText {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}

@@ -58,6 +58,12 @@ test.describe('axe: no serious or critical violations', () => {
     expect(await violations(page)).toEqual([])
   })
 
+  test('the fetch-vs-pull diagram', async ({ page }) => {
+    await page.goto('./?fast=1&chapter=05')
+    await expect(page.getByText('Fetch, then merge — or pull, both at once')).toBeVisible()
+    expect(await violations(page)).toEqual([])
+  })
+
   test('a merge request that needs a rebase', async ({ page }) => {
     await page.goto('./?fast=1&chapter=06')
     await run(page, 'git switch -c ada-typo')
