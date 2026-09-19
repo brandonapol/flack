@@ -94,7 +94,7 @@ describe('cheat sheet', () => {
     expect(within(when).getByRole('heading', { name: '…it has conflicts' })).toBeInTheDocument()
     // The buttons they just clicked, then real GitLab's: this is the sheet people take back to work.
     expect(when).toHaveTextContent('Resolve conflicts')
-    expect(when).toHaveTextContent('Keep mine, Keep theirs or Keep both')
+    expect(when).toHaveTextContent('Keep mine, Keep theirs or Keep both for each file')
     expect(when).toHaveTextContent('Edit inline to keep both')
     expect(when).toHaveTextContent('Commit to source branch')
     expect(screen.getByRole('link', { name: 'Rebasing' })).toBeInTheDocument()
