@@ -2,6 +2,11 @@ import { describe, expect, it } from 'vitest'
 
 import { clone } from '../engine/git/repo'
 import { log } from '../engine/git/repo'
+import {
+  COMMIT_RESOLUTION_LABEL,
+  CONFLICT_CHOICE_LABELS,
+  OTHER_TOOLS_CONFLICT_LABELS,
+} from './buttonLabels'
 import { characters } from './characters'
 import { createGameConfig } from './config'
 import { ALLOWED_DOCS_HOSTS, DOCS } from './docsLinks'
@@ -203,9 +208,10 @@ describe('GitLab vocabulary', () => {
     return into
   }
 
-  it('never says pull request, PR, Update branch or Squash and merge to the learner', () => {
+  /** Everything the learner can read in chapters, Robin's answers, the lab and the world. */
+  function learnerText() {
     const config = createGameConfig()
-    const text = strings([
+    return strings([
       config.chapters,
       MENTOR_FAQ,
       LAB_SCENARIOS,
@@ -213,6 +219,10 @@ describe('GitLab vocabulary', () => {
       DOCS,
       log(createRemotes()[DOCS_SITE].commits, createRemotes()[DOCS_SITE].branches.main),
     ])
+  }
+
+  it('never says pull request, PR, Update branch or Squash and merge to the learner', () => {
+    const text = learnerText()
       // Ids like `open-pr` and `pr-conflict` aren't shown to anyone.
       .filter((line) => !/^[a-z0-9-]+$/.test(line))
       // Saying what GitHub calls it is the one deliberate exception.
@@ -223,5 +233,24 @@ describe('GitLab vocabulary', () => {
       /pull request|\bPRs?\b|Update branch|Squash and merge|\(#\d+\)/i.test(line)
     )
     expect(offenders).toEqual([])
+  })
+
+  it('names conflict buttons by the labels they have in Flack', () => {
+    const text = learnerText()
+    // GitLab's own names are fine while saying they're GitLab's, never as the button to click.
+    const misnamed = text.filter(
+      (line) =>
+        OTHER_TOOLS_CONFLICT_LABELS.some((label) =>
+          line.toLowerCase().includes(label.toLowerCase())
+        ) && !line.includes('GitLab')
+    )
+    expect(misnamed).toEqual([])
+
+    const labels: string[] = [...Object.values(CONFLICT_CHOICE_LABELS), COMMIT_RESOLUTION_LABEL]
+    const named = text.flatMap((line) =>
+      [...line.matchAll(/\*\*((?:Keep|Commit to) [^*]+)\*\*/g)].map((match) => match[1])
+    )
+    expect(named.length).toBeGreaterThan(0)
+    for (const label of named) expect(labels, label).toContain(label)
   })
 })

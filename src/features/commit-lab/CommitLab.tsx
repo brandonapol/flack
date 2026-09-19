@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 
+import { CONFLICT_CHOICE_LABELS } from '../../content/buttonLabels'
 import {
   shapeOf,
   type LabConflict,
@@ -354,13 +355,13 @@ function ConflictCallout({
       </dl>
       <div className={styles.choices}>
         <button type="button" className={styles.action} onClick={() => onChoose('mine')}>
-          Keep mine
+          {CONFLICT_CHOICE_LABELS.ours}
         </button>
         <button type="button" className={styles.action} onClick={() => onChoose('theirs')}>
-          Keep theirs
+          {CONFLICT_CHOICE_LABELS.theirs}
         </button>
         <button type="button" className={styles.action} onClick={() => onChoose('both')}>
-          Keep both
+          {CONFLICT_CHOICE_LABELS.both}
         </button>
       </div>
       <p className={styles.markers}>

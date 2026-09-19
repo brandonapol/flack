@@ -1,5 +1,6 @@
 import { useState } from 'react'
 
+import { COMMIT_RESOLUTION_LABEL, CONFLICT_CHOICE_LABELS } from '../../content/buttonLabels'
 import {
   renderMarkers,
   resolveConflict,
@@ -10,11 +11,9 @@ import type { PullRequest } from '../../engine/git/pullRequests'
 import { useGame } from '../../store'
 import styles from './GitNub.module.css'
 
-const CHOICES: Array<{ choice: ConflictChoice; label: string }> = [
-  { choice: 'ours', label: 'Keep mine' },
-  { choice: 'theirs', label: 'Keep theirs' },
-  { choice: 'both', label: 'Keep both' },
-]
+const CHOICES: Array<{ choice: ConflictChoice; label: string }> = (
+  ['ours', 'theirs', 'both'] as const
+).map((choice) => ({ choice, label: CONFLICT_CHOICE_LABELS[choice] }))
 
 /**
  * GitNub's conflict banner and resolver: for each file, pick mine, theirs or both, see what the
@@ -80,7 +79,7 @@ export function ConflictResolver({
         disabled={!ready}
         onClick={() => dispatch({ type: 'resolveConflicts', slug, number: pr.number, choices })}
       >
-        Commit to source branch
+        {COMMIT_RESOLUTION_LABEL}
       </button>
     </div>
   )
