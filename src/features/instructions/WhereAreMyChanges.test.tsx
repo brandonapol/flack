@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createGameConfig } from '../../content'
@@ -20,7 +20,7 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-function setup() {
+function setup({ finished = false } = {}) {
   // Chapter 2 starts with a fresh clone, which is when the strip first appears.
   const store = createGameStore({
     config: createGameConfig(),
@@ -29,7 +29,7 @@ function setup() {
   })
   render(
     <GameStoreProvider store={store}>
-      <WhereAreMyChanges />
+      <WhereAreMyChanges finished={finished} />
     </GameStoreProvider>
   )
   act(() => {
@@ -141,6 +141,33 @@ describe('Where are my changes?', () => {
     // Tokens are gone once they've arrived.
     act(() => void vi.advanceTimersByTime(1500))
     expect(tokens('pr')).toBe(0)
+  })
+
+  it('once the chapter is done, new commits on main are for next time, not a missed step', () => {
+    for (const finished of [false, true]) {
+      const store = setup({ finished })
+      act(() =>
+        store.getState().dispatch({
+          type: 'applyEffect',
+          effect: {
+            type: 'remoteCommit',
+            slug: SLUG,
+            author: 'sam',
+            message: 'Fix a typo',
+            edits: [{ kind: 'appendLine', path: 'docs/welcome.md', text: 'Hello.' }],
+          },
+        })
+      )
+      const main = screen.getByRole('button', { name: /^GitNub main/ })
+      if (finished) {
+        expect(main).toHaveTextContent('1 new commit · pull next time')
+        expect(main.className).not.toMatch(/active/)
+      } else {
+        expect(main).toHaveTextContent('1 new commit for you')
+        expect(main.className).toMatch(/active/)
+      }
+      cleanup()
+    }
   })
 
   it('explains a box and what moves changes on, when clicked', () => {

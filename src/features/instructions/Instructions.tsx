@@ -210,7 +210,14 @@ export function Instructions() {
         )}
 
         {/* From Chapter 2 on, once there's a repository to look into. */}
-        {number >= 3 && <WhereAreMyChanges />}
+        {number >= 3 && (
+          <WhereAreMyChanges
+            finished={
+              story.phase !== 'playing' ||
+              chapter.steps.slice(story.stepIndex).every((candidate) => candidate.optional)
+            }
+          />
+        )}
       </div>
 
       <footer className={styles.footer}>
