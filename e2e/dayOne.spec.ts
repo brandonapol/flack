@@ -66,13 +66,10 @@ async function chapter3UpToAdd(page: Page) {
 }
 
 async function chapter3FromCommit(page: Page) {
-  // The first commit fails: Git doesn't know who you are yet.
-  await run(page, `git commit -m "Add ${NAME} to the team list"`)
-  await expect(page.getByRole('log', { name: 'Terminal output' })).toContainText(
-    'Author identity unknown'
-  )
+  // Git is told who you are before the first commit, as a step of its own.
   await run(page, `git config --global user.name "${NAME}"`)
   await run(page, 'git config --global user.email "ada@inkwell.example"')
+  await expectDone(page, 'Tell Git who you are')
   await run(page, `git commit -m "Add ${NAME} to the team list"`)
   await run(page, `git push -u origin ${BRANCH}`)
 

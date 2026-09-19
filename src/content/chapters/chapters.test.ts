@@ -71,8 +71,6 @@ function playDayOne(): { state: GameState; traces: Record<string, string[]> } {
   runChapter('03-pull-request', (current) => [
     cmd('git switch -c ada-team-list'),
     cmd('git add team.md'),
-    // The first commit fails: Git doesn't know who you are yet.
-    cmd(`git commit -m "Add ${NAME} to the team list"`),
     cmd(`git config --global user.name "${current.player.name}"`),
     cmd('git config --global user.email "ada@inkwell.example"'),
     cmd(`git commit -m "Add ${NAME} to the team list"`),
@@ -242,6 +240,7 @@ describe('Chapter 3: Save it to GitNub', () => {
     expect(traces['03-pull-request']).toEqual([
       'branch',
       'add',
+      'identity',
       'commit',
       'push',
       'open-pr',
@@ -257,7 +256,7 @@ describe('Chapter 3: Save it to GitNub', () => {
     expect(remote.branches['ada-team-list']).toBeUndefined()
   })
 
-  it('the first commit fails until Git knows who you are, and Robin helps', () => {
+  it('sets up who you are before the first commit; committing first gets the real error and Robin', () => {
     const { state: afterChapter2 } = playChapter(config, '02-sign-the-list', [])
     const signed = play(config, afterChapter2, [
       { type: 'openFile', path: 'team.md' },
@@ -274,18 +273,18 @@ describe('Chapter 3: Save it to GitNub', () => {
     expect(stuck.shell.output.map((line) => line.text)).toContain('Author identity unknown')
     const help = stuck.flack.messages.at(-1)!
     expect(help.from).toBe('robin')
-    expect(help.text).toContain('git config --global user.name "Ada Lovelace"')
+    expect(help.text).toContain('exactly this step')
 
     const unstuck = play(config, stuck, [
       cmd('git config --global user.name "Ada Lovelace"'),
       cmd('git config --global user.email "ada@inkwell.example"'),
       cmd('git commit -m "Add Ada Lovelace to the team list"'),
     ])
-    expect(unstuck.story.completedSteps).toContain('commit')
+    expect(unstuck.story.completedSteps).toEqual(['branch', 'add', 'identity', 'commit'])
     // Robin only says it once.
-    expect(
-      unstuck.flack.messages.filter((m) => m.text.includes('classic first-commit'))
-    ).toHaveLength(1)
+    expect(unstuck.flack.messages.filter((m) => m.text.includes('exactly this step'))).toHaveLength(
+      1
+    )
   })
 
   it('can be jumped to directly (?chapter=03): cloned, with a name already saved', () => {
@@ -300,6 +299,7 @@ describe('Chapter 3: Save it to GitNub', () => {
     expect(trace).toEqual([
       'branch',
       'add',
+      'identity',
       'commit',
       'push',
       'open-pr',
@@ -837,7 +837,7 @@ describe('Show me', () => {
               .filter((command) => command !== undefined)
           ),
         ]
-        const shown = [step.solution].flat().map(gitCommand)
+        const shown = [...new Set([step.solution].flat().map(gitCommand))]
         expect(
           shown.filter((command) => asked.includes(command!)),
           `${chapter.id} / ${step.id}`

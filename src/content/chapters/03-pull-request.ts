@@ -88,6 +88,40 @@ export const pullRequestChapter: Chapter = {
       docs: [DOCS.gitAdd, DOCS.recordingChanges],
     },
     {
+      id: 'identity',
+      title: 'Tell Git who you are',
+      body: 'Every commit is signed with a name and an email, and Git on a new computer doesn’t know yours yet. Run these two once and Git remembers them from then on:\n\n`git config --global user.name "{{player.name}}"`\n\n`git config --global user.email "{{player.email}}"`',
+      hints: [
+        'Two commands, one after the other. Keep the quotes around your name.',
+        'Skip this on a new computer and your first `git commit` stops with “Author identity unknown”, which is Git asking the same thing.',
+      ],
+      solution: [
+        'git config --global user.name "{{player.name}}"',
+        'git config --global user.email "{{player.email}}"',
+      ],
+      // Already set (a restart, or they ran it earlier)? Then it's done as soon as they get here.
+      goal: (state, event) =>
+        (event.type === 'command' || event.type === 'stepEntered') &&
+        Boolean(state.git.config.userName && state.git.config.userEmail),
+      afterNote:
+        '`git config --global` settings apply to every repository on this computer, so you only do this once per machine.',
+      docs: [DOCS.firstTimeSetup],
+      reactions: [
+        {
+          id: 'identity-first',
+          when: (state, event) => tried(event, 'git', 'commit') && !state.git.config.userName,
+          effects: [
+            {
+              type: 'flackMessage',
+              channel: 'dm-robin',
+              from: 'robin',
+              text: 'That “Author identity unknown” is Git asking who you are, which is exactly this step. Run the two `git config` lines from the instructions, then commit.',
+            },
+          ],
+        },
+      ],
+    },
+    {
       id: 'commit',
       title: 'Commit it',
       body: 'Run `git commit -m "Add {{player.name}} to the team list"`. A **commit** is a save point in the history, with a message saying what it’s for.',
@@ -100,21 +134,6 @@ export const pullRequestChapter: Chapter = {
       afterNote:
         'That commit lives on your branch, on your computer. `git log --oneline` lists it if you want to look.',
       docs: [DOCS.gitCommit],
-      reactions: [
-        {
-          id: 'identity',
-          when: (state, event) => tried(event, 'git', 'commit') && !state.git.config.userName,
-          effects: [
-            {
-              type: 'flackMessage',
-              channel: 'dm-robin',
-              from: 'robin',
-              text: 'Ah, the classic first-commit greeting! 😄 Git doesn’t know who you are yet. Run these two once and it’ll never ask again:\n\n`git config --global user.name "{{player.name}}"`\n\n`git config --global user.email "{{player.email}}"`\n\nThen run your commit again.',
-            },
-            { type: 'openTab', tab: 'flack', delayMs: 300 },
-          ],
-        },
-      ],
     },
     {
       id: 'push',
