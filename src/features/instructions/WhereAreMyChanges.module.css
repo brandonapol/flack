@@ -8,8 +8,22 @@
   --row: 50px;
 }
 
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
 .title {
-  margin: 0 0 8px;
+  margin: 0;
   font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -17,8 +31,15 @@
   color: var(--text-muted);
 }
 
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
 .boxes {
-  margin: 0;
+  margin: 8px 0 0;
   padding: 0;
   list-style: none;
 }

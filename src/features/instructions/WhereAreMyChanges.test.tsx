@@ -36,6 +36,8 @@ function setup({ finished = false } = {}) {
     run(store, 'git config --global user.name "Ada Lovelace"')
     run(store, 'git config --global user.email ada@inkwell.example')
   })
+  // The panel is collapsed by default; most tests want the boxes visible.
+  act(() => void fireEvent.click(screen.getByRole('button', { name: /Where are my changes\?/ })))
   return store
 }
 
@@ -62,6 +64,39 @@ const tokens = (from: string) => document.querySelectorAll(`[data-from="${from}"
 const flush = () => act(() => void vi.advanceTimersByTime(1))
 
 describe('Where are my changes?', () => {
+  it('starts collapsed, expands on demand, and flags itself when something moved', () => {
+    const store = createGameStore({
+      config: createGameConfig(),
+      storage: noStorage,
+      search: '?chapter=02',
+    })
+    render(
+      <GameStoreProvider store={store}>
+        <WhereAreMyChanges />
+      </GameStoreProvider>
+    )
+    act(() => {
+      run(store, 'git config --global user.name "Ada Lovelace"')
+      run(store, 'git config --global user.email ada@inkwell.example')
+    })
+
+    const toggle = screen.getByRole('button', { name: /Where are my changes\?/ })
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByRole('button', { name: /^Staged/ })).not.toBeInTheDocument()
+    // Nothing has happened yet, so no dot.
+    expect(screen.queryByTestId('wamc-dot')).not.toBeInTheDocument()
+    // The full sentence is still announced to screen readers while collapsed.
+    expect(said()).toMatch(/^On main:/)
+
+    append(store, '- Ada')
+    expect(screen.getByTestId('wamc-dot')).toBeInTheDocument()
+
+    act(() => void fireEvent.click(toggle))
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByRole('button', { name: /^Staged/ })).toBeInTheDocument()
+    expect(screen.queryByTestId('wamc-dot')).not.toBeInTheDocument()
+  })
+
   it('follows a change from the editor all the way to GitNub’s main and back', () => {
     const store = setup()
     expect(said()).toBe(
