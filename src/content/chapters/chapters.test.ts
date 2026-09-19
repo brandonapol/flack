@@ -316,6 +316,32 @@ describe('Chapter 3: Save it to GitNub', () => {
     ).toContain('- You')
   })
 
+  it('only git pull finishes the pull step; catching up another way gets a word from Robin', () => {
+    const upToMain = [
+      cmd('git config --global user.name "Ada Lovelace"'),
+      cmd('git config --global user.email "ada@inkwell.example"'),
+      cmd('git switch -c ada-team-list'),
+      cmd('git add team.md'),
+      cmd('git commit -m "Add me to the team list"'),
+      ...CHAPTER_3_AFTER_COMMIT.slice(0, -1),
+    ]
+    const another = playChapter(config, '03-pull-request', [
+      ...upToMain,
+      cmd('git fetch'),
+      cmd('git merge origin/main'),
+    ])
+    expect(another.trace).not.toContain('pull')
+    expect(another.state.flack.messages.at(-1)!.text).toContain('Run `git pull` now')
+
+    const pulled = playChapter(config, '03-pull-request', [
+      ...upToMain,
+      cmd('git fetch'),
+      cmd('git merge origin/main'),
+      cmd('git pull'),
+    ])
+    expect(pulled.trace.at(-1)).toBe('pull')
+  })
+
   it('squash-merging leaves one new commit on main, by the learner', () => {
     const { state } = playDayOne()
     const remote = state.git.remotes[DOCS_SITE]
