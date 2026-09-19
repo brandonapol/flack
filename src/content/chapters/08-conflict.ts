@@ -175,11 +175,11 @@ export const conflictChapter: Chapter = {
     },
     {
       id: 'resolve',
-      title: 'Keep both, and mark it resolved',
+      title: 'Keep both, and commit it',
       body: 'Back on your merge request: under `docs/style-guide.md`, choose **Keep both**, then **Commit to source branch**.',
       hints: [
         'The conflict banner lists the file with three buttons: Keep mine, Keep theirs, Keep both.',
-        'Pick **Keep both** — the preview shows both tips — then **Mark as resolved**.',
+        'Pick **Keep both** — the preview shows both tips — then **Commit to source branch**.',
       ],
       goal: (state, event) => event.type === 'conflictsResolved' && keptBoth(state, event.number),
       afterNote:

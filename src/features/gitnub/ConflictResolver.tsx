@@ -18,7 +18,7 @@ const CHOICES: Array<{ choice: ConflictChoice; label: string }> = [
 
 /**
  * GitNub's conflict banner and resolver: for each file, pick mine, theirs or both, see what the
- * file will say, then mark it resolved. Nobody edits conflict markers by hand.
+ * file will say, then commit the result to the source branch. Nobody edits conflict markers by hand.
  */
 export function ConflictResolver({
   slug,
