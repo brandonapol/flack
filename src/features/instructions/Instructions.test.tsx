@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { createGameConfig } from '../../content'
 import { toyConfig } from '../../engine/story/__fixtures__/toyChapter'
 import { createGameStore, GameStoreProvider, type GameStore, type StorageLike } from '../../store'
 import { Instructions } from './Instructions'
@@ -200,5 +201,36 @@ describe('glossary terms', () => {
     expect(screen.getAllByRole('listitem')[1]).toHaveTextContent('(skipped)')
     expect(screen.getAllByRole('listitem')[2]).toHaveTextContent('(current step)')
     expect(screen.queryByRole('button', { name: 'Skip this step' })).not.toBeInTheDocument()
+  })
+})
+
+describe('Where are my changes?, from Chapter 3 on', () => {
+  function setupChapter(search: string) {
+    const store = createGameStore({ config: createGameConfig(), storage: noStorage, search })
+    render(
+      <GameStoreProvider store={store}>
+        <MemoryRouter>
+          <Instructions />
+        </MemoryRouter>
+      </GameStoreProvider>
+    )
+    click(screen.getByRole('button', { name: /Where are my changes\?/ }))
+  }
+
+  it('Chapter 3 (the first git status) only shows working/staged/commits', () => {
+    setupChapter('?chapter=02')
+    expect(screen.getByText('Chapter 3 of 9')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Working files/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^My commits/ })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Open MR/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^GitNub main/ })).not.toBeInTheDocument()
+  })
+
+  it('Chapter 4 on (push and merge requests) shows the full picture', () => {
+    setupChapter('?chapter=03')
+    expect(screen.getByText('Chapter 4 of 9')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Working files/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Open MR/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^GitNub main/ })).toBeInTheDocument()
   })
 })

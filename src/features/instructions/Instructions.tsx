@@ -209,9 +209,12 @@ export function Instructions() {
           )
         )}
 
-        {/* From Chapter 2 on, once there's a repository to look into. */}
+        {/* From Chapter 3 on, once there's a repository to look into. Chapter 3 itself (the
+            first `git status`) only knows about working/staged/commits — push and merge
+            requests arrive in Chapter 4. */}
         {number >= 3 && (
           <WhereAreMyChanges
+            boxes={number === 3 ? ['working', 'staged', 'commits'] : undefined}
             finished={
               story.phase !== 'playing' ||
               chapter.steps.slice(story.stepIndex).every((candidate) => candidate.optional)
