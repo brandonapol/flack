@@ -53,10 +53,19 @@ export function registerShellCommands<S extends CoreState>(
         ['git diff', 'See exactly which lines changed', !hasRepo],
         ['git add <file>', 'Pick changes for your next commit', !hasRepo],
         ['git commit -m "…"', 'Save the picked changes as a commit', !hasRepo],
-        ['git log --oneline', 'List recent commits', !hasRepo],
+        ['git log --oneline', 'List recent commits on your branch', !hasRepo],
+        [
+          'git log --oneline origin/main',
+          'List commits on GitNub’s main (after a fetch)',
+          !hasRepo,
+        ],
         ['git switch -c <name>', 'Start a new branch', !hasRepo],
-        ['git push', 'Send your commits to GitNub', !hasRepo],
-        ['git pull', 'Bring in what’s new on GitNub', !hasRepo],
+        ['git switch main', 'Go back to main', !hasRepo],
+        ['git push -u origin <name>', 'Send a new branch to GitNub the first time', !hasRepo],
+        ['git push', 'Send more commits after that', !hasRepo],
+        ['git fetch', 'See what’s new on GitNub, without changing your files', !hasRepo],
+        ['git merge origin/main', 'Bring what you fetched into your branch', !hasRepo],
+        ['git pull', 'Fetch and merge in one go', !hasRepo],
         ['git config', 'Tell Git your name and email'],
       ]
       const available = gitRows.filter(([usage]) => git.has(usage.split(' ')[1]))
@@ -77,7 +86,16 @@ export function registerShellCommands<S extends CoreState>(
               !editorUnlocked(state),
             ],
           ]),
-          ...(available.length > 0 ? helpGroup('Git', available) : []),
+          ...(available.length > 0
+            ? [
+                ...helpGroup('Git', available).slice(0, -1),
+                line(
+                  '  origin is GitNub’s copy of the repo. -u makes Git remember where your branch goes, so a plain git push or git pull works after that.',
+                  'muted'
+                ),
+                line(),
+              ]
+            : []),
           ...helpGroup('Getting unstuck', [
             ['hint', 'Show a hint for the step you’re on'],
             ['clear', 'Clear the screen (or press Ctrl+L)'],
