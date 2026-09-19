@@ -98,8 +98,18 @@ function movesBetween(before: ChangesSummary, after: ChangesSummary): Array<Omit
  *
  * `finished`: nothing required is left in the chapter. New commits on GitNub's `main` are then
  * something to pull when you next start work, not a step you've missed.
+ *
+ * `boxes`: which boxes to show, in `ORDER`. Before push and merge requests exist (Chapter 3's
+ * first `git status`), only `working`/`staged`/`commits` apply — the other two would just read
+ * "none" and add noise to a mental model that's still being introduced.
  */
-export function WhereAreMyChanges({ finished = false }: { finished?: boolean }) {
+export function WhereAreMyChanges({
+  finished = false,
+  boxes = ORDER,
+}: {
+  finished?: boolean
+  boxes?: Box[]
+}) {
   const game = useGame((s) => s.game)
   const summary = useMemo(() => summarizeChanges(game), [game])
   const [panelOpen, setPanelOpen] = useState(false)
@@ -128,12 +138,15 @@ export function WhereAreMyChanges({ finished = false }: { finished?: boolean }) 
 
   if (!summary) return null
 
-  const anyActive =
-    summary.working > 0 ||
-    summary.staged > 0 ||
-    summary.commits > 0 ||
-    Boolean(summary.pr || summary.pushedWithoutPr) ||
-    (summary.behind > 0 && !finished)
+  const activeFlags: Record<Box, boolean> = {
+    working: summary.working > 0,
+    staged: summary.staged > 0,
+    commits: summary.commits > 0,
+    pr: Boolean(summary.pr || summary.pushedWithoutPr),
+    main: summary.behind > 0 && !finished,
+  }
+  const shownBoxes = BOXES.filter((box) => boxes.includes(box.id))
+  const anyActive = boxes.some((id) => activeFlags[id])
 
   return (
     <section className={styles.panel} aria-labelledby="where-title">
@@ -157,14 +170,9 @@ export function WhereAreMyChanges({ finished = false }: { finished?: boolean }) 
       {panelOpen && (
         <>
           <ol className={styles.boxes}>
-            {BOXES.map((box, index) => {
+            {shownBoxes.map((box, index) => {
               const value = valueOf(box.id, summary, finished)
-              const active =
-                (box.id === 'working' && summary.working > 0) ||
-                (box.id === 'staged' && summary.staged > 0) ||
-                (box.id === 'commits' && summary.commits > 0) ||
-                (box.id === 'pr' && Boolean(summary.pr || summary.pushedWithoutPr)) ||
-                (box.id === 'main' && summary.behind > 0 && !finished)
+              const active = activeFlags[box.id]
               return (
                 <li key={box.id} className={styles.box} data-box={box.id}>
                   <button
@@ -182,7 +190,7 @@ export function WhereAreMyChanges({ finished = false }: { finished?: boolean }) 
                       <Markdown source={box.next} />
                     </div>
                   )}
-                  {index < BOXES.length - 1 && (
+                  {index < shownBoxes.length - 1 && (
                     <span className={styles.arrow} aria-hidden="true">
                       ↓
                     </span>

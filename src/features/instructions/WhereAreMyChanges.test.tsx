@@ -214,4 +214,26 @@ describe('Where are my changes?', () => {
     expect(screen.getByText(/picked for your next commit/)).toBeInTheDocument()
     expect(screen.getByText(/Next:/)).toHaveTextContent('git commit -m "What I changed"')
   })
+
+  it('before push and merge requests exist, only shows working/staged/commits', () => {
+    const store = createGameStore({
+      config: createGameConfig(),
+      storage: noStorage,
+      search: '?chapter=02',
+    })
+    render(
+      <GameStoreProvider store={store}>
+        <WhereAreMyChanges boxes={['working', 'staged', 'commits']} />
+      </GameStoreProvider>
+    )
+    act(() => void fireEvent.click(screen.getByRole('button', { name: /Where are my changes\?/ })))
+
+    expect(screen.getByRole('button', { name: /^Working files/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Staged/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^My commits/ })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Open MR/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^GitNub main/ })).not.toBeInTheDocument()
+    // The sentence for screen readers still tells the whole story, boxes or not.
+    expect(said()).toMatch(/^On main:/)
+  })
 })
