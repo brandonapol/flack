@@ -320,6 +320,16 @@ describe('resolving a conflict on GitNub', () => {
     expect(screen.getByText(/<<<<<<< ada-team-list/)).toHaveTextContent('>>>>>>> main')
   })
 
+  it('says whose version each side is, on which branch, and what each button keeps', () => {
+    conflicted()
+    expect(screen.getByText(/^Mine:/)).toHaveTextContent('Mine: your version, on ada-team-list')
+    expect(screen.getByText(/^Theirs:/)).toHaveTextContent('Theirs: Sam Rivera’s version, on main')
+    const choices = screen.getByRole('group', { name: 'Resolve team.md' })
+    expect(choices).toHaveAccessibleDescription(
+      'Keep mine keeps your version from ada-team-list. Keep theirs keeps Sam Rivera’s version from main. Keep both keeps the two, yours first.'
+    )
+  })
+
   it('Commit to source branch merges main in with the choice, and Undo takes it back', () => {
     const { store, pr } = conflicted()
     click(screen.getByRole('button', { name: 'Keep theirs' }))

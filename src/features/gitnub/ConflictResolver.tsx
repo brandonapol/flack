@@ -8,12 +8,25 @@ import {
   type ConflictedFile,
 } from '../../engine/git/merge'
 import type { PullRequest } from '../../engine/git/pullRequests'
+import { log, reachable } from '../../engine/git/repo'
+import type { CommitMap } from '../../engine/git/types'
 import { useGame } from '../../store'
 import styles from './GitNub.module.css'
 
 const CHOICES: Array<{ choice: ConflictChoice; label: string }> = (
   ['ours', 'theirs', 'both'] as const
 ).map((choice) => ({ choice, label: CONFLICT_CHOICE_LABELS[choice] }))
+
+/** Who last changed `path` on `tip`'s side since it split from `other`: the name on the commit. */
+function changedBy(commits: CommitMap, tip: string, other: string, path: string) {
+  const shared = reachable(commits, other)
+  for (const commit of log(commits, tip)) {
+    if (shared.has(commit.id)) continue
+    const before = commit.parents[0] ? commits[commit.parents[0]]?.tree[path] : undefined
+    if (commit.tree[path] !== before) return commit.author.name
+  }
+  return undefined
+}
 
 /**
  * GitNub's conflict banner and resolver: for each file, pick mine, theirs or both, see what the
@@ -30,6 +43,7 @@ export function ConflictResolver({
 }) {
   const dispatch = useGame((s) => s.dispatch)
   const hasLab = useGame((s) => Boolean(s.config.labScenarios?.['pr-conflict']))
+  const remote = useGame((s) => s.game.git.remotes[slug])
   const [choices, setChoices] = useState<Record<string, ConflictChoice>>({})
   const ready = conflicts.every((file) => choices[file.path])
 
@@ -68,6 +82,15 @@ export function ConflictResolver({
           file={file}
           base={pr.base}
           branch={pr.branch}
+          theirAuthor={
+            remote &&
+            changedBy(
+              remote.commits,
+              remote.branches[pr.base],
+              remote.branches[pr.branch] ?? remote.branches[pr.base],
+              file.path
+            )
+          }
           choice={choices[file.path]}
           onChoose={(choice) => setChoices((current) => ({ ...current, [file.path]: choice }))}
         />
@@ -89,16 +112,21 @@ function ConflictFile({
   file,
   base,
   branch,
+  theirAuthor,
   choice,
   onChoose,
 }: {
   file: ConflictedFile
   base: string
   branch: string
+  /** Whose change on the target branch this conflicts with, when we can tell. */
+  theirAuthor?: string
   choice?: ConflictChoice
   onChoose: (choice: ConflictChoice) => void
 }) {
   const heading = `conflict-${file.path.replace(/\W/g, '-')}`
+  const legend = `${heading}-legend`
+  const theirs = theirAuthor ? `${theirAuthor}’s version` : 'their version'
   return (
     <section className={styles.conflictFile} aria-labelledby={heading}>
       <h3 id={heading} className={styles.conflictPath}>
@@ -107,17 +135,26 @@ function ConflictFile({
       {file.hunks.map((hunk, index) => (
         <div key={index} className={styles.conflictSides}>
           <div>
-            <p className={styles.sideLabel}>Mine ({branch})</p>
+            <p className={styles.sideLabel}>
+              Mine: your version, on <code>{branch}</code>
+            </p>
             <pre className={styles.sideText}>{hunk.ours.join('\n') || '(deleted)'}</pre>
           </div>
           <div>
-            <p className={styles.sideLabel}>Theirs ({base})</p>
+            <p className={styles.sideLabel}>
+              Theirs: {theirs}, on <code>{base}</code>
+            </p>
             <pre className={styles.sideText}>{hunk.theirs.join('\n') || '(deleted)'}</pre>
           </div>
         </div>
       ))}
 
-      <div className={styles.choiceRow} role="group" aria-label={`Resolve ${file.path}`}>
+      <div
+        className={styles.choiceRow}
+        role="group"
+        aria-label={`Resolve ${file.path}`}
+        aria-describedby={legend}
+      >
         {CHOICES.map((option) => (
           <button
             key={option.choice}
@@ -130,6 +167,11 @@ function ConflictFile({
           </button>
         ))}
       </div>
+      <p id={legend} className={styles.muted}>
+        <strong>{CONFLICT_CHOICE_LABELS.ours}</strong> keeps your version from <code>{branch}</code>
+        . <strong>{CONFLICT_CHOICE_LABELS.theirs}</strong> keeps {theirs} from <code>{base}</code>.{' '}
+        <strong>{CONFLICT_CHOICE_LABELS.both}</strong> keeps the two, yours first.
+      </p>
 
       {choice && <Preview file={file} base={base} choice={choice} />}
 
