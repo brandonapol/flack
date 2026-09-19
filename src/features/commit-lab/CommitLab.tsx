@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } f
 
 import { CONFLICT_CHOICE_LABELS } from '../../content/buttonLabels'
 import {
+  node,
   shapeOf,
   type LabConflict,
   type LabGraph,
@@ -31,7 +32,7 @@ interface Pending {
   conflict: LabConflict
 }
 
-const DRAG_THRESHOLD = 4
+const DRAG_THRESHOLD = 8
 
 function Lab({ scenario }: { scenario: LabScenario }) {
   const dispatch = useGame((s) => s.dispatch)
@@ -147,7 +148,11 @@ function Lab({ scenario }: { scenario: LabScenario }) {
       ?.closest<SVGElement>('[data-node-id]')
     // Dropped near a commit rather than exactly on its circle still counts.
     const dropped = hit?.dataset.nodeId ?? nearestTo(event)
-    if (!dropped || dropped === source) return
+    if (!dropped || dropped === source) {
+      // A wobbly click, not a drag: let the click that follows pick the commit up.
+      dragged.current = false
+      return
+    }
     openMenu(source, dropped)
   }
 
@@ -206,12 +211,19 @@ function Lab({ scenario }: { scenario: LabScenario }) {
       <div className={styles.intro}>
         <Markdown source={scenario.intro} />
         <p className={styles.how}>
-          Drag a commit onto another — or select one with Enter, then another — and pick what should
-          happen. Nothing here can go wrong: Undo and Reset are always there.
+          Drag a commit onto another. Or click it (or press Enter) to pick it up, then click the
+          commit where it should go. Click it again, or press Esc, to put it down. Nothing here can
+          go wrong: Undo and Reset are always there.
         </p>
       </div>
 
       <div className={styles.canvas}>
+        {selected && !target && !pending && (
+          <p className={styles.picked}>
+            Picked up <strong>“{node(graph, selected).label}”</strong> on{' '}
+            {node(graph, selected).lane}. Now click the commit where it should go.
+          </p>
+        )}
         <GraphView
           graph={graph}
           label="Commit graph"

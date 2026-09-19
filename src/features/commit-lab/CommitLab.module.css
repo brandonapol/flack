@@ -86,34 +86,63 @@
   cursor: grab;
 }
 
-.node circle {
+.node .dot {
   fill: var(--accent);
   stroke: var(--surface);
   stroke-width: 3;
 }
 
-.node.main circle {
+.node.main .dot {
   fill: var(--text-muted);
 }
 
 /* Rebased and cherry-picked commits are new copies: a lighter shade of the same colour. */
-.node.copy circle {
+.node.copy .dot {
   fill: #748ffc;
 }
 
-.node.selected circle,
-.node:focus-visible circle {
+.hit {
+  fill: transparent;
+}
+
+/* The ring round a commit: dashed while it has keyboard focus, solid and thick once picked up. */
+.ring {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 3;
+  pointer-events: none;
+}
+
+.node:focus-visible .ring {
+  stroke: var(--focus);
+  stroke-dasharray: 4 3;
+}
+
+.node.selected .ring {
   stroke: var(--focus);
   stroke-width: 4;
+  stroke-dasharray: none;
+}
+
+.node.selected .dot {
+  stroke: var(--focus);
 }
 
 .node:focus {
   outline: none;
 }
 
-.node.target circle {
+.node.target .ring {
   stroke: var(--success);
   stroke-width: 4;
+  stroke-dasharray: none;
+}
+
+.picked {
+  margin: 0 0 8px;
+  padding: 6px 10px;
+  border-left: 3px solid var(--focus);
+  font-size: 0.875rem;
 }
 
 .node.dragging {
