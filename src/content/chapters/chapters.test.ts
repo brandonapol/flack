@@ -797,3 +797,26 @@ describe('Bonus: Oops, undoing things', () => {
     expect(state.flack.messages.at(-1)!.text).toContain('run `git add .` anyway')
   })
 })
+
+describe('Show me', () => {
+  it('covers every git command a step’s text asks for, in order', () => {
+    const gitCommand = (text: string) => /^git [a-z-]+/.exec(text)?.[0]
+    for (const chapter of config.chapters) {
+      for (const step of chapter.steps) {
+        if (!step.solution) continue
+        const asked = [
+          ...new Set(
+            [...step.body.matchAll(/`([^`]+)`/g)]
+              .map((match) => gitCommand(match[1]))
+              .filter((command) => command !== undefined)
+          ),
+        ]
+        const shown = [step.solution].flat().map(gitCommand)
+        expect(
+          shown.filter((command) => asked.includes(command!)),
+          `${chapter.id} / ${step.id}`
+        ).toEqual(asked)
+      }
+    }
+  })
+})

@@ -147,7 +147,9 @@ export function Instructions() {
               {story.solutionShown && step.solution && (
                 <div className={styles.solution}>
                   <p className={styles.solutionLabel}>Do this:</p>
-                  <InstructionsText source={'`' + fill(step.solution) + '`'} />
+                  {[step.solution].flat().map((command) => (
+                    <InstructionsText key={command} source={'`' + fill(command) + '`'} />
+                  ))}
                 </div>
               )}
 

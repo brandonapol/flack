@@ -56,7 +56,7 @@ export default function Editor() {
   // before (or after) the story needs it. Between chapters there's no step, and anything goes.
   const readOnly = Boolean(path && step && !(step.editableFiles ?? []).includes(path))
   // The step says `open team.md`? Then that's the file to offer when nothing is open yet.
-  const suggested = /^open (\S+)$/.exec(step?.solution ?? '')?.[1]
+  const suggested = /^open (\S+)$/.exec([step?.solution ?? ''].flat()[0])?.[1]
   const offer = !path && suggested && exists(suggested) ? suggested : undefined
 
   const save = () => {

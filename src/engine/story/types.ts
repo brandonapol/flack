@@ -72,8 +72,8 @@ export interface Step {
   goal: (state: GameState, event: GameEvent) => boolean
   /** Shown one at a time, in order. */
   hints: string[]
-  /** "Show me": the exact command or action. */
-  solution?: string
+  /** "Show me": the exact command or action, or every command in order when a step needs several. */
+  solution?: string | string[]
   /** "What just happened", shown after the step completes. */
   afterNote?: string
   docs?: DocsLink[]
