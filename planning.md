@@ -11,12 +11,33 @@ source of truth those issues point back to; when it and an issue disagree,
 this document wins and the issue should be updated to match.
 
 > **Revision note (this pass):** the real-world workflow changed from
-> trunk-based (commit straight to `main`) to **short-lived branch + PR,
-> squash-merge**, and the plan for teaching merge/rebase/squash/cherry-pick
+> trunk-based (commit straight to `main`) to **short-lived branch + merge
+> request, squash-merge**, and the plan for teaching merge/rebase/squash/cherry-pick
 > changed from "type the commands" to "drag commits around a small graph and
 > watch what happens." Conflicts are now **shown**, not hand-resolved with
 > markers. See **How this maps to the issues** at the end for exactly what
 > that moved.
+
+## Vocabulary
+
+Learner-facing text uses GitLab's words, because that's what writers use at
+work (#38, #77). Chapters, hints, Robin and the cheat sheet must name the
+button a learner clicks by its label in Flack; `content.test.ts` checks this
+(#120).
+
+| Say                                                 | Not                             |
+| --------------------------------------------------- | ------------------------------- |
+| merge request, MR, `!4`                             | pull request, PR, `#4`          |
+| **Create merge request**                            | Compare & pull request          |
+| **Merge** with **Squash commits** on                | Squash and merge                |
+| **Delete source branch**                            | Delete branch                   |
+| **Rebase** (when the source branch must be rebased) | Update branch                   |
+| target branch                                       | base branch                     |
+| **Keep mine** / **Keep theirs** / **Keep both**     | Use ours / Use theirs / Accept… |
+| **Commit to source branch**                         | Mark as resolved                |
+
+GitNub keeps its name; it stands in for GitLab (#116). "PR" in this document
+means only a pull request against the Flack repo itself, on GitHub.
 
 ## Tech stack
 
@@ -59,10 +80,10 @@ into and returned from, not a place you live.
 (the real one, with a short prior history), `inkwell/website` and
 `inkwell/old-wiki` (decoys). Characters: **Jordan Lee** (manager, welcomes
 you), **Robin Okafor** (the friendly mentor you DM), **Sam Rivera** and
-**Alex Chen** (coworkers whose scripted commits/PRs create the lessons).
+**Alex Chen** (coworkers whose scripted commits/MRs create the lessons).
 
 Glossary and mentor FAQ content are unchanged in shape (see #19, #17) but gain
-entries for branch, pull request, squash merge, rebase (concept), cherry-pick
+entries for branch, merge request, squash merge, rebase (concept), cherry-pick
 (concept), and "what does a conflict mean" — see **Content additions** below.
 
 ## The fake Git model
@@ -73,20 +94,21 @@ Same core types as before (`FileTree`, `Commit`, `RemoteRepo`, `LocalRepo`,
 (fast-forward case in M1; 3-way merge case in M2), `getStatus`,
 `diffWorking`/`diffStaged`, `log`.
 
-**New for the branch+PR workflow:**
+**New for the branch + merge request workflow:**
 
 - Local and remote **branches**: `git switch -c <name>`, `git switch <name>`,
   branch name shown in the prompt.
 - `git push -u origin <branch>` for a feature branch (not `main`).
 - A `PullRequest` type on the remote: `{ id, branch, title, status: 'open' |
 'needs-update' | 'has-conflicts' | 'merged', reviewer, comments }`.
-- **Squash merge**: on "merge," the PR's commits collapse into a single new
+- **Squash merge**: on **Merge**, the MR's commits collapse into a single new
   commit on `main` with one composed message — the model needs a
   `squashMerge(remote, pr) → newCommit` operation distinct from the old
-  2-parent `merge` used for Chapter 5's "someone else's PR landed while you
+  2-parent `merge` used for Chapter 5's "someone else's MR landed while you
   were working" case.
-- **"Update branch"**: GitNub's real button (mirrors GitHub's own) that
-  rebases (default) or merges the PR branch onto the current tip of `main`.
+- **Rebase**: GitNub's button (mirrors GitLab's own) on a merge request whose
+  source branch must be rebased; it replays the branch onto the current tip
+  of `main`.
   This is the one place a rebase actually happens to the learner's own repo,
   and it's a click, not a typed command.
 
@@ -114,7 +136,7 @@ removed; switching branches is now a Day-one command). `git switch main`.
 --continue`/`--abort`. They exist as background flavor ("in real Git this is
 called `git rebase`") inside Commit Lab captions, and Ask Robin can mention
 the real syntax for people who want it, but no chapter goal requires typing
-them. The GitNub "Update branch" button covers the one live rebase.
+them. GitNub's **Rebase** button covers the one live rebase.
 
 ## The story engine
 
@@ -167,26 +189,27 @@ Commit Lab.
 
 ### GitNub
 
-Extends #15 with a **pull request page**, reusing most of what #35 already
-scoped as "Later": after a feature-branch push, a "Compare & pull request"
-banner appears; the PR page shows title, description, files changed,
+Extends #15 with a **merge request page**, reusing most of what #35 already
+scoped as "Later": after a feature-branch push, a **Create merge request**
+banner appears; the MR page shows title, description, files changed,
 Jordan/Robin's review (approves after a short delay), and:
 
-- **Squash and merge** button (the default, recommended path) → collapses
-  the branch's commits into one on `main`, offers "Delete branch."
-- **Update branch** button, shown when `main` has moved since the branch was
-  created — real rebase (or merge, GitNub's own default is configurable),
-  visualized as a small before/after graph inline on the PR page.
-- A **conflict banner** ("This branch has conflicts with the base branch")
-  when the 3-way check fails, with a "See what's conflicting →" link that
-  opens the Commit Lab pre-loaded with this PR's two branches, plus a
-  simplified **Accept mine / Accept theirs / Keep both** choice once they've
-  understood why — still a click, not a hand-edited file.
+- **Merge** button with **Squash commits** on (the default, recommended
+  path) → collapses the branch's commits into one on `main`, with **Delete
+  source branch** ticked.
+- **Rebase** button, shown when `main` has moved since the branch was
+  created — a real rebase, visualized as a small before/after graph inline
+  on the MR page.
+- A **Resolve conflicts** section ("Merge blocked: merge conflicts must be
+  resolved") when the 3-way check fails, with a **See what's conflicting →**
+  button that opens the Commit Lab pre-loaded with this MR's two branches,
+  plus **Keep mine / Keep theirs / Keep both** per file, then **Commit to
+  source branch** — still a click, not a hand-edited file.
 
 ### Flack
 
 Unchanged (#16, #17): channels, DMs, scripted messages with quick replies,
-typing indicator, Ask Robin FAQ dropdown. FAQ gains entries for branches, PRs,
+typing indicator, Ask Robin FAQ dropdown. FAQ gains entries for branches, MRs,
 squash merge, and "what's a rebase, really" that all deep-link into opening
 the Commit Lab in its free-play mode.
 
@@ -194,7 +217,7 @@ the Commit Lab in its free-play mode.
 
 Unchanged shape (#18): chapter checklist, hints, "show me," docs links,
 glossary tooltips, "Where are my changes?" diagram (#31) — that diagram
-grows a fourth box for **Open PR** between "My commits" and "GitNub main."
+grows a fourth box for **Open MR** between "My commits" and "GitNub main."
 
 ### Commit Lab (new)
 
@@ -255,48 +278,50 @@ learner to remember flag names.
   in Ch 3 once there's something to commit.
 - **Ch 3 — Save it to GitNub** _(changed)_: `git switch -c <name>-team-list`
   → `git add` → `git commit -m` (identity gotcha kept, still a great
-  teaching moment) → `git push -u origin <branch>` → GitNub shows "Compare &
-  pull request" → open the PR → Jordan/Robin approve after a short delay →
-  **Squash and merge** → "Delete branch" → back in the terminal, `git switch
+  teaching moment) → `git push -u origin <branch>` → GitNub shows **Create merge
+  request** → open the MR → Jordan/Robin approve after a short delay →
+  **Merge** (Squash commits on, **Delete source branch** ticked) → back in
+  the terminal, `git switch
 main` → `git pull`. Ends with the learner's line showing up on `main` as
   one clean commit.
 - **Ch 4 — Someone else changed it**: unchanged shape (#23) — Sam's change
-  lands via the same branch+PR+squash path (scripted), learner pulls `main`
-  and sees it. Reinforces that everyone, including Sam, uses PRs.
+  lands via the same branch + MR + squash path (scripted), learner pulls
+  `main` and sees it. Reinforces that everyone, including Sam, uses MRs.
 - **End of M1**: completion screen + cheat sheet, now headed **"The daily
-  loop: branch, commit, push, PR, squash-merge"** instead of the old
+  loop: branch, commit, push, MR, squash-merge"** instead of the old
   trunk-based loop (#24).
 
 ### M2 — Keeping in sync & the shape of history
 
 - **Ch 5 — Look before you leap**: unchanged (#28) — `git fetch` /
   `git status` behind / fast-forward merge on `main`. Still needed: `main`
-  moves whenever any PR merges, so checking before you start a new branch
+  moves whenever any MR merges, so checking before you start a new branch
   still matters.
-- **Ch 6 — Two PRs, one file** _(changed from "Both of you changed
-  things")_: the learner opens a PR; while it's waiting for review, Alex's
-  PR (touching a different part of the same file) gets squash-merged first.
-  GitNub shows **"This branch is out of date with the base branch"** on the
-  learner's PR. Steps: notice the banner → click **Update branch** → GitNub
+- **Ch 6 — Two MRs, one file** _(changed from "Both of you changed
+  things")_: the learner opens an MR; while it's waiting for review, Alex's
+  MR (touching a different part of the same file) gets squash-merged first.
+  GitNub shows **"Merge blocked: the source branch must be rebased onto the
+  target branch"** on the learner's MR. Steps: notice the banner → click
+  **Rebase** → GitNub
   shows a small before/after graph (this _is_ a rebase, named as such) →
   push is already done for them (the button does it) → merge. If Alex's
-  change happens to touch the same lines (bonus/harder variant), the PR
+  change happens to touch the same lines (bonus/harder variant), the MR
   instead shows the conflict banner → **See what's conflicting →** opens
-  Commit Lab guided mode → back on GitNub, resolve via Keep mine/theirs/both
-  → merge.
+  Commit Lab guided mode → back on GitNub, resolve via Keep mine/theirs/both →
+  **Commit to source branch** → merge.
 - **Ch 7 — A tidier history** _(now mostly conceptual)_: Commit Lab guided
-  mode, free of any specific PR — starting graph has a messy branch with 4
+  mode, free of any specific MR — starting graph has a messy branch with 4
   small "wip" commits; goal is to reach a target graph two ways: (a) squash
   them into one, or (b) rebase them onto a moved `main` to keep history
-  linear. Caption ties it back to the **Update branch** button they already
+  linear. Caption ties it back to the **Rebase** button they already
   used in Ch 6. No terminal commands in this chapter.
 - **Ch 8 — Two people, one spot** _(soft conflict, revised)_: same
   low-stakes setup as before (#41 — everyone adds a tip to `docs/style-guide.md`)
-  but the conflict now surfaces as GitNub's PR conflict banner rather than a
+  but the conflict now surfaces as GitNub's MR conflict banner rather than a
   local `git merge` conflict; resolution is Keep mine/theirs/**both** on the
-  PR page (both is the right answer here, same as before), informed by a
+  MR page (both is the right answer here, same as before), informed by a
   first trip through Commit Lab's conflict callout. Graduation screen at the
-  end of M2, cheat sheet v2 gains "When your PR says it has conflicts" in a
+  end of M2, cheat sheet v2 gains "When your merge request says it has conflicts" in a
   few clicks (no markers).
 - **Optional bonus — Cherry-pick**: Commit Lab free play, "Sam made one
   useful fix on an otherwise messy branch — copy just that commit to `main`
@@ -308,15 +333,15 @@ main` → `git pull`. Ends with the learner's line showing up on `main` as
   `git restore --staged`, `git commit --amend`), all local-only and CLI, no
   overlap with the new plan.
 - **Rebase conflicts mid-drag** — if we ever want a "harder" Commit Lab
-  challenge where the drag itself produces a conflict callout (not just PR
+  challenge where the drag itself produces a conflict callout (not just MR
   merges), it's a small extension of the same component, not a new system.
 
 ## Content style guide
 
 Unchanged (#19): they/them or names for characters, ≤30-word glossary
 definitions, one canonical docs-links map, no real brand marks for GitNub/Flack.
-Add to the glossary: **branch**, **pull request (PR)**, **squash merge**,
-**base branch**, **rebase** (plain-language: "replaying your changes on top
+Add to the glossary: **branch**, **merge request (MR)**, **squash merge**,
+**target branch**, **rebase** (plain-language: "replaying your changes on top
 of newer work"), **cherry-pick** ("copying one specific change to another
 branch").
 
@@ -347,18 +372,17 @@ Unchanged (#25): GitHub Pages, `vite base: '/flack/'`, deploy on push to
 ## Open questions (updated)
 
 - [x] Hosting: GitHub Pages — decided (#38).
-- [x] **Real workflow: short-lived branch + PR, squash-merge (recommended).**
+- [x] **Real workflow: short-lived branch + merge request, squash-merge (recommended).**
       Supersedes the earlier trunk-based decision in #38.
 - [x] **Conflicts and rebase/merge/squash/cherry-pick: taught visually via
       the Commit Lab, concept-first.** Actual hands-on rebase is limited to
-      GitNub's "Update branch" button; conflicts are shown and chosen
+      GitNub's **Rebase** button; conflicts are shown and chosen
       between (mine/theirs/both), never hand-edited with markers.
 - [x] **Tools: Git Bash** — decided 2026-09-18 (#38). The terminal looks like
       Git Bash (#78), and tips lead with Ctrl shortcuts.
 - [x] **Code host: GitLab** — decided 2026-09-18 (#38). "GitNub" keeps its name
       but speaks GitLab (#77): merge requests (`!4`), **Create merge request**,
-      **Merge** with **Squash commits** on, **Rebase** for an MR that's behind
-      (GitHub's "Update branch" above), **Resolve conflicts** →
+      **Merge** with **Squash commits** on, **Rebase** for an MR that's behind, **Resolve conflicts** →
       **Commit to source branch**, and GitLab docs links. Squash commits read
       `Title` + `See merge request inkwell/docs-site!4`.
       Learner-facing naming (#116): in-game text says **GitNub** everywhere,
@@ -377,18 +401,18 @@ The issue tracker has been brought in line with this revision. What moved:
 
 | Issue   | Was                                      | Now                                                            |
 | ------- | ---------------------------------------- | -------------------------------------------------------------- |
-| **#38** | workflow: trunk-based                    | workflow: branch + PR + squash-merge; concepts taught visually |
+| **#38** | workflow: trunk-based                    | workflow: branch + MR + squash-merge; concepts taught visually |
 | **#35** | branches & PRs, "Later, only if adopted" | **M1** engine work: branches, `switch`, feature-branch push    |
-| **#43** | —                                        | **new** — GitNub PR page, squash merge, Update branch button   |
+| **#43** | —                                        | **new** — GitNub MR page, squash merge, Rebase button          |
 | **#40** | Editor conflict mode (markers)           | **Commit Lab** — drag-and-drop commit graph                    |
 | **#36** | merge conflicts: engine + terminal       | scoped down to the shared 3-way conflict **detection**         |
 | **#42** | conflicts during a CLI rebase            | **closed** — superseded by #40 and #43                         |
-| **#22** | Ch 3: add, commit, push to `main`        | Ch 3: branch, commit, push, PR, squash-merge                   |
-| **#29** | Ch 6: push rejected, divergent pull      | Ch 6: out-of-date branch → **Update branch**                   |
+| **#22** | Ch 3: add, commit, push to `main`        | Ch 3: branch, commit, push, MR, squash-merge                   |
+| **#29** | Ch 6: push rejected, divergent pull      | Ch 6: out-of-date branch → **Rebase**                          |
 | **#30** | Ch 7: `git rebase` in the terminal       | Ch 7: Commit Lab guided — squash & rebase, no terminal         |
-| **#41** | Ch 8: local conflict, edit the markers   | Ch 8: PR conflict → Commit Lab → **Keep both**                 |
+| **#41** | Ch 8: local conflict, edit the markers   | Ch 8: MR conflict → Commit Lab → **Keep both**                 |
 | **#11** | `git switch` stubbed "we're trunk-based" | stub removed; `git switch` is real, implemented in #35         |
-| **#31** | four-box "Where are my changes?"         | five boxes — **Open PR** added                                 |
+| **#31** | four-box "Where are my changes?"         | five boxes — **Open MR** added                                 |
 
 Smaller amendments live as comments on #13, #14, #15, #17, #19, #23, #24, #26
 and #33. Unaffected and proceeding as written: #1–#10, #12, #16, #18, #20,
@@ -399,7 +423,8 @@ use it** — it's a dependency of Ch 7 and Ch 8, not a garnish.
 
 ## Working on this across sessions
 
-Definition of done for any PR against this plan: lint, typecheck, unit tests,
+Definition of done for any PR against this plan (a GitHub pull request on
+the Flack repo itself): lint, typecheck, unit tests,
 and build all pass in CI (#2). Chapter and engine issues should link back to
 the specific section of this document they implement, the way the existing
 issues already do — please keep that convention for any new issues filed off
