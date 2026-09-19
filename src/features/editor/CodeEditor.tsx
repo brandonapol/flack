@@ -26,7 +26,10 @@ const theme = EditorView.theme({
 export function CodeEditor({ path, value, readOnly, onChange }: CodeEditorProps) {
   const extensions = useMemo(
     () => [
-      markdown(),
+      // Without Markdown's keymap: its Enter adds a `- ` of its own on list lines (so typing
+      // `- Name` gave `- - Name`) and its Backspace strips list markers from lines already there.
+      // Writers adding a line expect plain Enter and Backspace.
+      markdown({ addKeymap: false }),
       EditorView.lineWrapping,
       theme,
       EditorView.contentAttributes.of({ 'aria-label': `Editing ${path}` }),
