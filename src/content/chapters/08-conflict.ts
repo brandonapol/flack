@@ -263,7 +263,7 @@ export const conflictChapter: Chapter = {
       ],
     },
   ],
-  mentorQuestions: ['mr-has-conflicts', 'what-are-markers', 'i-broke-it'],
+  mentorQuestions: ['mr-has-conflicts', 'what-are-markers', 'what-is-cherry-pick', 'i-broke-it'],
   summary: [
     'A **conflict** means two changes touched the same lines. Nothing is broken; someone just chooses.',
     'On GitNub you pick **Keep mine**, **Keep theirs** or **Keep both** — for lists, usually both.',

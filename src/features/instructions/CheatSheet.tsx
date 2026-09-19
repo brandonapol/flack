@@ -181,6 +181,11 @@ export function CheatSheet() {
             </section>
             <section className={styles.next}>
               <h2 className={styles.alsoTitle}>Where to go next</h2>
+              <p>
+                <strong>Cherry-pick</strong> copies one commit onto another branch. Try it back in
+                Flack: <strong>Ask Robin</strong> → “What’s cherry-picking?” →{' '}
+                <strong>Try it in the Commit Lab</strong>.
+              </p>
               <ul>
                 {NEXT.map((link) => (
                   <li key={link.href}>

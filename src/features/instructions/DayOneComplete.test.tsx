@@ -130,6 +130,20 @@ describe('the end of Keeping in sync', () => {
     ).toBeInTheDocument()
   })
 
+  it('points at cherry-picking, and opens the Commit Lab for it', () => {
+    const config = createGameConfig()
+    const last = config.chapters
+      .filter((chapter) => chapter.milestone === 'keeping-in-sync')
+      .at(-1)!
+    const store = setupFinished(config, last)
+    expect(last.mentorQuestions).toContain('what-is-cherry-pick')
+    const card = screen.getByRole('region', { name: 'You’ve graduated' })
+    expect(card).toHaveTextContent('Want to try cherry-picking?')
+    act(() => within(card).getByRole('button', { name: 'Try it in the Commit Lab' }).click())
+    expect(store.getState().game.ui.commitLab?.scenario).toBe('sandbox')
+    expect(store.getState().game.story.chapterId).toBe(last.id)
+  })
+
   it('ends the bonus chapter with its own card, not Keep going', () => {
     const config = createGameConfig()
     setupFinished(
