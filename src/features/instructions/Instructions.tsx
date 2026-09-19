@@ -6,6 +6,7 @@ import { interpolate } from '../../engine/story/template'
 import { useGame } from '../../store'
 import { LabFigureView } from '../commit-lab'
 import { Markdown } from '../shared/Markdown'
+import { ConceptDiagramView } from './conceptDiagrams'
 import { ConfirmButton } from './ConfirmButton'
 import { DayOneComplete } from './DayOneComplete'
 import { Graduation } from './Graduation'
@@ -136,6 +137,7 @@ export function Instructions() {
               <h2 className={styles.cardTitle}>{fill(step.title)}</h2>
               <InstructionsText source={fill(step.body)} />
               {step.figure && <LabFigureView figure={step.figure} />}
+              {step.conceptDiagram && <ConceptDiagramView id={step.conceptDiagram} />}
 
               {shownHints.map((hint, index) => (
                 <div key={index} className={styles.hint}>

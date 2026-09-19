@@ -63,6 +63,9 @@ export interface DocsLink {
   href: string
 }
 
+/** A concept diagram registered in `conceptDiagrams.tsx`, keyed for reuse from a step or glossary. */
+export type ConceptDiagramId = 'fetch-vs-pull'
+
 export interface Step {
   id: string
   /** Checklist label. */
@@ -80,6 +83,8 @@ export interface Step {
   optional?: boolean
   /** A picture under the step's text. */
   figure?: LabFigure
+  /** A concept diagram under the step's text — a mental model, not a commit graph. */
+  conceptDiagram?: ConceptDiagramId
   /**
    * Repo files the learner may edit during this step. Everything else opens read-only, so nobody
    * wanders into an unscripted change. Omit to allow editing any file.

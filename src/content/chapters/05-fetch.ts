@@ -45,6 +45,7 @@ export const fetchChapter: Chapter = {
       afterNote:
         '`origin/main` just moved. It’s your computer’s **memory of GitNub**: what `main` looked like there the last time you checked. Your own `main` hasn’t moved.',
       docs: [DOCS.gitFetch],
+      conceptDiagram: 'fetch-vs-pull',
       onEnter: [
         {
           type: 'remoteCommit',
