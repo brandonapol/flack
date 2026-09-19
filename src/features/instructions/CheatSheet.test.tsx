@@ -98,6 +98,9 @@ describe('cheat sheet', () => {
     expect(when).toHaveTextContent('Edit inline to keep both')
     expect(when).toHaveTextContent('Commit to source branch')
     expect(screen.getByRole('link', { name: 'Rebasing' })).toBeInTheDocument()
+    expect(screen.getByText(/copies one commit onto another branch/)).toHaveTextContent(
+      'Ask Robin → “What’s cherry-picking?” → Try it in the Commit Lab'
+    )
     expect(screen.queryByText('You’ll also hear about…')).not.toBeInTheDocument()
   })
 })

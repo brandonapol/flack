@@ -77,6 +77,19 @@ export function Graduation() {
         </>
       )}
 
+      <h3 className={styles.subTitle}>Want to try cherry-picking?</h3>
+      <p>
+        Copying one commit onto another branch, without the rest of its branch: “just that one fix,
+        please”. You won’t need it every day, but it’s nice to have seen it.
+      </p>
+      <button
+        type="button"
+        className={styles.action}
+        onClick={() => dispatch({ type: 'openCommitLab', scenario: 'sandbox' })}
+      >
+        Try it in the Commit Lab
+      </button>
+
       <h3 className={styles.subTitle}>Where to go next</h3>
       <ul className={styles.summary}>
         {NEXT.map((link) => (
