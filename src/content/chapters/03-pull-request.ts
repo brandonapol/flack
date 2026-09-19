@@ -3,7 +3,7 @@ import type { Chapter, GameConfig } from '../../engine/story/types'
 import type { GameState } from '../../engine/game'
 import { DOCS } from '../docsLinks'
 import { DOCS_SITE } from '../world'
-import { local, ran, staged, tried } from './helpers'
+import { docsSite, local, ran, staged, tried } from './helpers'
 
 /** Has the current branch got a commit that `main` hasn't? */
 function committedOnBranch(state: GameState): boolean {
@@ -11,6 +11,14 @@ function committedOnBranch(state: GameState): boolean {
   if (!repo || repo.head === 'main') return false
   const tip = repo.branches[repo.head]
   return tip !== repo.branches.main && !isAncestor(repo.commits, tip, repo.branches.main)
+}
+
+/** On `main`, and it's where GitNub's is. */
+function caughtUp(state: GameState): boolean {
+  const repo = local(state)
+  return Boolean(
+    repo && repo.head === 'main' && repo.branches.main === docsSite(state).branches.main
+  )
 }
 
 /** Jumping straight here (`?chapter=03`): where Chapter 2 leaves off — cloned, name saved. */
@@ -189,11 +197,23 @@ export const pullRequestChapter: Chapter = {
       body: 'Your copy of `main` doesn’t have the merge yet. Run `git pull` to bring it down.',
       hints: ['Type `git pull` and press Enter.'],
       solution: 'git pull',
-      goal: (state) => {
-        const repo = local(state)
-        const remote = state.git.remotes[DOCS_SITE]
-        return Boolean(repo && repo.head === 'main' && repo.branches.main === remote.branches.main)
-      },
+      // The lesson is `git pull`, so only a pull counts, not any other way of catching up.
+      goal: (state, event) => ran(event, 'git', 'pull') && caughtUp(state),
+      reactions: [
+        {
+          id: 'caught-up-another-way',
+          when: (state, event) =>
+            event.type === 'command' && !ran(event, 'git', 'pull') && caughtUp(state),
+          effects: [
+            {
+              type: 'flackMessage',
+              channel: 'dm-robin',
+              from: 'robin',
+              text: 'That caught you up too! `git pull` does it in one go, and it’s the one you’ll use every day. Run `git pull` now; it’ll say you’re already up to date.',
+            },
+          ],
+        },
+      ],
       afterNote:
         'Your copy and GitNub’s match again. Branch → commit → push → merge request → squash merge → pull: that’s the loop, and you’ve done it once now.',
       docs: [DOCS.gitPull],
