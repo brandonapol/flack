@@ -202,6 +202,19 @@ describe('Commit Lab', () => {
     expect(screen.getByText('That’s the shape.')).toBeInTheDocument()
   })
 
+  it('the bonus round also completes by rebasing onto Alex’s and picking one', () => {
+    const { dispatch } = setup('bonus-reword')
+    const completions = () =>
+      dispatch.mock.calls.filter(([action]) => action.type === 'completeCommitLab')
+    const [alex, yours] = screen.getAllByRole('button', { name: /^Reword the voice sentence,/ })
+    press(yours)
+    press(alex)
+    click(screen.getByRole('button', { name: 'Rebase onto here' }))
+    click(screen.getByRole('button', { name: 'Keep mine' }))
+    expect(completions()).toHaveLength(1)
+    expect(screen.getByText('That’s the shape.')).toBeInTheDocument()
+  })
+
   it('free mode closes with “I get it”', () => {
     const { store } = setup()
     click(screen.getByRole('button', { name: 'I get it' }))

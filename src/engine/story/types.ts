@@ -147,8 +147,11 @@ export interface LabScenario {
   /** What to do, shown above the graph. Markdown. */
   intro: string
   start: LabGraph
-  /** Guided mode: finished once the graph has this shape. Without it, the lab is a sandbox. */
-  target?: LabGraph
+  /**
+   * Guided mode: finished once the graph has this shape, or any of them when there's more than one
+   * right answer. Without it, the lab is a sandbox.
+   */
+  target?: LabGraph | LabGraph[]
   /** The message a squash gets here, instead of the old messages joined. */
   squashLabel?: string
   /** Said after an operation, on top of its caption: why it is (or isn't) the one we're after. */

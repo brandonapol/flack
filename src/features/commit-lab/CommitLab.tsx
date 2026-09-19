@@ -60,10 +60,10 @@ function Lab({ scenario }: { scenario: LabScenario }) {
   useRestoreFocus()
   useEffect(() => heading.current?.focus(), [])
 
-  // Guided mode is done once the graph has the target's shape. Tell the story once.
+  // Guided mode is done once the graph has a target's shape. Tell the story once.
   const done = Boolean(
     scenario.target &&
-    shapeOf(graph) === shapeOf(scenario.target) &&
+    [scenario.target].flat().some((target) => shapeOf(graph) === shapeOf(target)) &&
     (!scenario.avoid || lastResolution !== scenario.avoid)
   )
   const completed = useRef(false)
